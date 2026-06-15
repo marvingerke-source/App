@@ -380,3 +380,55 @@ input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: none; b
 .onb .start-btn { background: #fff; color: var(--accent-2); padding: 17px; border-radius: var(--radius-m); font-size: 17px; font-weight: 800; box-shadow: var(--shadow-lg); }
 
 .spacer { height: 6px; }
+
+/* ---- Rezeptbuch ---------------------------------------------------------- */
+.searchbar { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow-sm); margin-bottom: 12px; }
+.searchbar svg { width: 19px; height: 19px; color: var(--text-3); flex: 0 0 19px; }
+.searchbar input { border: none; outline: none; background: none; font-size: 16px; color: var(--text); width: 100%; }
+.searchbar input::placeholder { color: var(--text-3); }
+
+.cat-scroll { display: flex; gap: 8px; overflow-x: auto; margin: 0 -18px 14px; padding: 2px 18px 6px; }
+.cat-scroll::-webkit-scrollbar { height: 0; }
+.cat-chip { flex: 0 0 auto; padding: 9px 15px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--card); color: var(--text-2); box-shadow: var(--shadow-sm); transition: all .15s var(--ease); white-space: nowrap; }
+.cat-chip.active { background: var(--accent-grad); color: #fff; box-shadow: var(--shadow-accent); }
+
+.recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.rcard { border-radius: var(--radius-m); overflow: hidden; box-shadow: var(--shadow-sm); background: var(--card); transition: transform .12s var(--ease); }
+.rcard:active { transform: scale(0.97); }
+.rcard .cover { height: 96px; display: grid; place-items: center; font-size: 46px; position: relative; }
+.rcard .cover .vtag { position: absolute; top: 8px; left: 8px; background: rgba(255,255,255,.9); color: #15803d; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 7px; }
+.rcard .cover .time { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.35); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; display: flex; align-items: center; gap: 4px; }
+.rcard .cover .time svg { width: 12px; height: 12px; }
+.rcard .body { padding: 11px 12px 13px; }
+.rcard .body .t { font-size: 14.5px; font-weight: 700; line-height: 1.2; }
+.rcard .body .m { font-size: 12px; color: var(--text-2); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+.rcard .body .m svg { width: 13px; height: 13px; }
+
+/* Rezept-Detail */
+.detail-cover { height: 168px; margin: -4px -18px 0; display: grid; place-items: center; font-size: 84px; position: relative; }
+.detail-cover .badges { position: absolute; bottom: 14px; left: 18px; display: flex; gap: 8px; }
+.detail-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 8px; }
+.meta-pill { display: flex; align-items: center; gap: 6px; background: var(--card); box-shadow: var(--shadow-sm); padding: 9px 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; }
+.meta-pill svg { width: 16px; height: 16px; color: var(--accent-2); }
+.detail-desc { color: var(--text-2); font-size: 14.5px; line-height: 1.5; margin: 10px 2px 4px; }
+
+.portion-bar { display: flex; align-items: center; justify-content: space-between; background: var(--card); border-radius: var(--radius-m); padding: 12px 16px; box-shadow: var(--shadow-sm); margin: 6px 0 12px; }
+.portion-bar .lbl { font-weight: 700; font-size: 15px; }
+
+.ing-row { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--hairline); }
+.ing-row:last-child { border-bottom: none; }
+.ing-row .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: 0 0 8px; }
+.ing-row .nm { flex: 1 1 auto; font-size: 15px; font-weight: 500; }
+.ing-row .qt { font-size: 14px; font-weight: 700; color: var(--text-2); }
+
+.step-row { display: flex; gap: 14px; padding: 12px 2px; align-items: flex-start; }
+.step-row .num { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-2); font-weight: 800; display: grid; place-items: center; font-size: 14px; }
+.step-row .txt { font-size: 14.5px; line-height: 1.5; padding-top: 4px; }
+
+.day-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.day-pick button { flex: 1 1 calc(14.2% - 8px); min-width: 40px; padding: 12px 0; border-radius: 12px; background: var(--card); box-shadow: var(--shadow-sm); font-weight: 800; font-size: 14px; transition: all .12s var(--ease); }
+.day-pick button:active { transform: scale(0.92); }
+.day-pick button.has { background: var(--accent-soft); color: var(--accent-2); }
+
+.zieltag-banner { display: flex; align-items: center; gap: 10px; background: var(--accent-soft); color: var(--accent-2); padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+.zieltag-banner svg { width: 18px; height: 18px; }

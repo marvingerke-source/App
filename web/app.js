@@ -2,7 +2,8 @@
 // UI-Steuerung: Router, Screens, Sheets, Animationen. Vanilla JS, kein Framework.
 // ============================================================================
 const app = document.getElementById("app");
-const ui = { tab: "home", sheet: null, sheetArg: null, scan: null, scrollTops: {} };
+const ui = { tab: "home", sheet: null, sheetArg: null, scan: null, scrollTops: {},
+  prevTab: "home", zielTag: null, rezeptFilter: "Alle", rezeptSuche: "", detailPortionen: 2 };
 
 // --------------------------- Render-Einstieg --------------------------------
 function render() {
@@ -21,6 +22,7 @@ function render() {
 function screenContent() {
   switch (ui.tab) {
     case "home": return screenHome();
+    case "rezepte": return screenRezepte();
     case "plan": return screenPlan();
     case "liste": return screenListe();
     case "ergebnis": return screenErgebnis();
@@ -63,14 +65,14 @@ function screenHome() {
 
     <div class="section-label">Schnellzugriff</div>
     <div class="qa-grid">
+      <button class="qa" data-act="openRezepte" data-arg="">
+        <div class="ic">${ICON.book}</div><div class="t">Rezepte entdecken</div><div class="d">${REZEPTE.length} Ideen</div></button>
       <button class="qa" data-act="tab" data-arg="plan">
         <div class="ic">${ICON.calendar}</div><div class="t">Woche planen</div><div class="d">Gerichte zuweisen</div></button>
       <button class="qa" data-act="openSheet" data-arg="import">
         <div class="ic">${ICON.scan}</div><div class="t">Prospekt scannen</div><div class="d">Angebote per KI</div></button>
       <button class="qa" data-act="openSheet" data-arg="maerkte">
         <div class="ic">${ICON.pin}</div><div class="t">Märkte</div><div class="d">${state.aktiveMaerkte.length} aktiv</div></button>
-      <button class="qa" data-act="openSheet" data-arg="vorgaben">
-        <div class="ic">${ICON.sliders}</div><div class="t">Vorgaben</div><div class="d">Budget · Bio · Läden</div></button>
     </div>
 
     <div class="section-label">Angebote der Woche <a data-act="openSheet" data-arg="import">Mehr</a></div>
@@ -90,6 +92,47 @@ function screenHome() {
     <button class="btn btn-primary" style="margin-top:18px" data-act="tab" data-arg="ergebnis">
       ${ICON.sparkle} Bestes Paket ansehen</button>
     <button class="btn-text" data-act="resetApp">Demo zurücksetzen</button>
+  </div>`;
+}
+
+// --------------------------- Screen: Rezeptbuch -----------------------------
+function rezepteGefiltert() {
+  const q = ui.rezeptSuche.trim().toLowerCase();
+  return REZEPTE.filter((r) => {
+    const k = ui.rezeptFilter;
+    const passtKat = k === "Alle" || (k === "Schnell" ? r.dauerMin <= 20 : (k === "Vegetarisch" ? r.veggie : r.kategorie === k));
+    if (!passtKat) return false;
+    if (!q) return true;
+    return r.name.toLowerCase().includes(q) || r.zutaten.some((z) => z.name.toLowerCase().includes(q));
+  });
+}
+
+function rezeptKarten() {
+  const liste = rezepteGefiltert();
+  if (!liste.length) return `<div class="empty" style="grid-column:1/-1"><div class="ic">${ICON.search}</div><h3>Nichts gefunden</h3><p>Probiere einen anderen Suchbegriff oder Filter.</p></div>`;
+  return liste.map((r) => `<div class="rcard" data-act="${ui.zielTag ? "quickAdd" : "openDetail"}" data-arg="${ui.zielTag ? ui.zielTag + "|" + r.id : r.id}">
+    <div class="cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
+      ${r.veggie ? `<span class="vtag">veggie</span>` : ""}
+      <span>${r.emoji}</span>
+      <span class="time">${ICON.clock} ${r.dauerMin}'</span>
+    </div>
+    <div class="body"><div class="t">${r.name}</div>
+      <div class="m">${ICON.fire} ${r.kcal} kcal · ${r.kategorie}</div></div>
+  </div>`).join("");
+}
+
+function screenRezepte() {
+  const chips = REZEPT_KATEGORIEN.map((k) =>
+    `<button class="cat-chip ${ui.rezeptFilter === k ? "active" : ""}" data-act="setFilter" data-arg="${k}">${k}</button>`).join("");
+  return `<div class="scroll fade-in">
+    <div class="header">
+      <button class="icon-btn" data-act="backFromRezepte">${ICON.back}</button>
+      <div style="flex:1;margin-left:4px"><div class="eyebrow">Rezeptbuch</div><h1>Entdecken</h1></div>
+    </div>
+    ${ui.zielTag ? `<div class="zieltag-banner">${ICON.calendar} Für ${ui.zielTag} – tippe ein Rezept zum Hinzufügen</div>` : ""}
+    <div class="searchbar">${ICON.search}<input id="rezept-suche" data-act="rezeptSuche" placeholder="Rezept oder Zutat suchen…" value="${ui.rezeptSuche}"></div>
+    <div class="cat-scroll">${chips}</div>
+    <div class="recipe-grid" id="rezept-results">${rezeptKarten()}</div>
   </div>`;
 }
 
@@ -115,7 +158,7 @@ function screenPlan() {
       <div class="day-badge ${i === HEUTE_INDEX ? "today" : ""}"><div class="d">${tag}</div><div class="n">${15 + i}</div></div>
       <div class="day-main">
         ${meals}
-        <button class="add-meal" data-act="openSheet" data-arg="rezept:${tag}">${ICON.plus} Gericht hinzufügen</button>
+        <button class="add-meal" data-act="openRezepte" data-arg="${tag}">${ICON.plus} Gericht hinzufügen</button>
       </div>
     </div>`;
   }).join("");
@@ -250,7 +293,7 @@ function tabbar() {
 function sheetMarkup() {
   if (!ui.sheet) return `<div class="backdrop" data-act="closeSheet"></div>`;
   let body = "";
-  if (ui.sheet === "rezept") body = sheetRezept(ui.sheetArg);
+  if (ui.sheet === "rezeptDetail") body = sheetRezeptDetail(ui.sheetArg);
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -262,13 +305,49 @@ function sheetHead(title) {
   return `<div class="sheet-head"><h2>${title}</h2><button class="x" data-act="closeSheet">${ICON.x}</button></div>`;
 }
 
-function sheetRezept(tag) {
-  const list = REZEPTE.map((r) => `<div class="recipe-row" data-act="pickRecipe" data-arg="${tag}|${r.id}">
-    <div class="emoji">${r.emoji}</div>
-    <div class="info"><div class="t">${r.name} ${r.veggie ? `<span class="tag bio">veggie</span>` : ""}</div>
-      <div class="m">${r.portionen} Portionen · ${r.dauerMin} min · ${r.zutaten.length} Zutaten</div></div>
-    <span style="color:var(--accent-2)">${ICON.plus}</span></div>`).join("");
-  return `${sheetHead(tag + ": Gericht wählen")}<div class="sheet-body">${list}</div>`;
+function sheetRezeptDetail(id) {
+  const r = rezept(id);
+  if (!r) return sheetHead("Rezept");
+  const p = ui.detailPortionen, faktor = p / r.portionen;
+  const zutaten = r.zutaten.map((z) => {
+    const m = z.menge * faktor;
+    const mStr = Number.isInteger(m) ? m : m.toFixed(m < 10 ? 1 : 0);
+    return `<div class="ing-row"><span class="dot"></span><span class="nm">${z.name}</span><span class="qt">${mStr} ${z.einheit}</span></div>`;
+  }).join("");
+  const schritte = r.schritte.map((s, i) => `<div class="step-row"><div class="num">${i + 1}</div><div class="txt">${s}</div></div>`).join("");
+  const dayChips = WOCHENTAGE.map((tag) => {
+    const hat = planEintraege(tag).some((e) => e.rezeptId === r.id);
+    return `<button class="${hat ? "has" : ""}" data-act="addToDay" data-arg="${tag}|${r.id}">${tag}</button>`;
+  }).join("");
+
+  return `<div class="sheet-head" style="position:absolute;right:0;left:0;z-index:2;background:transparent">
+      <span></span><button class="x" data-act="closeSheet" style="background:rgba(255,255,255,.85);color:#111">${ICON.x}</button></div>
+    <div class="sheet-body" style="padding-top:0">
+      <div class="detail-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}cc)">
+        <span>${r.emoji}</span>
+        <div class="badges">${r.veggie ? `<span class="tag bio">veggie</span>` : ""}<span class="tag" style="background:rgba(255,255,255,.85);color:#333">${r.kategorie}</span></div>
+      </div>
+      <h2 style="font-size:24px;font-weight:800;margin-top:14px">${r.name}</h2>
+      <div class="detail-meta">
+        <span class="meta-pill">${ICON.clock} ${r.dauerMin} min</span>
+        <span class="meta-pill">${ICON.fire} ${r.kcal} kcal</span>
+        <span class="meta-pill">${ICON.flame2} ${r.schwierigkeit}</span>
+      </div>
+      <p class="detail-desc">${r.beschreibung}</p>
+
+      <div class="portion-bar"><span class="lbl">Portionen</span>
+        <div class="stepper"><button data-act="detailPortion" data-arg="-1">−</button><span class="num">${p}</span><button data-act="detailPortion" data-arg="1">+</button></div></div>
+
+      <div class="section-label" style="margin-top:8px">Zutaten</div>
+      <div class="card">${zutaten}</div>
+
+      <div class="section-label">Zubereitung</div>
+      <div class="card">${schritte}</div>
+
+      <div class="section-label">Zum Wochenplan hinzufügen</div>
+      <div class="day-pick">${dayChips}</div>
+      <p style="color:var(--text-3);font-size:12.5px;text-align:center;margin-top:10px">Tippe einen Tag – grün = bereits geplant.</p>
+    </div>`;
 }
 
 function sheetVorgaben() {
@@ -399,14 +478,19 @@ app.addEventListener("click", (e) => {
 
   switch (act) {
     case "tab": ui.tab = arg; ui.scrollTops[arg] = 0; render(); break;
-    case "openSheet": {
-      if (arg.startsWith("rezept:")) { ui.sheet = "rezept"; ui.sheetArg = arg.slice(7); }
-      else { ui.sheet = arg; ui.sheetArg = null; }
-      ui.scan = null; render(); break;
-    }
+    case "openSheet": ui.sheet = arg; ui.sheetArg = null; ui.scan = null; render(); break;
     case "closeSheet": ui.sheet = null; ui.scan = null; render(); break;
     case "closeSheetBg": if (e.target.classList.contains("backdrop")) { ui.sheet = null; ui.scan = null; render(); } break;
     case "pickRecipe": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid); ui.sheet = null; render(); break; }
+    case "openRezepte":
+      if (ui.tab !== "rezepte") ui.prevTab = ui.tab;
+      ui.tab = "rezepte"; ui.zielTag = arg || null; ui.scrollTops["rezepte"] = 0; render(); break;
+    case "backFromRezepte": ui.tab = ui.zielTag ? "plan" : (ui.prevTab || "home"); ui.zielTag = null; render(); break;
+    case "setFilter": ui.rezeptFilter = arg; render(); break;
+    case "openDetail": { ui.detailPortionen = rezept(arg)?.portionen || 2; ui.sheet = "rezeptDetail"; ui.sheetArg = arg; render(); break; }
+    case "detailPortion": ui.detailPortionen = Math.max(1, ui.detailPortionen + (+arg)); render(); break;
+    case "addToDay": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, ui.detailPortionen); render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
+    case "quickAdd": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, rezept(rid)?.portionen); ui.tab = "plan"; ui.zielTag = null; render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
     case "removeMeal": { const [t, i] = arg.split("|"); rezeptEntfernen(t, +i); render(); break; }
     case "portion": { const [t, i, d] = arg.split("|"); portionenAendern(t, +i, +d); render(); break; }
     case "toggleVorrat": toggle("vorratAbgehakt", arg); render(); break;
@@ -431,6 +515,11 @@ app.addEventListener("input", (e) => {
     setVorgabe("budget", +e.target.value);
     const lbl = document.getElementById("budget-val");
     if (lbl) lbl.textContent = euro(+e.target.value);
+  }
+  if (e.target.dataset.act === "rezeptSuche") {
+    ui.rezeptSuche = e.target.value;
+    const box = document.getElementById("rezept-results");
+    if (box) box.innerHTML = rezeptKarten();
   }
 });
 app.addEventListener("change", (e) => {

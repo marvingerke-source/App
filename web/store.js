@@ -52,10 +52,10 @@ function planEintraege(tag) {
   const v = state.plan[tag];
   return Array.isArray(v) ? v : (v ? [v] : []);
 }
-function rezeptHinzufuegen(tag, rezeptId) {
+function rezeptHinzufuegen(tag, rezeptId, portionen) {
   const r = rezept(rezeptId); if (!r) return;
   const arr = planEintraege(tag);
-  arr.push({ rezeptId, portionen: r.portionen });
+  arr.push({ rezeptId, portionen: portionen || r.portionen });
   state.plan[tag] = arr; persist();
 }
 function rezeptEntfernen(tag, index) {
