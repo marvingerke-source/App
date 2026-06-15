@@ -1,0 +1,15 @@
+{
+  "appId": "com.smarteinkauf.app",
+  "appName": "Smarter Einkauf",
+  "webDir": "web",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "backgroundColor": "#10b981",
+      "showSpinner": false
+    }
+  }
+}

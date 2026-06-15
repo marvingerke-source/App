@@ -11,12 +11,15 @@ KI-gestützte Prospekt-Import ist Stufe 2.
 
 ## Inhalt
 
-| Ordner  | Was                                                                                  |
-|---------|--------------------------------------------------------------------------------------|
-| `web/`  | **Klickbarer Prototyp** (HTML/CSS/JS) der fünf Kern-Screens – ohne Mac lauffähig.    |
-| `ios/`  | **SwiftUI-Quellcode** der nativen App (zum Öffnen in Xcode auf einem Mac).           |
+| Ordner / Datei  | Was                                                                          |
+|-----------------|------------------------------------------------------------------------------|
+| `web/`          | **Die App** (HTML/CSS/JS) – Single Source of Truth, läuft im Browser & in der nativen Hülle. |
+| `ios/`          | **Capacitor-iOS-Projekt** (store-fähige native App). Bauen: siehe `BUILD-iOS.md`. |
+| `BUILD-iOS.md`  | Schritt-für-Schritt: store-fähige iOS-App auf dem Mac bauen.                  |
+| `ios-legacy/`   | Frühere reine SwiftUI-/WebView-Gerüste (nur Referenz, nicht mehr aktiv).      |
 
-Beide teilen dieselbe Logik (Bausteine A, C, D) und dieselben Beispieldaten.
+Die App läuft als **Capacitor-Hybrid**: derselbe Web-Code als eingebettete native
+iOS-App mit nativen Funktionen (Splash, Statusleiste, Haptik) – App-Store-tauglich.
 
 ## Web-Prototyp starten
 
