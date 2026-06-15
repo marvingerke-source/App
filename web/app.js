@@ -142,8 +142,9 @@ function rezeptKarten() {
   if (!liste.length) return `<div class="empty" style="grid-column:1/-1"><div class="ic">${ICON.search}</div><h3>Nichts gefunden</h3><p>Probiere einen anderen Suchbegriff oder Filter.</p></div>`;
   return liste.map((r) => `<div class="rcard" data-act="${ui.zielTag ? "quickAdd" : "openDetail"}" data-arg="${ui.zielTag ? ui.zielTag + "|" + r.id : r.id}">
     <div class="cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
+      <span class="cover-emoji">${r.emoji}</span>
+      ${coverImg(r, 600, 400)}
       ${dietBadge(r)}
-      <span>${r.emoji}</span>
       <span class="time">${ICON.clock} ${r.dauerMin}'</span>
     </div>
     <div class="body"><div class="t">${r.name}</div>
@@ -180,7 +181,7 @@ function screenPlan() {
       const r = rezept(e.rezeptId);
       if (!r) return "";
       return `<div class="meal-pill">
-        <span class="emoji">${r.emoji}</span>
+        <span class="thumb" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)"><span class="te">${r.emoji}</span>${coverImg(r, 120, 120)}</span>
         <div class="info"><div class="t">${r.name}</div><div class="m">${e.portionen} Portionen · ${r.dauerMin} min</div></div>
         <div class="stepper">
           <button data-act="portion" data-arg="${tag}|${idx}|-1">−</button>
@@ -359,7 +360,8 @@ function sheetRezeptDetail(id) {
       <span></span><button class="x" data-act="closeSheet" style="background:rgba(255,255,255,.85);color:#111">${ICON.x}</button></div>
     <div class="sheet-body" style="padding-top:0">
       <div class="detail-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}cc)">
-        <span>${r.emoji}</span>
+        <span class="cover-emoji">${r.emoji}</span>
+        ${coverImg(r, 800, 480)}
         <div class="badges">
           <span class="tag" style="background:rgba(255,255,255,.9);color:#333">${r.kategorie}</span>
           ${(r.diaet || []).map((d) => `<span class="tag" style="background:rgba(255,255,255,.9);color:#15803d">${d}</span>`).join("")}
@@ -492,6 +494,11 @@ function formatDatum(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 }
+
+// Echte Fotos via LoremFlickr (stabil pro Rezept), Farbverlauf+Emoji als Fallback.
+function lockId(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return h % 100000; }
+function bildUrl(r, w, h) { return `https://loremflickr.com/${w}/${h}/${BILDER[r.id] || "food"}?lock=${lockId(r.id)}`; }
+function coverImg(r, w, h) { return `<img class="cover-img" src="${bildUrl(r, w, h)}" alt="" loading="lazy" onerror="this.classList.add('img-hide')">`; }
 
 // Count-up-Animation für den Gesamtbetrag.
 function runEntryAnimations() {

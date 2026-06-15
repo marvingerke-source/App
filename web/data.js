@@ -368,6 +368,19 @@ const KOLLEKTIONEN = [
 // Filter-Chips (key).
 const REZEPT_KATEGORIEN = ["Alle", "Beliebt", "Saisonal", "Schnell", "Vegetarisch", "Vegan", "Keto", "LowCarb", "HighProtein", "Klassiker", "Pasta", "Familie", "Fisch", "Frühstück", "Budget"];
 
+// Bild-Stichwörter (englisch) je Rezept für den Foto-CDN. Echte Fotos via LoremFlickr.
+const BILDER = {
+  bolognese: "spaghetti", carbonara: "carbonara", pasta_pesto: "pesto", nudeln_tomate: "pasta",
+  thunfisch_pasta: "tuna", lasagne: "lasagna", kaesespaetzle: "spaetzle", risotto: "risotto",
+  gulasch: "goulash", haehnchen: "chickenrice", wraps: "burrito", pizza: "pizza", burger: "cheeseburger",
+  haehnchen_bowl: "ricebowl", curry: "curry", chili: "chili", linsen_dal: "dal", kichererbsen_curry: "chickpeas",
+  tofu_pfanne: "tofu", gemuesepfanne: "stirfry", kartoffelsuppe: "potatosoup", milchreis: "ricepudding",
+  zoodles: "zucchini", steak_brokkoli: "steak", lachs_spinat: "salmon", avocado_ei: "avocado",
+  caesar: "caesarsalad", omelette: "omelette", salat: "greeksalad", caprese: "caprese",
+  tomaten_gurken: "cucumbersalad", melonen_feta: "watermelon", gazpacho: "gazpacho", pancakes: "pancakes",
+  porridge: "porridge", quark_beeren: "berries", ruehrei: "scrambledeggs", lachs: "salmondish",
+};
+
 const ANGEBOTE = [
   { id: "a1", markt: "aldi", produktname: "Frisches Hackfleisch gemischt 500g", kategorie: "fleisch", preis: 3.49, normalpreis: 4.49, einheit: "500g", istBio: false, gueltigBis: "2026-06-21" },
   { id: "a2", markt: "rewe", produktname: "Bio-Hackfleisch Rind 400g", kategorie: "fleisch", preis: 4.99, normalpreis: 5.99, einheit: "400g", istBio: true, gueltigBis: "2026-06-21" },
