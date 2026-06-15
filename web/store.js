@@ -18,6 +18,8 @@ const defaults = () => ({
   eigeneRezepte: [],     // vom Nutzer angelegte Rezepte (mit Foto)
   bewertungen: {},       // rezeptId -> Sterne (1–5) des Nutzers
   bildCache: {},         // rezeptId -> echte Foto-URL (Pexels), gecacht
+  bildVersion: 0,        // zum Auffrischen des Foto-Caches bei besseren Stichwörtern
+  vorrat: [],            // Zutaten, die der Nutzer zu Hause hat (Kühlschrank)
   onboardingGesehen: false,
 });
 
@@ -61,6 +63,55 @@ function rezeptLoeschen(id) {
   delete state.bewertungen[id]; persist();
 }
 function bewertungSetzen(id, sterne) { state.bewertungen[id] = sterne; persist(); }
+
+// --- Kühlschrank / „Was kann ich kochen?" -----------------------------------
+function normTxt(s) { return String(s).toLowerCase().trim(); }
+function vorratToggle(name) {
+  const n = normTxt(name); if (!n) return;
+  const i = state.vorrat.indexOf(n);
+  if (i >= 0) state.vorrat.splice(i, 1); else state.vorrat.push(n);
+  persist();
+}
+function vorratHat(name) { return state.vorrat.includes(normTxt(name)); }
+
+// Ist eine Rezeptzutat durch den Vorrat gedeckt? (unscharf, wie das KI-Matching)
+function zutatGedeckt(zutatName) {
+  const n = normTxt(zutatName);
+  const stich = MATCH_STICHWOERTER[n] || [n];
+  return state.vorrat.some((v) =>
+    n.includes(v) || v.includes(n) || stich.some((s) => s.includes(v) || v.includes(s)));
+}
+
+// Rezepte nach Deckungsgrad durch den Vorrat.
+function kochbareRezepte() {
+  return alleRezepte().map((r) => {
+    const fehlend = r.zutaten.filter((z) => !zutatGedeckt(z.name)).map((z) => z.name);
+    const total = r.zutaten.length, have = total - fehlend.length;
+    return { r, have, total, fehlend, quote: total ? have / total : 0 };
+  }).filter((x) => x.have > 0)
+    .sort((a, b) => b.quote - a.quote || (b.r.rating || 0) - (a.r.rating || 0));
+}
+
+// Automatische Empfehlungen (saisonal + beliebt + Bewertung), ohne bereits Geplantes.
+function empfehlungen(n = 10) {
+  const saison = (() => { const m = new Date().getMonth() + 1; return m <= 2 || m === 12 ? "Winter" : m <= 5 ? "Frühling" : m <= 8 ? "Sommer" : "Herbst"; })();
+  const geplant = new Set(Object.values(state.plan).flat().map((e) => e.rezeptId));
+  const score = (r) => (r.saison || []).includes(saison) * 2 + (r.beliebt ? 1.5 : 0) + (r.rating || 0) / 2;
+  return alleRezepte().filter((r) => !geplant.has(r.id)).sort((a, b) => score(b) - score(a)).slice(0, n);
+}
+
+// Leere Wochentage automatisch mit abwechslungsreichen Vorschlägen füllen.
+function wochePlanenAuto() {
+  const vorschlaege = empfehlungen(20);
+  let i = 0;
+  for (const tag of WOCHENTAGE) {
+    if (planEintraege(tag).length) continue;
+    const r = vorschlaege[i++];
+    if (!r) break;
+    state.plan[tag] = [{ rezeptId: r.id, portionen: r.portionen }];
+  }
+  persist();
+}
 
 // Effektive Bewertung inkl. eigener Stimme.
 function effektiveBewertung(r) {

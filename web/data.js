@@ -368,17 +368,17 @@ const KOLLEKTIONEN = [
 // Filter-Chips (key).
 const REZEPT_KATEGORIEN = ["Alle", "Beliebt", "Saisonal", "Schnell", "Vegetarisch", "Vegan", "Keto", "LowCarb", "HighProtein", "Klassiker", "Pasta", "Familie", "Fisch", "Frühstück", "Budget"];
 
-// Bild-Stichwörter (englisch) je Rezept für den Foto-CDN. Echte Fotos via LoremFlickr.
+// Bild-Suchbegriffe (englische Phrasen) je Rezept – für präzise Pexels-Treffer.
 const BILDER = {
-  bolognese: "spaghetti", carbonara: "carbonara", pasta_pesto: "pesto", nudeln_tomate: "pasta",
-  thunfisch_pasta: "tuna", lasagne: "lasagna", kaesespaetzle: "spaetzle", risotto: "risotto",
-  gulasch: "goulash", haehnchen: "chickenrice", wraps: "burrito", pizza: "pizza", burger: "cheeseburger",
-  haehnchen_bowl: "ricebowl", curry: "curry", chili: "chili", linsen_dal: "dal", kichererbsen_curry: "chickpeas",
-  tofu_pfanne: "tofu", gemuesepfanne: "stirfry", kartoffelsuppe: "potatosoup", milchreis: "ricepudding",
-  zoodles: "zucchini", steak_brokkoli: "steak", lachs_spinat: "salmon", avocado_ei: "avocado",
-  caesar: "caesarsalad", omelette: "omelette", salat: "greeksalad", caprese: "caprese",
-  tomaten_gurken: "cucumbersalad", melonen_feta: "watermelon", gazpacho: "gazpacho", pancakes: "pancakes",
-  porridge: "porridge", quark_beeren: "berries", ruehrei: "scrambledeggs", lachs: "salmondish",
+  bolognese: "spaghetti bolognese", carbonara: "spaghetti carbonara", pasta_pesto: "pasta pesto", nudeln_tomate: "pasta tomato sauce",
+  thunfisch_pasta: "tuna pasta", lasagne: "lasagna", kaesespaetzle: "cheese spaetzle", risotto: "mushroom risotto",
+  gulasch: "beef goulash", haehnchen: "chicken rice broccoli", wraps: "chicken wrap", pizza: "margherita pizza", burger: "cheeseburger",
+  haehnchen_bowl: "chicken rice bowl", curry: "vegetable curry", chili: "bean chili", linsen_dal: "red lentil dal", kichererbsen_curry: "chickpea curry",
+  tofu_pfanne: "tofu stir fry", gemuesepfanne: "vegetable stir fry", kartoffelsuppe: "potato soup", milchreis: "rice pudding",
+  zoodles: "zucchini noodles", steak_brokkoli: "steak broccoli", lachs_spinat: "salmon spinach", avocado_ei: "avocado egg salad",
+  caesar: "caesar salad chicken", omelette: "cheese omelette", salat: "greek salad", caprese: "caprese salad",
+  tomaten_gurken: "tomato cucumber salad", melonen_feta: "watermelon feta salad", gazpacho: "gazpacho soup", pancakes: "pancakes stack",
+  porridge: "oatmeal porridge bowl", quark_beeren: "yogurt berries bowl", ruehrei: "scrambled eggs", lachs: "baked salmon potatoes",
 };
 
 const ANGEBOTE = [

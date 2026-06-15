@@ -38,6 +38,29 @@ function statusbar() {
     <span class="right">${ICON.signal}${ICON.wifi}${ICON.battery}</span></div>`;
 }
 
+// Kompakte Rezept-Karte für horizontale Listen (Vorschläge / Vorrat).
+function recCard(r, badge) {
+  const eb = effektiveBewertung(r);
+  return `<div class="rec-card" data-act="openDetail" data-arg="${r.id}">
+    <div class="rec-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
+      <span class="cover-emoji">${r.emoji}</span>${coverImg(r, 320, 220)}
+      ${badge ? `<span class="rec-badge">${badge}</span>` : ""}</div>
+    <div class="rec-body"><div class="rt">${r.name}</div>
+      <div class="rm">★ ${eb.anzahl ? eb.rating.toFixed(1) : "neu"} · ${r.dauerMin}'</div></div>
+  </div>`;
+}
+
+function vorratEmpfehlungSection() {
+  if (!state.vorrat.length) return "";
+  const liste = kochbareRezepte().slice(0, 8);
+  if (!liste.length) return "";
+  return `<div class="section-label">Aus deinem Vorrat kochbar <a data-act="openSheet" data-arg="kuehlschrank">Vorrat</a></div>
+    <div class="h-scroll">${liste.map((x) => recCard(x.r, `${x.have}/${x.total}`)).join("")}</div>`;
+}
+
+const VORRAT_HAEUFIG = ["Nudeln", "Reis", "Eier", "Milch", "Tomaten", "Zwiebeln", "Knoblauch", "Paprika",
+  "Hähnchenbrust", "Hackfleisch", "Käse", "Kartoffeln", "Brokkoli", "Parmesan", "Kokosmilch", "Tomaten (Dose)", "Olivenöl"];
+
 // --------------------------- Screen: Home -----------------------------------
 function screenHome() {
   const plan = aktuellerPlan();
@@ -68,13 +91,18 @@ function screenHome() {
     <div class="qa-grid">
       <button class="qa" data-act="openRezepte" data-arg="">
         <div class="ic">${ICON.book}</div><div class="t">Rezepte entdecken</div><div class="d">${alleRezepte().length} Ideen</div></button>
+      <button class="qa" data-act="openSheet" data-arg="kuehlschrank">
+        <div class="ic">${ICON.fridge}</div><div class="t">Was kochen?</div><div class="d">${state.vorrat.length ? state.vorrat.length + " Zutaten da" : "Vorrat eingeben"}</div></button>
       <button class="qa" data-act="tab" data-arg="plan">
         <div class="ic">${ICON.calendar}</div><div class="t">Woche planen</div><div class="d">Gerichte zuweisen</div></button>
       <button class="qa" data-act="openSheet" data-arg="import">
         <div class="ic">${ICON.scan}</div><div class="t">Prospekt scannen</div><div class="d">Angebote per KI</div></button>
-      <button class="qa" data-act="openSheet" data-arg="maerkte">
-        <div class="ic">${ICON.pin}</div><div class="t">Märkte</div><div class="d">${state.aktiveMaerkte.length} aktiv</div></button>
     </div>
+
+    ${vorratEmpfehlungSection()}
+
+    <div class="section-label">Vorschläge für dich <a data-act="openRezepte" data-arg="">Mehr</a></div>
+    <div class="h-scroll">${empfehlungen(8).map((r) => recCard(r)).join("")}</div>
 
     <div class="section-label">Angebote der Woche <a data-act="openSheet" data-arg="import">Mehr</a></div>
     <div class="h-scroll">
@@ -208,9 +236,11 @@ function screenPlan() {
     </div>`;
   }).join("");
 
+  const leereTage = WOCHENTAGE.some((t) => !planEintraege(t).length);
   return `<div class="scroll fade-in">
     <div class="header"><div><div class="eyebrow">Schritt 1</div><h1>Wochenplan</h1>
       <div class="sub">${gerichte} ${gerichte === 1 ? "Gericht" : "Gerichte"} geplant</div></div></div>
+    ${leereTage ? `<button class="btn btn-ghost" style="margin-bottom:14px" data-act="autoPlan">${ICON.wand} Leere Tage automatisch füllen</button>` : ""}
     ${tage}
   </div>`;
 }
@@ -340,6 +370,7 @@ function sheetMarkup() {
   let body = "";
   if (ui.sheet === "rezeptDetail") body = sheetRezeptDetail(ui.sheetArg);
   else if (ui.sheet === "rezeptErstellen") body = sheetRezeptErstellen();
+  else if (ui.sheet === "kuehlschrank") body = sheetKuehlschrank();
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -349,6 +380,14 @@ function sheetMarkup() {
 
 function sheetHead(title) {
   return `<div class="sheet-head"><h2>${title}</h2><button class="x" data-act="closeSheet">${ICON.x}</button></div>`;
+}
+
+function vorratHinweisDetail(r) {
+  if (!state.vorrat.length) return "";
+  const fehlend = r.zutaten.filter((z) => !zutatGedeckt(z.name)).map((z) => z.name);
+  const have = r.zutaten.length - fehlend.length;
+  if (!have) return "";
+  return `<div class="note" style="margin-top:6px">${ICON.fridge}<div>Du hast <b>${have} von ${r.zutaten.length}</b> Zutaten da${fehlend.length ? ` – es fehlt: ${fehlend.join(", ")}` : ` – alles da! 🎉`}</div></div>`;
 }
 
 function sheetRezeptDetail(id) {
@@ -392,8 +431,14 @@ function sheetRezeptDetail(id) {
       <div class="portion-bar"><span class="lbl">Portionen</span>
         <div class="stepper"><button data-act="detailPortion" data-arg="-1">−</button><span class="num">${p}</span><button data-act="detailPortion" data-arg="1">+</button></div></div>
 
+      ${vorratHinweisDetail(r)}
       <div class="section-label" style="margin-top:8px">Zutaten</div>
-      <div class="card">${zutaten}</div>
+      <div class="card">${r.zutaten.map((z) => {
+        const m = z.menge * faktor, mStr = Number.isInteger(m) ? m : m.toFixed(m < 10 ? 1 : 0);
+        const da = zutatGedeckt(z.name);
+        return `<div class="ing-row"><span class="dot" style="${da ? "background:var(--accent)" : "background:var(--separator)"}"></span>
+          <span class="nm" style="${da ? "color:var(--text-2)" : ""}">${z.name} ${da ? "✓" : ""}</span><span class="qt">${mStr} ${z.einheit}</span></div>`;
+      }).join("")}</div>
 
       <div class="section-label">Zubereitung</div>
       <div class="card">${schritte}</div>
@@ -594,6 +639,41 @@ function fotoVerarbeiten(file) {
   reader.readAsDataURL(file);
 }
 
+// --------------------------- Sheet: Kühlschrank -----------------------------
+function sheetKuehlschrank() {
+  const meine = state.vorrat.map((v) =>
+    `<button class="chip accent" data-act="vorratTog" data-arg="${v}">${v} ${ICON.x}</button>`).join("");
+  const quick = VORRAT_HAEUFIG.filter((n) => !vorratHat(n)).map((n) =>
+    `<button class="cat-chip" data-act="vorratTog" data-arg="${n}">+ ${n}</button>`).join("");
+
+  let ergebnis;
+  if (!state.vorrat.length) {
+    ergebnis = `<div class="empty" style="padding:30px 20px"><div class="ic">${ICON.fridge}</div>
+      <h3>Was hast du da?</h3><p>Gib oben ein paar Zutaten ein – ich zeige dir, was du daraus kochen kannst.</p></div>`;
+  } else {
+    const liste = kochbareRezepte().slice(0, 20);
+    ergebnis = liste.map((x) => {
+      const fehltTxt = x.fehlend.length ? `es fehlt: ${x.fehlend.join(", ")}` : "alles da! 🎉";
+      return `<div class="row" data-act="openDetail" data-arg="${x.r.id}">
+        <span class="thumb" style="flex:0 0 46px;width:46px;height:46px;border-radius:12px;position:relative;overflow:hidden;background:linear-gradient(150deg, ${x.r.farbe}, ${x.r.farbe}bb)">
+          <span class="te" style="position:absolute;inset:0;display:grid;place-items:center;font-size:22px">${x.r.emoji}</span>${coverImg(x.r, 120, 120)}</span>
+        <div class="grow"><div class="title">${x.r.name}</div>
+          <div class="sub" style="color:${x.fehlend.length ? "var(--text-2)" : "var(--accent-2)"}">${x.have}/${x.total} Zutaten · ${fehltTxt}</div></div>
+        <span class="chev">${ICON.chevron}</span></div>`;
+    }).join("");
+    ergebnis = `<div class="section-label" style="margin-left:0">Das kannst du kochen</div><div class="card">${ergebnis}</div>`;
+  }
+
+  return `${sheetHead("Mein Kühlschrank")}<div class="sheet-body">
+    <p style="color:var(--text-2);font-size:14px;margin:0 2px 12px">Tippe an, was du zu Hause hast.</p>
+    <div class="searchbar"><input id="vorrat-input" placeholder="Eigene Zutat eingeben…">
+      <button data-act="vorratAdd" style="color:var(--accent-2);font-weight:800;font-size:15px">Add</button></div>
+    ${meine ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${meine}</div>` : ""}
+    <div class="cat-scroll" style="flex-wrap:wrap;margin:0 0 8px;padding:0;overflow:visible">${quick}</div>
+    ${ergebnis}
+  </div>`;
+}
+
 // --------------------------- Onboarding -------------------------------------
 function onboarding() {
   const feat = (ic, t, d) => `<div class="feat">${ic}<div><div class="t">${t}</div><div class="d">${d}</div></div></div>`;
@@ -638,8 +718,12 @@ function formatDatum(iso) {
 const PEXELS_KEY = "J2QR4daVOhxgVeDgnInIwhSVx8QGC34wtVOZlH6Px1Enkj3Aw9eeSypS";
 const pexelsInflight = new Set();
 
+const BILD_VERSION = 2; // erhöhen, um Foto-Cache mit besseren Stichwörtern neu zu laden
 function lockId(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return h % 100000; }
-function loremUrl(r, w, h) { return `https://loremflickr.com/${w}/${h}/${BILDER[r.id] || "food"}?lock=${lockId(r.id)}`; }
+function loremUrl(r, w, h) {
+  const kw = (BILDER[r.id] || "food").replace(/\s+/g, ",");
+  return `https://loremflickr.com/${w}/${h}/${encodeURIComponent(kw)}?lock=${lockId(r.id)}`;
+}
 function rezeptBildSrc(r, w, h) {
   if (r.bildData) return r.bildData;                 // eigenes Foto (Upload)
   if (state.bildCache[r.id]) return state.bildCache[r.id]; // gecachtes Pexels-Foto
@@ -725,6 +809,9 @@ app.addEventListener("click", (e) => {
     case "addToDay": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, ui.detailPortionen); render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
     case "quickAdd": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, rezept(rid)?.portionen); ui.tab = "plan"; ui.zielTag = null; render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
     case "rate": { const [rid, n] = arg.split("|"); bewertungSetzen(rid, +n); render(); toast("Danke für deine Bewertung ★"); break; }
+    case "vorratTog": vorratToggle(arg); render(); break;
+    case "vorratAdd": { const inp = document.getElementById("vorrat-input"); if (inp && inp.value.trim()) { vorratToggle(inp.value); render(); } break; }
+    case "autoPlan": wochePlanenAuto(); render(); toast("Woche automatisch gefüllt ✓"); break;
     case "openCreate": ui.draft = leererDraft(); ui.sheet = "rezeptErstellen"; ui.sheetArg = null; render(); break;
     case "addZutat": captureDraft(); ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
     case "removeZutat": captureDraft(); ui.draft.zutaten.splice(+arg, 1); if (!ui.draft.zutaten.length) ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
@@ -769,6 +856,11 @@ app.addEventListener("change", (e) => {
   if (e.target.dataset.act === "bio") { setVorgabe("bioGewuenscht", e.target.checked); }
   if (e.target.dataset.act === "photo" && e.target.files && e.target.files[0]) { fotoVerarbeiten(e.target.files[0]); }
 });
+app.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "vorrat-input" && e.target.value.trim()) {
+    e.preventDefault(); vorratToggle(e.target.value); render();
+  }
+});
 
 // Mini-Toast
 function toast(msg) {
@@ -778,5 +870,8 @@ function toast(msg) {
   app.appendChild(t);
   setTimeout(() => t.remove(), 1900);
 }
+
+// Foto-Cache auffrischen, wenn bessere Stichwörter ausgerollt wurden.
+if (state.bildVersion !== BILD_VERSION) { state.bildCache = {}; state.bildVersion = BILD_VERSION; persist(); }
 
 render();

@@ -35,4 +35,6 @@ const ICON = {
   star:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.9 6.1 21l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>',
   camera: I('<path d="M3 8.5a2 2 0 0 1 2-2h2l1.5-2h7L17 6.5h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/>'),
   edit:   I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
+  fridge: I('<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M6 10h12"/><path d="M9 6v1.5M9 13v2"/>'),
+  wand:   I('<path d="M5 19l9-9M14 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M19 14l.6 1.2 1.2.6-1.2.6L19 18l-.6-1.2-1.2-.6 1.2-.6z"/>'),
 };
