@@ -79,7 +79,7 @@ function screenHome() {
   return `<div class="scroll fade-in">
     <div class="header" style="padding-top:14px">
       <div><div class="eyebrow">Smarter Einkauf</div><h1>${gruss} 👋</h1></div>
-      <button class="icon-btn" data-act="openSheet" data-arg="vorgaben">${ICON.settings}</button>
+      <button class="icon-btn" data-act="openSheet" data-arg="einstellungen">${ICON.settings}</button>
     </div>
 
     <div class="greeting-hero">
@@ -228,7 +228,11 @@ function screenRezepte() {
 // --------------------------- Screen: Wochenplan -----------------------------
 function screenPlan() {
   const gerichte = geplanteGerichte();
+  const heuteD = new Date();
+  const montag = new Date(heuteD); montag.setDate(heuteD.getDate() - ((heuteD.getDay() + 6) % 7));
   const tage = WOCHENTAGE.map((tag, i) => {
+    const tagDatum = new Date(montag); tagDatum.setDate(montag.getDate() + i);
+    const istHeute = tagDatum.toDateString() === heuteD.toDateString();
     const eintraege = planEintraege(tag);
     const meals = eintraege.map((e, idx) => {
       const r = rezept(e.rezeptId);
@@ -244,7 +248,7 @@ function screenPlan() {
       </div>`;
     }).join("");
     return `<div class="card day-card">
-      <div class="day-badge ${i === HEUTE_INDEX ? "today" : ""}"><div class="d">${tag}</div><div class="n">${15 + i}</div></div>
+      <div class="day-badge ${istHeute ? "today" : ""}"><div class="d">${tag}</div><div class="n">${tagDatum.getDate()}</div></div>
       <div class="day-main">
         ${meals}
         <button class="add-meal" data-act="openRezepte" data-arg="${tag}">${ICON.plus} Gericht hinzufügen</button>
@@ -471,6 +475,7 @@ function sheetMarkup() {
   else if (ui.sheet === "trackSchnell") body = sheetTrackSchnell();
   else if (ui.sheet === "trackGetraenk") body = sheetTrackGetraenk();
   else if (ui.sheet === "ziele") body = sheetZiele();
+  else if (ui.sheet === "einstellungen") body = sheetEinstellungen();
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -948,6 +953,36 @@ function sheetZiele() {
   </div><p style="color:var(--text-3);font-size:13px;text-align:center;margin-top:12px">Richtwerte – passe sie an dein Ziel an (z. B. Muskelaufbau, Abnehmen).</p></div>`;
 }
 
+// --------------------------- Sheet: Einstellungen ---------------------------
+function setRow(icon, label, sub, act, arg, danger) {
+  return `<div class="set-row" data-act="${act}" ${arg != null ? `data-arg="${arg}"` : ""}>
+    <span class="set-ic ${danger ? "danger" : ""}">${icon}</span>
+    <div class="grow"><div class="set-t ${danger ? "danger" : ""}">${label}</div>${sub ? `<div class="set-s">${sub}</div>` : ""}</div>
+    ${danger ? "" : `<span class="set-chev">${ICON.chevron}</span>`}</div>`;
+}
+function sheetEinstellungen() {
+  const v = state.vorgaben;
+  return `${sheetHead("Einstellungen")}<div class="sheet-body">
+    <div class="section-label" style="margin-left:4px">Einkauf</div>
+    <div class="card set-card">
+      ${setRow(ICON.sliders, "Budget, Bio & Läden", `${euro(v.budget)} · Bio ${v.bioGewuenscht ? "an" : "aus"} · max. ${v.maxLaeden}`, "openSheet", "vorgaben")}
+      ${setRow(ICON.pin, "Märkte", `${state.aktiveMaerkte.length} aktiv`, "openSheet", "maerkte")}
+      ${setRow(ICON.scan, "Prospekt importieren", "Angebote per KI", "openSheet", "import")}
+    </div>
+    <div class="section-label" style="margin-left:4px">Ernährung & Tracking</div>
+    <div class="card set-card">
+      ${setRow(ICON.target, "Tagesziele", `${state.ziele.kcal} kcal · ${state.ziele.protein} g Protein`, "openSheet", "ziele")}
+      ${setRow(ICON.sparkle, "KI-Foto-Nährwerterkennung", state.anthropicKey ? "aktiv · Schlüssel lokal gespeichert" : "inaktiv – im Schnell-Eintrag aktivierbar", "openSheet", "trackSchnell")}
+    </div>
+    <div class="section-label" style="margin-left:4px">App</div>
+    <div class="card set-card">
+      ${setRow(ICON.sparkle, "Einführung erneut zeigen", "Onboarding-Screen", "replayOnboarding", null)}
+      ${setRow(ICON.trash, "App zurücksetzen", "Alle lokalen Daten löschen", "resetApp", null, true)}
+    </div>
+    <p style="text-align:center;color:var(--text-3);font-size:12.5px;margin-top:16px">Smarter Wochen-Einkauf · Prototyp</p>
+  </div>`;
+}
+
 // --------------------------- Onboarding -------------------------------------
 function onboarding() {
   const feat = (ic, t, d) => `<div class="feat">${ic}<div><div class="t">${t}</div><div class="d">${d}</div></div></div>`;
@@ -1129,6 +1164,7 @@ app.addEventListener("click", (e) => {
       ui.sheet = null; ui.scan = null; render(); toast("Angebote übernommen ✓"); break;
     }
     case "finishOnboarding": state.onboardingGesehen = true; persist(); render(); break;
+    case "replayOnboarding": state.onboardingGesehen = false; persist(); ui.sheet = null; render(); break;
     case "resetApp": if (confirm("Demo wirklich zurücksetzen?")) { reset(); ui.tab = "home"; render(); } break;
   }
 });

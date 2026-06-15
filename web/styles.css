@@ -448,6 +448,19 @@ input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: none; b
 
 .spacer { height: 6px; }
 
+/* ---- Einstellungen ------------------------------------------------------- */
+.set-card { padding: 4px 14px; }
+.set-row { display: flex; align-items: center; gap: 13px; padding: 13px 2px; border-bottom: 1px solid var(--hairline); }
+.set-row:last-child { border-bottom: none; }
+.set-ic { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9px; background: var(--accent-soft); color: var(--accent-2); display: grid; place-items: center; }
+.set-ic svg { width: 18px; height: 18px; }
+.set-ic.danger { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.set-t { font-size: 16px; font-weight: 600; }
+.set-t.danger { color: var(--danger); }
+.set-s { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
+.set-chev { color: var(--text-3); }
+.set-chev svg { width: 18px; height: 18px; }
+
 /* ---- KI-Nährwerterkennung ------------------------------------------------ */
 .ki-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--accent-soft); color: var(--accent-2); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 13.5px; margin-bottom: 14px; }
 .ki-bar svg { width: 16px; height: 16px; vertical-align: -3px; }

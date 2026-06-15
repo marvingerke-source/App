@@ -43,7 +43,17 @@ function lade() {
 }
 
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // Speicher voll (oft durch Fotos): Bilddaten auslagern statt Daten zu verlieren.
+    try {
+      state.bildCache = {};
+      for (const arr of Object.values(state.tracking)) for (const it of arr) it.bildData = null;
+      for (const r of state.eigeneRezepte) r.bildData = null;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e2) { /* aufgeben */ }
+  }
 }
 
 function reset() { state = defaults(); persist(); }
