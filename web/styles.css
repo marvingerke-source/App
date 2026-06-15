@@ -387,6 +387,13 @@ input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: none; b
 .searchbar input { border: none; outline: none; background: none; font-size: 16px; color: var(--text); width: 100%; }
 .searchbar input::placeholder { color: var(--text-3); }
 
+.coll-scroll { display: flex; gap: 12px; overflow-x: auto; margin: 0 -18px 6px; padding: 2px 18px 10px; scroll-snap-type: x mandatory; }
+.coll-scroll::-webkit-scrollbar { height: 0; }
+.coll-card { flex: 0 0 150px; height: 92px; scroll-snap-align: start; border-radius: var(--radius-m); color: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; padding: 13px; text-align: left; transition: transform .12s var(--ease); }
+.coll-card:active { transform: scale(0.96); }
+.coll-card .ce { font-size: 26px; }
+.coll-card .ct { font-size: 14.5px; font-weight: 800; line-height: 1.15; }
+
 .cat-scroll { display: flex; gap: 8px; overflow-x: auto; margin: 0 -18px 14px; padding: 2px 18px 6px; }
 .cat-scroll::-webkit-scrollbar { height: 0; }
 .cat-chip { flex: 0 0 auto; padding: 9px 15px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--card); color: var(--text-2); box-shadow: var(--shadow-sm); transition: all .15s var(--ease); white-space: nowrap; }

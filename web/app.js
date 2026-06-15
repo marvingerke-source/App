@@ -96,15 +96,45 @@ function screenHome() {
 }
 
 // --------------------------- Screen: Rezeptbuch -----------------------------
+function aktuelleSaison() {
+  const m = new Date().getMonth() + 1;
+  if (m >= 3 && m <= 5) return "Frühling";
+  if (m >= 6 && m <= 8) return "Sommer";
+  if (m >= 9 && m <= 11) return "Herbst";
+  return "Winter";
+}
+
+function rezeptMatchtFilter(r, k) {
+  switch (k) {
+    case "Alle": return true;
+    case "Beliebt": return !!r.beliebt;
+    case "Saisonal": return (r.saison || []).includes(aktuelleSaison());
+    case "Schnell": return r.dauerMin <= 20;
+    case "Vegetarisch": return !!r.veggie;
+    case "Vegan": return (r.diaet || []).includes("vegan");
+    case "Keto": return (r.diaet || []).includes("keto");
+    case "LowCarb": return (r.diaet || []).includes("low-carb");
+    case "HighProtein": return (r.diaet || []).includes("high-protein");
+    case "Budget": return !!r.budget;
+    default: return r.kategorie === k;
+  }
+}
+
 function rezepteGefiltert() {
   const q = ui.rezeptSuche.trim().toLowerCase();
   return REZEPTE.filter((r) => {
-    const k = ui.rezeptFilter;
-    const passtKat = k === "Alle" || (k === "Schnell" ? r.dauerMin <= 20 : (k === "Vegetarisch" ? r.veggie : r.kategorie === k));
-    if (!passtKat) return false;
+    if (!rezeptMatchtFilter(r, ui.rezeptFilter)) return false;
     if (!q) return true;
     return r.name.toLowerCase().includes(q) || r.zutaten.some((z) => z.name.toLowerCase().includes(q));
   });
+}
+
+function dietBadge(r) {
+  if ((r.diaet || []).includes("vegan")) return `<span class="vtag" style="color:#15803d">vegan</span>`;
+  if ((r.diaet || []).includes("keto")) return `<span class="vtag" style="color:#0369a1">keto</span>`;
+  if (r.veggie) return `<span class="vtag">veggie</span>`;
+  if ((r.diaet || []).includes("high-protein")) return `<span class="vtag" style="color:#6d28d9">protein</span>`;
+  return "";
 }
 
 function rezeptKarten() {
@@ -112,26 +142,31 @@ function rezeptKarten() {
   if (!liste.length) return `<div class="empty" style="grid-column:1/-1"><div class="ic">${ICON.search}</div><h3>Nichts gefunden</h3><p>Probiere einen anderen Suchbegriff oder Filter.</p></div>`;
   return liste.map((r) => `<div class="rcard" data-act="${ui.zielTag ? "quickAdd" : "openDetail"}" data-arg="${ui.zielTag ? ui.zielTag + "|" + r.id : r.id}">
     <div class="cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
-      ${r.veggie ? `<span class="vtag">veggie</span>` : ""}
+      ${dietBadge(r)}
       <span>${r.emoji}</span>
       <span class="time">${ICON.clock} ${r.dauerMin}'</span>
     </div>
     <div class="body"><div class="t">${r.name}</div>
-      <div class="m">${ICON.fire} ${r.kcal} kcal · ${r.kategorie}</div></div>
+      <div class="m">⭐ ${r.rating.toFixed(1)} · ${r.kcal} kcal</div></div>
   </div>`).join("");
 }
 
 function screenRezepte() {
   const chips = REZEPT_KATEGORIEN.map((k) =>
     `<button class="cat-chip ${ui.rezeptFilter === k ? "active" : ""}" data-act="setFilter" data-arg="${k}">${k}</button>`).join("");
+  const kollektionen = KOLLEKTIONEN.map((c) => `<button class="coll-card" style="background:linear-gradient(150deg, ${c.farbe}, ${c.farbe}cc)" data-act="setFilter" data-arg="${c.key}">
+    <span class="ce">${c.emoji}</span><span class="ct">${c.titel}</span></button>`).join("");
+  const anzahl = rezepteGefiltert().length;
   return `<div class="scroll fade-in">
     <div class="header">
       <button class="icon-btn" data-act="backFromRezepte">${ICON.back}</button>
-      <div style="flex:1;margin-left:4px"><div class="eyebrow">Rezeptbuch</div><h1>Entdecken</h1></div>
+      <div style="flex:1;margin-left:4px"><div class="eyebrow">Rezeptbuch · ${REZEPTE.length} Ideen</div><h1>Entdecken</h1></div>
     </div>
     ${ui.zielTag ? `<div class="zieltag-banner">${ICON.calendar} Für ${ui.zielTag} – tippe ein Rezept zum Hinzufügen</div>` : ""}
     <div class="searchbar">${ICON.search}<input id="rezept-suche" data-act="rezeptSuche" placeholder="Rezept oder Zutat suchen…" value="${ui.rezeptSuche}"></div>
+    ${ui.rezeptSuche ? "" : `<div class="coll-scroll">${kollektionen}</div>`}
     <div class="cat-scroll">${chips}</div>
+    <div class="section-label" style="margin-top:6px">${ui.rezeptFilter === "Alle" ? "Alle Rezepte" : ui.rezeptFilter} <span style="color:var(--text-3);font-weight:600;text-transform:none">${anzahl}</span></div>
     <div class="recipe-grid" id="rezept-results">${rezeptKarten()}</div>
   </div>`;
 }
@@ -325,9 +360,14 @@ function sheetRezeptDetail(id) {
     <div class="sheet-body" style="padding-top:0">
       <div class="detail-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}cc)">
         <span>${r.emoji}</span>
-        <div class="badges">${r.veggie ? `<span class="tag bio">veggie</span>` : ""}<span class="tag" style="background:rgba(255,255,255,.85);color:#333">${r.kategorie}</span></div>
+        <div class="badges">
+          <span class="tag" style="background:rgba(255,255,255,.9);color:#333">${r.kategorie}</span>
+          ${(r.diaet || []).map((d) => `<span class="tag" style="background:rgba(255,255,255,.9);color:#15803d">${d}</span>`).join("")}
+        </div>
       </div>
       <h2 style="font-size:24px;font-weight:800;margin-top:14px">${r.name}</h2>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--text-2);font-size:13.5px;font-weight:600">
+        <span style="color:#f59e0b">★★★★★</span> ${r.rating.toFixed(1)} · ${r.bewertungen.toLocaleString("de-DE")} Bewertungen</div>
       <div class="detail-meta">
         <span class="meta-pill">${ICON.clock} ${r.dauerMin} min</span>
         <span class="meta-pill">${ICON.fire} ${r.kcal} kcal</span>
