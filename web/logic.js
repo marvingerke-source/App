@@ -40,6 +40,33 @@ function angebotePassen(zutatName, kategorie, angebote) {
   });
 }
 
+// --- Mengen & Packungen (portionsbasierte Einkaufsmengen) -------------------
+function mengeZuBasis(menge, einheit) {
+  const e = String(einheit || "").toLowerCase().trim();
+  if (e === "kg") return { wert: menge * 1000, basis: "g" };
+  if (e === "g" || e === "gramm") return { wert: menge, basis: "g" };
+  if (e === "l" || e === "liter") return { wert: menge * 1000, basis: "ml" };
+  if (e === "ml") return { wert: menge, basis: "ml" };
+  return { wert: menge, basis: "stk" }; // Stk, Zehen, Scheiben …
+}
+// Packungsgröße aus Angebots-Einheit lesen ("500g", "1kg", "10 Stk", "3x80g").
+function parsePackung(str) {
+  const s = String(str).toLowerCase();
+  let m = s.match(/(\d+)\s*x\s*(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)?/);
+  if (m) return mengeZuBasis(parseFloat(m[1]) * parseFloat(m[2].replace(",", ".")), m[3] || "stk");
+  m = s.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/);
+  if (m) return mengeZuBasis(parseFloat(m[1].replace(",", ".")), m[2]);
+  m = s.match(/(\d+)\s*(stk|stück|er)\b/);
+  if (m) return { wert: parseFloat(m[1]), basis: "stk" };
+  return null;
+}
+// Wie viele Packungen werden für den Bedarf benötigt?
+function packungenNoetig(menge, einheit, angebotEinheit) {
+  const need = mengeZuBasis(menge, einheit), pack = parsePackung(angebotEinheit);
+  if (!pack || pack.basis !== need.basis || pack.wert <= 0) return null;
+  return Math.max(1, Math.ceil(need.wert / pack.wert));
+}
+
 // --- Baustein D: Optimierung über (aktive) Läden -----------------------------
 function einkaufsplanBerechnen(bedarf, vorgaben, angebotePool, aktiveMaerkte) {
   const { maxLaeden, bioGewuenscht } = vorgaben;
@@ -63,12 +90,19 @@ function einkaufsplanBerechnen(bedarf, vorgaben, angebotePool, aktiveMaerkte) {
         const bio = kand.filter((a) => a.istBio);
         if (bio.length) auswahl = bio; else bioErsatz = true;
       }
-      const best = auswahl.reduce((a, b) => (b.preis < a.preis ? b : a));
-      summe += best.preis;
-      ersparnis += Math.max(0, best.normalpreis - best.preis);
+      // Günstigstes Angebot nach Zeilenpreis (Aktionspreis × benötigte Packungen).
+      let best = null, bestAnzahl = 1, bestKosten = Infinity;
+      for (const a of auswahl) {
+        const anzahl = packungenNoetig(pos.bedarf.menge, pos.bedarf.einheit, a.einheit) || 1;
+        const kosten = a.preis * anzahl;
+        if (kosten < bestKosten) { bestKosten = kosten; best = a; bestAnzahl = anzahl; }
+      }
+      const zeilenpreis = +(best.preis * bestAnzahl).toFixed(2);
+      summe += zeilenpreis;
+      ersparnis += Math.max(0, best.normalpreis - best.preis) * bestAnzahl;
       laeden.add(best.markt);
       treffer++;
-      zuordnung.push({ bedarf: pos.bedarf, angebot: best, bioErsatz });
+      zuordnung.push({ bedarf: pos.bedarf, angebot: best, bioErsatz, anzahl: bestAnzahl, zeilenpreis });
     }
     return { summe: +summe.toFixed(2), ersparnis: +ersparnis.toFixed(2), treffer, zuordnung, laeden };
   }
@@ -101,7 +135,7 @@ function einkaufsplanBerechnen(bedarf, vorgaben, angebotePool, aktiveMaerkte) {
   const gruppen = Object.entries(proMarkt).map(([id, items]) => ({
     markt: MAERKTE.find((m) => m.id === id),
     items,
-    summe: +items.reduce((s, z) => s + z.angebot.preis, 0).toFixed(2),
+    summe: +items.reduce((s, z) => s + (z.zeilenpreis ?? z.angebot.preis), 0).toFixed(2),
   })).sort((a, b) => a.markt.entfernungKm - b.markt.entfernungKm);
 
   const ohneAngebot = beste.zuordnung.filter((z) => !z.angebot).map((z) => z.bedarf);

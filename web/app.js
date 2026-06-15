@@ -251,9 +251,18 @@ function screenPlan() {
   }).join("");
 
   const leereTage = WOCHENTAGE.some((t) => !planEintraege(t).length);
+  const w = wochenWerte();
+  const p = gerichte ? aktuellerPlan() : null;
+  const uebersicht = gerichte ? `<div class="card week-stats">
+      <div class="ws"><div class="n">${w.portionen}</div><div class="t">Portionen</div></div>
+      <div class="ws"><div class="n">${(w.kcal / 1000).toFixed(1)}k</div><div class="t">kcal gesamt</div></div>
+      <div class="ws"><div class="n">${w.kcalProPortion}</div><div class="t">kcal/Portion</div></div>
+      <div class="ws"><div class="n">${euro(p.summe)}</div><div class="t">Kosten</div></div>
+    </div>` : "";
   return `<div class="scroll fade-in">
     <div class="header"><div><div class="eyebrow">Schritt 1</div><h1>Wochenplan</h1>
       <div class="sub">${gerichte} ${gerichte === 1 ? "Gericht" : "Gerichte"} geplant</div></div></div>
+    ${uebersicht}
     ${leereTage ? `<button class="btn btn-ghost" style="margin-bottom:14px" data-act="autoPlan">${ICON.wand} Leere Tage automatisch füllen</button>` : ""}
     ${tage}
   </div>`;
@@ -261,22 +270,29 @@ function screenPlan() {
 
 // --------------------------- Screen: Liste ----------------------------------
 function screenListe() {
-  const alle = gesamterBedarf();
+  const alle = bedarfMitStatus();
   if (!alle.length) return emptyScreen("Liste", "list", "Noch keine Gerichte geplant", "Weise im Wochenplan Gerichte zu – die Liste entsteht dann automatisch.");
-  const offen = alle.filter((b) => !state.vorratAbgehakt.includes(bedarfKey(b)));
+  const zuKaufen = alle.filter((b) => b.kaufMenge > 0).length;
+  const gedeckt = alle.length - zuKaufen;
   const rows = alle.map((b) => {
-    const k = bedarfKey(b), checked = state.vorratAbgehakt.includes(k);
+    const k = bedarfKey(b), erledigt = b.kaufMenge === 0;
+    let tag = "";
+    if (b.status === "vorrat") tag = ` <span class="tag bio">im Vorrat</span>`;
+    else if (b.status === "teilweise") tag = ` <span class="tag deal">Rest</span>`;
+    const mengeText = b.status === "teilweise"
+      ? `${formatMenge({ menge: b.kaufMenge, einheit: b.einheit })} kaufen (von ${formatMenge(b)})`
+      : formatMenge(b);
     return `<div class="row" data-act="toggleVorrat" data-arg="${k}">
-      <div class="check ${checked ? "on" : ""}">${ICON.check}</div>
-      <div class="grow"><div class="title ${checked ? "done" : ""}">${b.name}</div>
-        <div class="sub">${formatMenge(b)} · für ${b.ausRezepten.join(", ")}</div></div>
+      <div class="check ${erledigt ? "on" : ""}">${ICON.check}</div>
+      <div class="grow"><div class="title ${erledigt ? "done" : ""}">${b.name}${tag}</div>
+        <div class="sub">${mengeText} · für ${b.ausRezepten.join(", ")}</div></div>
     </div>`;
   }).join("");
   return `<div class="scroll fade-in">
     <div class="header"><div><div class="eyebrow">Schritt 2</div><h1>Einkaufsliste</h1>
-      <div class="sub">${offen.length} zu kaufen · ${alle.length - offen.length} im Vorrat</div></div></div>
+      <div class="sub">${zuKaufen} zu kaufen · ${gedeckt} gedeckt</div></div></div>
     <div class="card">${rows}</div>
-    <p style="color:var(--text-3);font-size:13px;text-align:center;margin-top:14px;padding:0 20px">Tippe Vorräte an, die du schon hast – sie fallen aus dem Vergleich.</p>
+    <p style="color:var(--text-3);font-size:13px;text-align:center;margin-top:14px;padding:0 20px">Tippe an, was du schon hast. Vorrat wird automatisch abgezogen (in den Vorgaben umstellbar).</p>
   </div>`;
 }
 
@@ -300,11 +316,11 @@ function screenErgebnis() {
         <div class="ssum">${euro(g.summe)}</div>
       </div>
       ${g.items.map((z) => {
-        const a = z.angebot, save = a.normalpreis - a.preis;
+        const a = z.angebot, anzahl = z.anzahl || 1, save = (a.normalpreis - a.preis) * anzahl;
         return `<div class="row"><div class="grow">
           <div class="title">${z.bedarf.name} ${a.istBio ? `<span class="tag bio">BIO</span>` : ""} ${z.bioErsatz ? `<span class="tag muted">kein Bio</span>` : ""}</div>
-          <div class="sub">${a.produktname}</div></div>
-          <div style="text-align:right"><div class="price">${euro(a.preis)}</div>${save > 0 ? `<div class="save">−${euro(save)}</div>` : ""}</div>
+          <div class="sub">${a.produktname} · Bedarf ${formatMenge(z.bedarf)}${anzahl > 1 ? ` · ${anzahl}× ${a.einheit}` : ""}</div></div>
+          <div style="text-align:right"><div class="price">${euro(z.zeilenpreis ?? a.preis)}</div>${save > 0 ? `<div class="save">−${euro(save)}</div>` : ""}</div>
         </div>`;
       }).join("")}
     </div>`).join("");
@@ -349,11 +365,11 @@ function screenEinkaufen() {
         <div><div class="sname">${g.markt.name}</div><div class="smeta">${g.markt.entfernungKm} km</div></div>
         <div class="ssum">${euro(g.summe)}</div></div>
       ${g.items.map((z) => {
-        const on = state.einkaufAbgehakt.includes(z.angebot.id);
+        const on = state.einkaufAbgehakt.includes(z.angebot.id), anzahl = z.anzahl || 1;
         return `<div class="row" data-act="toggleEinkauf" data-arg="${z.angebot.id}">
           <div class="check ${on ? "on" : ""}">${ICON.check}</div>
-          <div class="grow"><div class="title ${on ? "done" : ""}">${z.bedarf.name}</div><div class="sub">${z.angebot.produktname}</div></div>
-          <div class="price">${euro(z.angebot.preis)}</div></div>`;
+          <div class="grow"><div class="title ${on ? "done" : ""}">${z.bedarf.name}${anzahl > 1 ? ` <span class="tag muted">${anzahl}×</span>` : ""}</div><div class="sub">${z.angebot.produktname}</div></div>
+          <div class="price">${euro(z.zeilenpreis ?? z.angebot.preis)}</div></div>`;
       }).join("")}
     </div>`).join("");
 
@@ -491,6 +507,9 @@ function sheetVorgaben() {
       <div class="field"><div class="toggle-row"><div><div class="flabel" style="margin:0"><span class="n">Maximale Läden</span></div>
         <div class="sub" style="color:var(--text-2);font-size:13px">Mehr Läden = mehr Sparpotenzial, mehr Fahrten</div></div>
         <div class="stepper"><button data-act="laeden" data-arg="-1">−</button><span class="num">${v.maxLaeden}</span><button data-act="laeden" data-arg="1">+</button></div></div></div>
+      <div class="field"><div class="toggle-row"><div><div class="flabel" style="margin:0"><span class="n">Vorrat abziehen</span></div>
+        <div class="sub" style="color:var(--text-2);font-size:13px">Zieht deinen Kühlschrank von der Einkaufsmenge ab</div></div>
+        <label class="switch"><input type="checkbox" id="vorratAbziehen" ${v.vorratAbziehen ? "checked" : ""} data-act="vorratAbziehen"><span class="slider"></span></label></div></div>
     </div>
     <button class="btn btn-ghost" data-act="openSheet" data-arg="maerkte" style="margin-top:14px">${ICON.pin} Märkte verwalten (${state.aktiveMaerkte.length} aktiv)</button>
   </div>`;
@@ -889,6 +908,7 @@ app.addEventListener("input", (e) => {
 });
 app.addEventListener("change", (e) => {
   if (e.target.dataset.act === "bio") { setVorgabe("bioGewuenscht", e.target.checked); }
+  if (e.target.dataset.act === "vorratAbziehen") { setVorgabe("vorratAbziehen", e.target.checked); render(); }
   if (e.target.dataset.act === "photo" && e.target.files && e.target.files[0]) { fotoVerarbeiten(e.target.files[0]); }
 });
 app.addEventListener("keydown", (e) => {

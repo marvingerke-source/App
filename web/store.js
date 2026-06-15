@@ -12,7 +12,7 @@ const defaults = () => ({
   },
   vorratAbgehakt: [],
   einkaufAbgehakt: [],
-  vorgaben: { budget: 45, bioGewuenscht: false, maxLaeden: 2 },
+  vorgaben: { budget: 45, bioGewuenscht: false, maxLaeden: 2, vorratAbziehen: true },
   aktiveMaerkte: ["aldi", "rewe", "lidl", "edeka"],
   importierteAngebote: [],
   eigeneRezepte: [],     // vom Nutzer angelegte Rezepte (mit Foto)
@@ -50,11 +50,47 @@ function alleRezepte() { return [...state.eigeneRezepte, ...REZEPTE]; }
 function angebotePool() { return [...ANGEBOTE, ...state.importierteAngebote]; }
 function bedarfKey(b) { return `${b.name.toLowerCase()}|${b.einheit}`; }
 function gesamterBedarf() { return bedarfBerechnen(state.plan, alleRezepte()); }
-function offenerBedarf() { return gesamterBedarf().filter((b) => !state.vorratAbgehakt.includes(bedarfKey(b))); }
+
+// Bedarf inkl. Status: manuell abgehakt, durch Vorrat gedeckt, zu kaufende Restmenge.
+function bedarfMitStatus() {
+  return gesamterBedarf().map((b) => {
+    const manuell = state.vorratAbgehakt.includes(bedarfKey(b));
+    let status = "kaufen", kaufMenge = b.menge;
+    if (manuell) { status = "manuell"; kaufMenge = 0; }
+    else if (state.vorgaben.vorratAbziehen) {
+      const e = vorratEintrag(b.name);
+      if (e) {
+        if (e.menge != null && e.einheit && normTxt(e.einheit) === normTxt(b.einheit)) {
+          if (e.menge >= b.menge) { status = "vorrat"; kaufMenge = 0; }
+          else { status = "teilweise"; kaufMenge = +(b.menge - e.menge).toFixed(2); }
+        } else { status = "vorrat"; kaufMenge = 0; }
+      }
+    }
+    return { ...b, manuell, status, kaufMenge };
+  });
+}
+
+function offenerBedarf() {
+  return bedarfMitStatus().filter((b) => b.kaufMenge > 0)
+    .map((b) => ({ name: b.name, einheit: b.einheit, kategorie: b.kategorie, menge: b.kaufMenge, ausRezepten: b.ausRezepten }));
+}
 function aktuellerPlan() {
   return einkaufsplanBerechnen(offenerBedarf(), state.vorgaben, angebotePool(), state.aktiveMaerkte);
 }
 function rezept(id) { return alleRezepte().find((r) => r.id === id); }
+
+// Wochen-Nährwerte/-Übersicht (kcal als Wert pro Portion).
+function wochenWerte() {
+  let portionen = 0, kcal = 0, gerichte = 0;
+  for (const eintraege of Object.values(state.plan)) {
+    const liste = Array.isArray(eintraege) ? eintraege : (eintraege ? [eintraege] : []);
+    for (const e of liste) {
+      const r = rezept(e.rezeptId); if (!r) continue;
+      gerichte++; portionen += e.portionen; kcal += (r.kcal || 0) * e.portionen;
+    }
+  }
+  return { gerichte, portionen, kcal, kcalProPortion: portionen ? Math.round(kcal / portionen) : 0 };
+}
 
 // Eigene Rezepte & Bewertungen
 function eigenesRezeptSpeichern(obj) {
