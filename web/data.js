@@ -568,3 +568,19 @@ const MATCH_STICHWOERTER = {
 
 const WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const HEUTE_INDEX = 0; // Mo als "heute" für die Demo
+
+// Getränke für das Tracking (Werte je typische Portion).
+const GETRAENKE = [
+  { name: "Wasser", emoji: "💧", kcal: 0, protein: 0, carbs: 0, fett: 0 },
+  { name: "Kaffee schwarz", emoji: "☕", kcal: 2, protein: 0, carbs: 0, fett: 0 },
+  { name: "Kaffee mit Milch", emoji: "☕", kcal: 40, protein: 2, carbs: 4, fett: 2 },
+  { name: "Latte Macchiato", emoji: "🥛", kcal: 120, protein: 6, carbs: 10, fett: 6 },
+  { name: "Proteinshake", emoji: "🥤", kcal: 170, protein: 30, carbs: 6, fett: 3 },
+  { name: "Milch 0,2 l", emoji: "🥛", kcal: 130, protein: 7, carbs: 10, fett: 7 },
+  { name: "Orangensaft 0,2 l", emoji: "🧃", kcal: 90, protein: 1, carbs: 20, fett: 0 },
+  { name: "Apfelschorle 0,5 l", emoji: "🧃", kcal: 100, protein: 0, carbs: 24, fett: 0 },
+  { name: "Cola 0,33 l", emoji: "🥤", kcal: 139, protein: 0, carbs: 35, fett: 0 },
+  { name: "Energy Drink 0,25 l", emoji: "⚡", kcal: 115, protein: 0, carbs: 28, fett: 0 },
+  { name: "Bier 0,5 l", emoji: "🍺", kcal: 210, protein: 3, carbs: 16, fett: 0 },
+  { name: "Grüner Tee", emoji: "🍵", kcal: 0, protein: 0, carbs: 0, fett: 0 },
+];

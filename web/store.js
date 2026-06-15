@@ -21,6 +21,8 @@ const defaults = () => ({
   bildVersion: 0,        // zum Auffrischen des Foto-Caches bei besseren Stichwörtern
   vorrat: [],            // Kühlschrank: [{ name, menge|null, einheit|null }]
   favoriten: [],         // gemerkte Rezept-IDs
+  tracking: {},          // datum(ISO) -> [{ id, name, kcal, protein, carbs, fett, bildData?, typ }]
+  ziele: { kcal: 2200, protein: 130, carbs: 250, fett: 70 },
   onboardingGesehen: false,
 });
 
@@ -158,6 +160,40 @@ function favoritToggle(id) {
 }
 function istFavorit(id) { return state.favoriten.includes(id); }
 function favoritenRezepte() { return state.favoriten.map((id) => rezept(id)).filter(Boolean); }
+
+// --- Nährwerte / Makros -----------------------------------------------------
+// Makros je Portion: explizit (falls am Rezept hinterlegt) oder aus kcal geschätzt.
+function makros(r) {
+  const kcal = r.kcal || 0;
+  if (r.protein != null) return { kcal, protein: r.protein, carbs: r.carbs || 0, fett: r.fett || 0, exakt: true };
+  const d = r.diaet || [];
+  let pP, pC, pF; // Energieanteile
+  if (d.includes("keto") || d.includes("low-carb")) { pP = 0.30; pC = 0.12; pF = 0.58; }
+  else if (d.includes("high-protein")) { pP = 0.37; pC = 0.40; pF = 0.23; }
+  else if (d.includes("vegan") || d.includes("vegetarisch")) { pP = 0.18; pC = 0.55; pF = 0.27; }
+  else { pP = 0.25; pC = 0.45; pF = 0.30; }
+  return { kcal, protein: Math.round(kcal * pP / 4), carbs: Math.round(kcal * pC / 4), fett: Math.round(kcal * pF / 9), exakt: false };
+}
+
+// --- Tracking / Tagebuch ----------------------------------------------------
+function heuteISO() { return new Date().toISOString().slice(0, 10); }
+function trackingTag(datum) { return state.tracking[datum] || []; }
+function trackingAdd(datum, eintrag) {
+  (state.tracking[datum] ||= []).push({ id: "t" + Date.now() + Math.floor(Math.random() * 1000), ...eintrag });
+  persist();
+}
+function trackingRemove(datum, id) {
+  state.tracking[datum] = trackingTag(datum).filter((e) => e.id !== id);
+  if (!state.tracking[datum].length) delete state.tracking[datum];
+  persist();
+}
+function trackingSummen(datum) {
+  return trackingTag(datum).reduce((s, e) => ({
+    kcal: s.kcal + (e.kcal || 0), protein: s.protein + (e.protein || 0),
+    carbs: s.carbs + (e.carbs || 0), fett: s.fett + (e.fett || 0),
+  }), { kcal: 0, protein: 0, carbs: 0, fett: 0 });
+}
+function zielSetzen(key, wert) { state.ziele[key] = Math.max(0, wert); persist(); }
 
 // --- Vorschläge nach aktuellen Angeboten ------------------------------------
 function angebotsTreffer(r) {

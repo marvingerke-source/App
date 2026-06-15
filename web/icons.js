@@ -39,4 +39,7 @@ const ICON = {
   wand:   I('<path d="M5 19l9-9M14 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M19 14l.6 1.2 1.2.6-1.2.6L19 18l-.6-1.2-1.2-.6 1.2-.6z"/>'),
   heart:  I('<path d="M12 20s-7-4.5-9.2-9A4.5 4.5 0 0 1 12 6.5 4.5 4.5 0 0 1 21.2 11C19 15.5 12 20 12 20z"/>'),
   heartFill: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5S3.5 15.5 3.5 9.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.5 2.9c0 5.9-8.5 10.9-8.5 10.9z"/></svg>',
+  activity: I('<path d="M3 12h4l3 7 4-14 3 7h4"/>'),
+  drink:  I('<path d="M6 3h12l-1.5 6.5a5 5 0 0 1-9 0z"/><path d="M12 16v4M9 21h6"/>'),
+  target: I('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>'),
 };

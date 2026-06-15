@@ -3,7 +3,8 @@
 // ============================================================================
 const app = document.getElementById("app");
 const ui = { tab: "home", sheet: null, sheetArg: null, scan: null, scrollTops: {},
-  prevTab: "home", zielTag: null, rezeptFilter: "Alle", rezeptSuche: "", detailPortionen: 2 };
+  prevTab: "home", zielTag: null, rezeptFilter: "Alle", rezeptSuche: "", detailPortionen: 2,
+  trackDatum: heuteISO(), schnellDraft: null, trackSuche: "" };
 
 // --------------------------- Render-Einstieg --------------------------------
 function render() {
@@ -28,6 +29,7 @@ function screenContent() {
     case "liste": return screenListe();
     case "ergebnis": return screenErgebnis();
     case "einkaufen": return screenEinkaufen();
+    case "tracking": return screenTracking();
   }
 }
 
@@ -383,11 +385,75 @@ function screenEinkaufen() {
   </div>`;
 }
 
+// --------------------------- Screen: Tracking -------------------------------
+function datumLabel(iso) {
+  const heute = heuteISO();
+  const g = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (iso === heute) return "Heute";
+  if (iso === g) return "Gestern";
+  return new Date(iso).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
+}
+function kcalRing(ist, ziel) {
+  const r = 52, c = 2 * Math.PI * r, pct = ziel ? Math.min(1, ist / ziel) : 0;
+  return `<svg width="132" height="132" viewBox="0 0 132 132" style="transform:rotate(-90deg)">
+    <circle cx="66" cy="66" r="${r}" fill="none" stroke="var(--separator)" stroke-width="12"/>
+    <circle cx="66" cy="66" r="${r}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - pct)}" style="transition:stroke-dashoffset .5s var(--ease)"/>
+    <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs>
+  </svg>`;
+}
+function makroBar(label, ist, ziel, farbe) {
+  const pct = ziel ? Math.min(100, Math.round(ist / ziel * 100)) : 0;
+  return `<div class="mbar"><div class="mbar-top"><span>${label}</span><span><b>${Math.round(ist)}</b> / ${ziel} g</span></div>
+    <div class="mbar-track"><div style="width:${pct}%;background:${farbe}"></div></div></div>`;
+}
+function screenTracking() {
+  const d = ui.trackDatum, s = trackingSummen(d), z = state.ziele, eintraege = trackingTag(d);
+  const liste = eintraege.length ? eintraege.map((e) => `<div class="row">
+      <span class="thumb" style="flex:0 0 44px;width:44px;height:44px;border-radius:12px;position:relative;overflow:hidden;background:var(--card-2)">
+        ${e.bildData ? `<img src="${e.bildData}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">` : `<span style="position:absolute;inset:0;display:grid;place-items:center;font-size:22px">${e.emoji || "🍽️"}</span>`}</span>
+      <div class="grow"><div class="title">${e.name}</div>
+        <div class="sub">${e.kcal} kcal · P ${e.protein || 0} · KH ${e.carbs || 0} · F ${e.fett || 0}</div></div>
+      <button class="rm" data-act="trackDel" data-arg="${e.id}">${ICON.trash}</button></div>`).join("")
+    : `<div class="empty" style="padding:30px 20px"><div class="ic">${ICON.activity}</div><h3>Noch nichts getrackt</h3><p>Füge Mahlzeiten, einen Schnell-Eintrag mit Foto oder Getränke hinzu.</p></div>`;
+
+  return `<div class="scroll fade-in">
+    <div class="header"><div><div class="eyebrow">Tracking</div><h1>Tagebuch</h1></div>
+      <button class="icon-btn" data-act="openSheet" data-arg="ziele">${ICON.target}</button></div>
+
+    <div class="date-nav">
+      <button data-act="trackTag" data-arg="-1">${ICON.back}</button>
+      <span>${datumLabel(d)}</span>
+      <button data-act="trackTag" data-arg="1" ${d >= heuteISO() ? "disabled" : ""}>${ICON.chevron}</button>
+    </div>
+
+    <div class="card track-hero">
+      <div class="ring-wrap">${kcalRing(s.kcal, z.kcal)}
+        <div class="ring-c"><div class="rk">${Math.round(s.kcal)}</div><div class="rl">/ ${z.kcal} kcal</div></div></div>
+      <div class="macros">
+        ${makroBar("Protein", s.protein, z.protein, "#8b5cf6")}
+        ${makroBar("Kohlenhydrate", s.carbs, z.carbs, "#f59e0b")}
+        ${makroBar("Fett", s.fett, z.fett, "#ef4444")}
+      </div>
+    </div>
+
+    <div class="track-add">
+      <button data-act="openSheet" data-arg="trackRezept">${ICON.book}<span>Rezept</span></button>
+      <button data-act="openSheet" data-arg="trackSchnell">${ICON.camera}<span>Schnell + Foto</span></button>
+      <button data-act="openSheet" data-arg="trackGetraenk">${ICON.drink}<span>Getränk</span></button>
+    </div>
+
+    <div class="section-label">Einträge ${datumLabel(d)} <span style="color:var(--text-3);font-weight:600;text-transform:none">${Math.round(s.kcal)} kcal</span></div>
+    <div class="card">${liste}</div>
+  </div>`;
+}
+
 // --------------------------- Tab Bar ----------------------------------------
 function tabbar() {
   const tabs = [
     ["home", "Start", ICON.home], ["plan", "Plan", ICON.calendar],
-    ["liste", "Liste", ICON.list], ["ergebnis", "Sparen", ICON.tag], ["einkaufen", "Einkauf", ICON.cart],
+    ["liste", "Liste", ICON.list], ["ergebnis", "Sparen", ICON.tag],
+    ["einkaufen", "Einkauf", ICON.cart], ["tracking", "Track", ICON.activity],
   ];
   return `<div class="tabbar">${tabs.map(([id, lbl, ic]) =>
     `<button class="tab ${ui.tab === id ? "active" : ""}" data-act="tab" data-arg="${id}">
@@ -401,6 +467,10 @@ function sheetMarkup() {
   if (ui.sheet === "rezeptDetail") body = sheetRezeptDetail(ui.sheetArg);
   else if (ui.sheet === "rezeptErstellen") body = sheetRezeptErstellen();
   else if (ui.sheet === "kuehlschrank") body = sheetKuehlschrank();
+  else if (ui.sheet === "trackRezept") body = sheetTrackRezept();
+  else if (ui.sheet === "trackSchnell") body = sheetTrackSchnell();
+  else if (ui.sheet === "trackGetraenk") body = sheetTrackGetraenk();
+  else if (ui.sheet === "ziele") body = sheetZiele();
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -462,6 +532,16 @@ function sheetRezeptDetail(id) {
         <span class="meta-pill">${ICON.flame2} ${r.schwierigkeit}</span>
       </div>
       <p class="detail-desc">${r.beschreibung}</p>
+      ${(() => { const m = makros(r); return `<div class="card macro-card">
+        <div class="mc-head">Nährwerte <span>je Portion${m.exakt ? "" : " · ca."}</span></div>
+        <div class="mc-row">
+          <div class="mc"><div class="mv">${m.kcal}</div><div class="ml">kcal</div></div>
+          <div class="mc"><div class="mv" style="color:#8b5cf6">${m.protein} g</div><div class="ml">Protein</div></div>
+          <div class="mc"><div class="mv" style="color:#f59e0b">${m.carbs} g</div><div class="ml">Kohlenh.</div></div>
+          <div class="mc"><div class="mv" style="color:#ef4444">${m.fett} g</div><div class="ml">Fett</div></div>
+        </div>
+        <button class="btn-text" style="padding:8px 0 0" data-act="logRezeptDetail" data-arg="${r.id}">${ICON.activity} Ins Tagebuch übernehmen</button>
+      </div>`; })()}
 
       <div class="portion-bar"><span class="lbl">Portionen</span>
         <div class="stepper"><button data-act="detailPortion" data-arg="-1">−</button><span class="num">${p}</span><button data-act="detailPortion" data-arg="1">+</button></div></div>
@@ -569,7 +649,7 @@ const DIAET_AUSWAHL = ["vegetarisch", "vegan", "keto", "low-carb", "high-protein
 const KURS_AUSWAHL = ["Familie", "Klassiker", "Pasta", "Vegetarisch", "Fleisch", "Fisch", "Frühstück", "Salat", "Suppe"];
 
 function leererDraft() {
-  return { name: "", kategorie: "Familie", dauerMin: 30, portionen: 2, kcal: "", beschreibung: "",
+  return { name: "", kategorie: "Familie", dauerMin: 30, portionen: 2, kcal: "", protein: "", carbs: "", fett: "", beschreibung: "",
     diaet: [], emoji: "🍽️", farbe: "#10b981", bildData: null,
     zutaten: [{ name: "", menge: "", einheit: "g" }], schritte: [""] };
 }
@@ -581,6 +661,9 @@ function captureDraft() {
   if (g("f-dauer")) d.dauerMin = +g("f-dauer").value || 0;
   if (g("f-portionen")) d.portionen = +g("f-portionen").value || 1;
   if (g("f-kcal")) d.kcal = g("f-kcal").value;
+  if (g("f-protein")) d.protein = g("f-protein").value;
+  if (g("f-carbs")) d.carbs = g("f-carbs").value;
+  if (g("f-fett")) d.fett = g("f-fett").value;
   if (g("f-besch")) d.beschreibung = g("f-besch").value;
   d.zutaten.forEach((z, i) => {
     if (g(`z-name-${i}`)) z.name = g(`z-name-${i}`).value;
@@ -615,7 +698,10 @@ function sheetRezeptErstellen() {
       <div class="form-field"><label>Kategorie</label><select id="f-kat">${kurse}</select></div>
       <div class="form-field"><label>Dauer (min)</label><input id="f-dauer" type="number" inputmode="numeric" value="${d.dauerMin}"></div>
       <div class="form-field"><label>Portionen</label><input id="f-portionen" type="number" inputmode="numeric" value="${d.portionen}"></div>
-      <div class="form-field"><label>kcal (optional)</label><input id="f-kcal" type="number" inputmode="numeric" value="${d.kcal}"></div>
+      <div class="form-field"><label>kcal/Portion</label><input id="f-kcal" type="number" inputmode="numeric" value="${d.kcal}"></div>
+      <div class="form-field"><label>Protein (g, opt.)</label><input id="f-protein" type="number" inputmode="numeric" value="${d.protein}"></div>
+      <div class="form-field"><label>Kohlenhydrate (g, opt.)</label><input id="f-carbs" type="number" inputmode="numeric" value="${d.carbs}"></div>
+      <div class="form-field"><label>Fett (g, opt.)</label><input id="f-fett" type="number" inputmode="numeric" value="${d.fett}"></div>
     </div>
     <div class="form-field"><label>Kurzbeschreibung</label><textarea id="f-besch" rows="2" placeholder="Worum geht's?">${d.beschreibung}</textarea></div>
 
@@ -650,6 +736,7 @@ function rezeptSpeichernAusDraft() {
     id: "u_" + Date.now(), eigen: true, name: d.name.trim(), emoji: d.emoji, farbe: d.farbe,
     kategorie: d.kategorie, dauerMin: +d.dauerMin || 20, portionen: +d.portionen || 2,
     kcal: +d.kcal || 0, schwierigkeit: "einfach", veggie, diaet,
+    protein: d.protein !== "" ? +d.protein : null, carbs: d.carbs !== "" ? +d.carbs : null, fett: d.fett !== "" ? +d.fett : null,
     beliebt: false, budget: false, saison: ["ganzjährig"], rating: 0, bewertungen: 0,
     beschreibung: d.beschreibung.trim() || "Dein eigenes Rezept.",
     schritte: schritte.length ? schritte : ["Nach Belieben zubereiten."],
@@ -660,8 +747,8 @@ function rezeptSpeichernAusDraft() {
   render(); toast("Rezept gespeichert ✓");
 }
 
-// Foto im Browser verkleinern (max 900px, JPEG) und als DataURL in den Draft.
-function fotoVerarbeiten(file) {
+// Foto im Browser verkleinern (max 900px, JPEG) und via apply(dataURL) übernehmen.
+function fotoVerarbeiten(file, apply) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
@@ -670,13 +757,28 @@ function fotoVerarbeiten(file) {
       const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
       const c = document.createElement("canvas"); c.width = w; c.height = h;
       c.getContext("2d").drawImage(img, 0, 0, w, h);
-      captureDraft();
-      try { ui.draft.bildData = c.toDataURL("image/jpeg", 0.72); } catch (e) { toast("Foto konnte nicht verarbeitet werden"); }
+      try { apply(c.toDataURL("image/jpeg", 0.72)); } catch (e) { toast("Foto konnte nicht verarbeitet werden"); }
       render();
     };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
+}
+
+function captureSchnell() {
+  const d = ui.schnellDraft || (ui.schnellDraft = {}); const g = (id) => document.getElementById(id);
+  if (g("sf-name")) d.name = g("sf-name").value;
+  if (g("sf-kcal")) d.kcal = g("sf-kcal").value;
+  if (g("sf-protein")) d.protein = g("sf-protein").value;
+  if (g("sf-carbs")) d.carbs = g("sf-carbs").value;
+  if (g("sf-fett")) d.fett = g("sf-fett").value;
+}
+function saveSchnellEintrag() {
+  captureSchnell(); const d = ui.schnellDraft || {};
+  if (!d.name || !d.name.trim()) { toast("Bitte einen Namen eingeben"); return; }
+  trackingAdd(ui.trackDatum, { name: d.name.trim(), emoji: "🍽️", bildData: d.bildData || null,
+    kcal: +d.kcal || 0, protein: +d.protein || 0, carbs: +d.carbs || 0, fett: +d.fett || 0, typ: "schnell" });
+  ui.schnellDraft = null; ui.sheet = null; render(); toast("Eintrag gespeichert ✓");
 }
 
 // --------------------------- Sheet: Kühlschrank -----------------------------
@@ -719,6 +821,63 @@ function sheetKuehlschrank() {
     <div class="cat-scroll" style="flex-wrap:wrap;margin:0 0 8px;padding:0;overflow:visible">${quick}</div>
     ${ergebnis}
   </div>`;
+}
+
+// --------------------------- Tracking-Sheets --------------------------------
+function trackResultRows() {
+  const q = ui.trackSuche.trim().toLowerCase();
+  return alleRezepte().filter((r) => !q || r.name.toLowerCase().includes(q)).slice(0, 40).map((r) => {
+    const m = makros(r);
+    return `<div class="recipe-row" data-act="logRezept" data-arg="${r.id}">
+      <span class="thumb" style="flex:0 0 52px;width:52px;height:52px;border-radius:14px;position:relative;overflow:hidden;background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
+        <span class="te" style="position:absolute;inset:0;display:grid;place-items:center;font-size:26px">${r.emoji}</span>${coverImg(r, 120, 120)}</span>
+      <div class="info"><div class="t">${r.name}</div><div class="m">${m.kcal} kcal · P ${m.protein} · KH ${m.carbs} · F ${m.fett} (je Portion)</div></div>
+      <span style="color:var(--accent-2)">${ICON.plus}</span></div>`;
+  }).join("");
+}
+function sheetTrackRezept() {
+  return `${sheetHead("Mahlzeit tracken")}<div class="sheet-body">
+    <div class="searchbar">${ICON.search}<input id="track-suche" data-act="trackSuche" placeholder="Rezept suchen…" value="${ui.trackSuche}"></div>
+    <div id="track-results">${trackResultRows()}</div></div>`;
+}
+
+function sheetTrackGetraenk() {
+  const rows = GETRAENKE.map((g, i) => `<div class="recipe-row" data-act="logGetraenk" data-arg="${i}">
+    <span class="emoji">${g.emoji}</span>
+    <div class="info"><div class="t">${g.name}</div><div class="m">${g.kcal} kcal · P ${g.protein} · KH ${g.carbs} · F ${g.fett}</div></div>
+    <span style="color:var(--accent-2)">${ICON.plus}</span></div>`).join("");
+  return `${sheetHead("Getränk tracken")}<div class="sheet-body">${rows}</div>`;
+}
+
+function sheetTrackSchnell() {
+  const d = ui.schnellDraft || (ui.schnellDraft = { name: "", kcal: "", protein: "", carbs: "", fett: "", bildData: null });
+  return `${sheetHead("Schnell-Eintrag")}<div class="sheet-body">
+    <label class="photo-up" style="${d.bildData ? `background-image:url(${d.bildData})` : ""}">
+      <input type="file" accept="image/*" data-act="schnellFoto" hidden>
+      ${d.bildData ? `<span class="photo-edit">${ICON.camera} Foto ändern</span>` : `<span class="photo-empty">${ICON.camera}<b>Foto vom Gericht</b><i>optional</i></span>`}
+    </label>
+    <div class="form-field"><label>Name</label><input id="sf-name" placeholder="z. B. Restaurant-Bowl" value="${d.name}"></div>
+    <div class="form-grid">
+      <div class="form-field"><label>kcal</label><input id="sf-kcal" type="number" inputmode="numeric" value="${d.kcal}"></div>
+      <div class="form-field"><label>Protein (g)</label><input id="sf-protein" type="number" inputmode="numeric" value="${d.protein}"></div>
+      <div class="form-field"><label>Kohlenhydrate (g)</label><input id="sf-carbs" type="number" inputmode="numeric" value="${d.carbs}"></div>
+      <div class="form-field"><label>Fett (g)</label><input id="sf-fett" type="number" inputmode="numeric" value="${d.fett}"></div>
+    </div>
+    <p style="color:var(--text-3);font-size:12.5px;margin:0 2px 12px">Tipp: Foto + Werte eintragen. Automatische Nährwert-Erkennung aus dem Foto folgt mit Backend/KI.</p>
+    <button class="btn btn-primary" data-act="saveSchnell">${ICON.check} Eintrag speichern</button>
+  </div>`;
+}
+
+function sheetZiele() {
+  const z = state.ziele;
+  const f = (key, label, max, step) => `<div class="field"><div class="flabel"><span class="n">${label}</span><span class="v" id="z-${key}-val">${z[key]}${key === "kcal" ? " kcal" : " g"}</span></div>
+    <input type="range" min="0" max="${max}" step="${step}" value="${z[key]}" data-act="ziel" data-zk="${key}"></div>`;
+  return `${sheetHead("Tagesziele")}<div class="sheet-body"><div class="card">
+    ${f("kcal", "Kalorien", 4000, 50)}
+    ${f("protein", "Protein", 250, 5)}
+    ${f("carbs", "Kohlenhydrate", 500, 5)}
+    ${f("fett", "Fett", 200, 5)}
+  </div><p style="color:var(--text-3);font-size:13px;text-align:center;margin-top:12px">Richtwerte – passe sie an dein Ziel an (z. B. Muskelaufbau, Abnehmen).</p></div>`;
 }
 
 // --------------------------- Onboarding -------------------------------------
@@ -865,6 +1024,16 @@ app.addEventListener("click", (e) => {
     }
     case "autoPlan": wochePlanenAuto(); render(); toast("Woche automatisch gefüllt ✓"); break;
     case "fav": favoritToggle(arg); render(); break;
+    case "trackTag": { const dt = new Date(ui.trackDatum); dt.setDate(dt.getDate() + (+arg)); const iso = dt.toISOString().slice(0, 10); if (iso <= heuteISO()) { ui.trackDatum = iso; render(); } break; }
+    case "logRezept": case "logRezeptDetail": {
+      const r = rezept(arg); if (!r) break; const m = makros(r);
+      trackingAdd(ui.trackDatum, { name: r.name, emoji: r.emoji, bildData: r.bildData || null, kcal: m.kcal, protein: m.protein, carbs: m.carbs, fett: m.fett, typ: "rezept" });
+      if (act === "logRezept") ui.sheet = null;
+      render(); toast(`${r.name} getrackt ✓`); break;
+    }
+    case "logGetraenk": { const g = GETRAENKE[+arg]; if (!g) break; trackingAdd(ui.trackDatum, { name: g.name, emoji: g.emoji, kcal: g.kcal, protein: g.protein, carbs: g.carbs, fett: g.fett, typ: "getraenk" }); ui.sheet = null; render(); toast(`${g.name} getrackt ✓`); break; }
+    case "trackDel": trackingRemove(ui.trackDatum, arg); render(); break;
+    case "saveSchnell": saveSchnellEintrag(); break;
     case "setFilterGo": if (ui.tab !== "rezepte") ui.prevTab = ui.tab; ui.tab = "rezepte"; ui.zielTag = null; ui.rezeptFilter = arg; render(); break;
     case "openCreate": ui.draft = leererDraft(); ui.sheet = "rezeptErstellen"; ui.sheetArg = null; render(); break;
     case "addZutat": captureDraft(); ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
@@ -905,11 +1074,25 @@ app.addEventListener("input", (e) => {
     const box = document.getElementById("rezept-results");
     if (box) { box.innerHTML = rezeptKarten(); pexelsNachladen(); }
   }
+  if (e.target.dataset.act === "trackSuche") {
+    ui.trackSuche = e.target.value;
+    const box = document.getElementById("track-results");
+    if (box) { box.innerHTML = trackResultRows(); pexelsNachladen(); }
+  }
+  if (e.target.dataset.act === "ziel") {
+    const k = e.target.dataset.zk; zielSetzen(k, +e.target.value);
+    const lbl = document.getElementById(`z-${k}-val`); if (lbl) lbl.textContent = e.target.value + (k === "kcal" ? " kcal" : " g");
+  }
 });
 app.addEventListener("change", (e) => {
   if (e.target.dataset.act === "bio") { setVorgabe("bioGewuenscht", e.target.checked); }
   if (e.target.dataset.act === "vorratAbziehen") { setVorgabe("vorratAbziehen", e.target.checked); render(); }
-  if (e.target.dataset.act === "photo" && e.target.files && e.target.files[0]) { fotoVerarbeiten(e.target.files[0]); }
+  if (e.target.dataset.act === "photo" && e.target.files && e.target.files[0]) {
+    fotoVerarbeiten(e.target.files[0], (url) => { captureDraft(); ui.draft.bildData = url; });
+  }
+  if (e.target.dataset.act === "schnellFoto" && e.target.files && e.target.files[0]) {
+    fotoVerarbeiten(e.target.files[0], (url) => { captureSchnell(); ui.schnellDraft.bildData = url; });
+  }
 });
 app.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id === "vorrat-input" && e.target.value.trim()) {
