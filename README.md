@@ -61,10 +61,31 @@ Läden einstellen, optimiertes Paket berechnen und Einkauf abhaken.
 Der berechnete `Einkaufsplan` ist eine Zuordnung pro Markt inkl. Summe und
 Ersparnis gegenüber Normalpreis.
 
+## Live-Demo
+
+Der Web-Prototyp ist die vollständige Referenz-Implementierung und läuft unter
+**https://marvingerke-source.github.io/App/** (solange das Repo öffentlich ist).
+
+## Funktionsumfang Web-App
+
+- **Start/Dashboard** – Wochenüberblick (Kosten, Ersparnis, Läden), Schnellzugriff,
+  „Angebote der Woche".
+- **Wochenplan** – mehrere Gerichte pro Tag, Portionen anpassen, „heute"-Hervorhebung.
+- **Liste** – automatisch zusammengeführt, Vorräte abhaken.
+- **Sparen** – animiertes Gesamt-Total, Ersparnis, Route/Entfernung, Laden-Hinweis.
+- **Einkaufen** – nach Läden gruppiert, Fortschrittsbalken, Abschluss-Animation.
+- **Prospekt-Import (Stufe 2)** – simulierter KI-Scan, der Angebote erkennt & übernimmt.
+- **Märkte (Stufe 4)** – Märkte mit Entfernung an-/abschalten.
+- Onboarding, Dark Mode, Persistenz via `localStorage`.
+
+Dateien: `index.html`, `styles.css` (Design-System), `data.js`, `logic.js`
+(A/C/D), `icons.js`, `store.js` (State+Persistenz), `app.js` (UI/Router).
+
 ## Roadmap (Abschnitt 7)
 
 - [x] **Stufe 1** – Rezepte, Wochenplan, automatische Liste, Budget/Bio-Filter,
-      Optimierung über Läden (Angebote manuell/als Beispieldaten).
-- [ ] **Stufe 2** – KI-gestützter Prospekt-Import (OCR + Sprachmodell).
-- [ ] **Stufe 3** – Feinschliff Mehr-Laden-Optimierung mit Fahrten-Obergrenze.
-- [ ] **Stufe 4** – Mehr Märkte, Standort/Entfernung, automatische Aktualisierung.
+      Optimierung über Läden.
+- [x] **Stufe 2** – KI-gestützter Prospekt-Import (im Web-Prototyp simuliert).
+- [x] **Stufe 3** – Mehr-Laden-Optimierung mit Fahrten-Obergrenze & „lohnt-sich"-Hinweis.
+- [x] **Stufe 4** – Mehrere Märkte mit Entfernung, verwaltbar.
+- [ ] Echte Daten: OCR/Sprachmodell-Pipeline & Backend statt Beispieldaten.
