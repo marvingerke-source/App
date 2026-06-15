@@ -635,7 +635,8 @@ function formatDatum(iso) {
 // ---- Fotos ----------------------------------------------------------------
 // Trage hier deinen kostenlosen Pexels-API-Key ein -> perfekt passende Fotos.
 // Solange leer, werden echte Fotos via LoremFlickr (Stichwort) genutzt.
-const PEXELS_KEY = "";
+const PEXELS_KEY = "J2QR4daVOhxgVeDgnInIwhSVx8QGC34wtVOZlH6Px1Enkj3Aw9eeSypS";
+const pexelsInflight = new Set();
 
 function lockId(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return h % 100000; }
 function loremUrl(r, w, h) { return `https://loremflickr.com/${w}/${h}/${BILDER[r.id] || "food"}?lock=${lockId(r.id)}`; }
@@ -652,8 +653,9 @@ function pexelsNachladen() {
   if (!PEXELS_KEY) return;
   document.querySelectorAll("img.cover-img[data-rk]").forEach((el) => {
     const id = el.dataset.rk, r = rezept(id);
-    if (!r || r.bildData || state.bildCache[id]) return;
+    if (!r || r.bildData || state.bildCache[id] || pexelsInflight.has(id)) return;
     const kw = BILDER[id] || r.name;
+    pexelsInflight.add(id);
     fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(kw)}&per_page=1&orientation=landscape`,
       { headers: { Authorization: PEXELS_KEY } })
       .then((res) => res.json())
@@ -662,7 +664,7 @@ function pexelsNachladen() {
         if (src) { state.bildCache[id] = src; persist();
           document.querySelectorAll(`img.cover-img[data-rk="${id}"]`).forEach((e) => { e.src = src; e.classList.remove("img-hide"); });
         }
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => pexelsInflight.delete(id));
   });
 }
 
@@ -760,7 +762,7 @@ app.addEventListener("input", (e) => {
   if (e.target.dataset.act === "rezeptSuche") {
     ui.rezeptSuche = e.target.value;
     const box = document.getElementById("rezept-results");
-    if (box) box.innerHTML = rezeptKarten();
+    if (box) { box.innerHTML = rezeptKarten(); pexelsNachladen(); }
   }
 });
 app.addEventListener("change", (e) => {
