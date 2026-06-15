@@ -1,39 +1,38 @@
-# In Xcode testen – Smarter Wochen-Einkauf
+# In Xcode testen – fertiges Projekt
 
-Es gibt zwei iOS-Varianten in diesem Repo:
+**So testest du die vollständige App (Rezeptbuch, Fotos, Tracking, KI):**
 
-| Ordner | Was | Stand |
-|--------|-----|-------|
-| `ios/SmartEinkaufWeb/` | **Native Hülle (WKWebView)**, lädt die vollständige Web-App | **alle Features** – zum Testen empfohlen |
-| `ios/SmartEinkauf/` | Natives SwiftUI-Gerüst | nur Stufe 1 (Frühstand) |
+1. Repo auf deinen Mac holen (klonen oder ZIP) und den Ordner
+   `ios/SmartEinkaufWeb/` öffnen.
+2. **`SmartEinkaufWeb.xcodeproj`** doppelklicken → Xcode öffnet das Projekt.
+3. Oben ein Ziel wählen (z. B. **iPhone 16 Simulator**) und **▶ Run**.
 
-## A) Schnellster Test – ganz ohne Xcode-Projekt
-Im **iOS-Simulator** (kommt mit Xcode) oder am iPhone einfach **Safari** öffnen und
-`https://marvingerke-source.github.io/App/` aufrufen. Das ist die echte App auf iOS.
+Fertig – die komplette Web-App läuft in einer nativen iOS-Hülle. `localStorage`,
+Foto-Upload (Kamera/Mediathek) und die KI-Erkennung funktionieren wie in Safari.
 
-## B) Als native App in Xcode (WKWebView-Hülle)
-1. Xcode → **File ▸ New ▸ Project… ▸ iOS ▸ App**
-   - Product Name: `SmartEinkaufWeb`
-   - Interface: **SwiftUI**, Language: **Swift**
-2. Die von Xcode erzeugte `…App.swift`/`ContentView.swift` löschen und stattdessen
-   **`SmartEinkaufWebApp.swift`** aus diesem Ordner ins Target ziehen.
-3. **Run** (▶) → Simulator oder verbundenes iPhone wählen.
+### Auf einem echten iPhone
+- Xcode ▸ Projekt ▸ Target **SmartEinkaufWeb** ▸ **Signing & Capabilities** ▸
+  dein **Team** wählen (kostenloser Apple-ID-Account genügt zum Testen).
+- Bei Bedarf den **Bundle Identifier** ändern (z. B. `com.deinname.SmartEinkaufWeb`),
+  falls `com.example.SmartEinkaufWeb` schon vergeben ist.
+- iPhone per Kabel verbinden, als Ziel wählen, **▶ Run**.
 
-Das war's – die vollständige Web-App läuft jetzt in einer nativen iOS-Hülle.
-`localStorage`, Foto-Upload (Kamera/Mediathek) und die KI-Erkennung funktionieren
-darin genauso wie in Safari.
+### Offline / Web-Dateien einbetten (optional)
+Standardmäßig lädt die App die Live-Seite
+`https://marvingerke-source.github.io/App/`. Soll sie offline mit den lokalen
+Dateien laufen:
+1. Den Ordner `web/` (aus dem Repo-Root) per Drag & Drop ins Xcode-Projekt ziehen,
+   dabei **„Create folder references"** wählen (blauer Ordner).
+2. In `SmartEinkaufWeb/SmartEinkaufWebApp.swift` `makeUIView` so anpassen:
+   ```swift
+   if let local = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "web") {
+       webView.loadFileURL(local, allowingReadAccessTo: local.deletingLastPathComponent())
+   } else {
+       webView.load(URLRequest(url: url))
+   }
+   ```
 
-### Offline / gebündelt (optional)
-Soll die App ohne Internet laufen, den Ordner `web/` per **„Create folder references"**
-ins Projekt ziehen und in `SmartEinkaufWebApp.swift` den auskommentierten
-`loadFileURL(...)`-Block aktivieren.
-
-### Foto/Kamera am Gerät
-Damit die Kamera am echten iPhone genutzt werden darf, in den **Target-Einstellungen ▸
-Info** den Schlüssel **`Privacy - Camera Usage Description`** (`NSCameraUsageDescription`)
-mit einem kurzen Text ergänzen, z. B. „Für Fotos deiner Gerichte".
-
-## Hinweis zum nativen SwiftUI-Gerüst (`ios/SmartEinkauf/`)
-Das ist die ursprüngliche Stufe-1-Version (Wochenplan/Liste/Vorgaben/Ergebnis/Einkaufen
-mit Beispieldaten) – ohne Rezeptbuch, Fotos, Tracking und KI. Es zeigt, wie eine native
-Umsetzung aussähe; der vollständige, aktuelle Funktionsumfang lebt in der Web-App.
+### Hinweis
+`ios/SmartEinkauf/` ist das ältere **Stufe-1-SwiftUI-Gerüst** (ohne Rezeptbuch,
+Fotos, Tracking, KI). Der vollständige Funktionsumfang lebt in der Web-App, die
+dieses Projekt lädt.
