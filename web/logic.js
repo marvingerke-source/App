@@ -4,12 +4,12 @@
 // ============================================================================
 
 // --- Baustein A: gleiche Zutaten über die Woche zusammenführen ---------------
-function bedarfBerechnen(plan) {
+function bedarfBerechnen(plan, rezeptListe = REZEPTE) {
   const map = new Map();
   for (const eintraege of Object.values(plan)) {
     const liste = Array.isArray(eintraege) ? eintraege : (eintraege ? [eintraege] : []);
     for (const eintrag of liste) {
-      const rezept = REZEPTE.find((r) => r.id === eintrag.rezeptId);
+      const rezept = rezeptListe.find((r) => r.id === eintrag.rezeptId);
       if (!rezept) continue;
       const faktor = (eintrag.portionen || rezept.portionen) / rezept.portionen;
       for (const z of rezept.zutaten) {

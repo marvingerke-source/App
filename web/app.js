@@ -17,6 +17,7 @@ function render() {
   const sc = app.querySelector(".scroll");
   if (sc) sc.scrollTop = ui.scrollTops[ui.tab] || 0;
   runEntryAnimations();
+  pexelsNachladen();
 }
 
 function screenContent() {
@@ -66,7 +67,7 @@ function screenHome() {
     <div class="section-label">Schnellzugriff</div>
     <div class="qa-grid">
       <button class="qa" data-act="openRezepte" data-arg="">
-        <div class="ic">${ICON.book}</div><div class="t">Rezepte entdecken</div><div class="d">${REZEPTE.length} Ideen</div></button>
+        <div class="ic">${ICON.book}</div><div class="t">Rezepte entdecken</div><div class="d">${alleRezepte().length} Ideen</div></button>
       <button class="qa" data-act="tab" data-arg="plan">
         <div class="ic">${ICON.calendar}</div><div class="t">Woche planen</div><div class="d">Gerichte zuweisen</div></button>
       <button class="qa" data-act="openSheet" data-arg="import">
@@ -122,8 +123,9 @@ function rezeptMatchtFilter(r, k) {
 
 function rezepteGefiltert() {
   const q = ui.rezeptSuche.trim().toLowerCase();
-  return REZEPTE.filter((r) => {
-    if (!rezeptMatchtFilter(r, ui.rezeptFilter)) return false;
+  return alleRezepte().filter((r) => {
+    if (ui.rezeptFilter === "Eigene") { if (!r.eigen) return false; }
+    else if (!rezeptMatchtFilter(r, ui.rezeptFilter)) return false;
     if (!q) return true;
     return r.name.toLowerCase().includes(q) || r.zutaten.some((z) => z.name.toLowerCase().includes(q));
   });
@@ -140,20 +142,26 @@ function dietBadge(r) {
 function rezeptKarten() {
   const liste = rezepteGefiltert();
   if (!liste.length) return `<div class="empty" style="grid-column:1/-1"><div class="ic">${ICON.search}</div><h3>Nichts gefunden</h3><p>Probiere einen anderen Suchbegriff oder Filter.</p></div>`;
-  return liste.map((r) => `<div class="rcard" data-act="${ui.zielTag ? "quickAdd" : "openDetail"}" data-arg="${ui.zielTag ? ui.zielTag + "|" + r.id : r.id}">
+  return liste.map((r) => {
+    const b = effektiveBewertung(r);
+    const note = b.anzahl ? `★ ${b.rating.toFixed(1)}` : "neu";
+    return `<div class="rcard" data-act="${ui.zielTag ? "quickAdd" : "openDetail"}" data-arg="${ui.zielTag ? ui.zielTag + "|" + r.id : r.id}">
     <div class="cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
       <span class="cover-emoji">${r.emoji}</span>
       ${coverImg(r, 600, 400)}
-      ${dietBadge(r)}
+      ${r.eigen ? `<span class="vtag" style="color:#b45309">★ eigenes</span>` : dietBadge(r)}
       <span class="time">${ICON.clock} ${r.dauerMin}'</span>
     </div>
     <div class="body"><div class="t">${r.name}</div>
-      <div class="m">⭐ ${r.rating.toFixed(1)} · ${r.kcal} kcal</div></div>
-  </div>`).join("");
+      <div class="m" style="color:#f59e0b;font-weight:700">${note} <span style="color:var(--text-2);font-weight:500">· ${r.kcal || "–"} kcal</span></div></div>
+  </div>`;
+  }).join("");
 }
 
 function screenRezepte() {
-  const chips = REZEPT_KATEGORIEN.map((k) =>
+  const cats = REZEPT_KATEGORIEN.slice();
+  if (state.eigeneRezepte.length) cats.splice(1, 0, "Eigene");
+  const chips = cats.map((k) =>
     `<button class="cat-chip ${ui.rezeptFilter === k ? "active" : ""}" data-act="setFilter" data-arg="${k}">${k}</button>`).join("");
   const kollektionen = KOLLEKTIONEN.map((c) => `<button class="coll-card" style="background:linear-gradient(150deg, ${c.farbe}, ${c.farbe}cc)" data-act="setFilter" data-arg="${c.key}">
     <span class="ce">${c.emoji}</span><span class="ct">${c.titel}</span></button>`).join("");
@@ -161,7 +169,8 @@ function screenRezepte() {
   return `<div class="scroll fade-in">
     <div class="header">
       <button class="icon-btn" data-act="backFromRezepte">${ICON.back}</button>
-      <div style="flex:1;margin-left:4px"><div class="eyebrow">Rezeptbuch · ${REZEPTE.length} Ideen</div><h1>Entdecken</h1></div>
+      <div style="flex:1;margin-left:4px"><div class="eyebrow">Rezeptbuch · ${alleRezepte().length} Ideen</div><h1>Entdecken</h1></div>
+      <button class="icon-btn" data-act="openCreate" style="background:var(--accent-grad);color:#fff">${ICON.plus}</button>
     </div>
     ${ui.zielTag ? `<div class="zieltag-banner">${ICON.calendar} Für ${ui.zielTag} – tippe ein Rezept zum Hinzufügen</div>` : ""}
     <div class="searchbar">${ICON.search}<input id="rezept-suche" data-act="rezeptSuche" placeholder="Rezept oder Zutat suchen…" value="${ui.rezeptSuche}"></div>
@@ -330,6 +339,7 @@ function sheetMarkup() {
   if (!ui.sheet) return `<div class="backdrop" data-act="closeSheet"></div>`;
   let body = "";
   if (ui.sheet === "rezeptDetail") body = sheetRezeptDetail(ui.sheetArg);
+  else if (ui.sheet === "rezeptErstellen") body = sheetRezeptErstellen();
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -344,6 +354,8 @@ function sheetHead(title) {
 function sheetRezeptDetail(id) {
   const r = rezept(id);
   if (!r) return sheetHead("Rezept");
+  const eb = effektiveBewertung(r);
+  const meine = state.bewertungen[r.id] ?? 0;
   const p = ui.detailPortionen, faktor = p / r.portionen;
   const zutaten = r.zutaten.map((z) => {
     const m = z.menge * faktor;
@@ -367,9 +379,9 @@ function sheetRezeptDetail(id) {
           ${(r.diaet || []).map((d) => `<span class="tag" style="background:rgba(255,255,255,.9);color:#15803d">${d}</span>`).join("")}
         </div>
       </div>
-      <h2 style="font-size:24px;font-weight:800;margin-top:14px">${r.name}</h2>
+      <h2 style="font-size:24px;font-weight:800;margin-top:14px">${r.name} ${r.eigen ? `<span class="tag" style="background:#fff4e0;color:#b45309">eigenes</span>` : ""}</h2>
       <div style="display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--text-2);font-size:13.5px;font-weight:600">
-        <span style="color:#f59e0b">★★★★★</span> ${r.rating.toFixed(1)} · ${r.bewertungen.toLocaleString("de-DE")} Bewertungen</div>
+        ${sterne(eb.rating)} ${eb.anzahl ? `${eb.rating.toFixed(1)} · ${eb.anzahl.toLocaleString("de-DE")} Bewertungen` : "Noch keine Bewertung"}</div>
       <div class="detail-meta">
         <span class="meta-pill">${ICON.clock} ${r.dauerMin} min</span>
         <span class="meta-pill">${ICON.fire} ${r.kcal} kcal</span>
@@ -389,6 +401,15 @@ function sheetRezeptDetail(id) {
       <div class="section-label">Zum Wochenplan hinzufügen</div>
       <div class="day-pick">${dayChips}</div>
       <p style="color:var(--text-3);font-size:12.5px;text-align:center;margin-top:10px">Tippe einen Tag – grün = bereits geplant.</p>
+
+      <div class="section-label">Deine Bewertung</div>
+      <div class="card" style="text-align:center">
+        <div class="rate-stars">${[1, 2, 3, 4, 5].map((n) =>
+          `<button data-act="rate" data-arg="${r.id}|${n}" class="${n <= meine ? "on" : ""}">${ICON.star}</button>`).join("")}</div>
+        <div style="font-size:13px;color:var(--text-2);margin-top:6px">${meine ? `Du hast ${meine} ${meine === 1 ? "Stern" : "Sterne"} vergeben` : "Tippe, um zu bewerten"}</div>
+      </div>
+
+      ${r.eigen ? `<button class="btn btn-ghost" style="color:var(--danger);margin-top:14px" data-act="deleteRezept" data-arg="${r.id}">${ICON.trash} Rezept löschen</button>` : ""}
     </div>`;
 }
 
@@ -457,6 +478,122 @@ function sheetImport() {
     <div class="flyer-grid">${flyers}</div></div>`;
 }
 
+// --------------------------- Sheet: Rezept erstellen ------------------------
+const EMOJI_AUSWAHL = ["🍽️", "🍝", "🍲", "🥘", "🍛", "🥗", "🍕", "🍔", "🌮", "🍜", "🍳", "🥞", "🍰", "🥩", "🐟", "🍗"];
+const DIAET_AUSWAHL = ["vegetarisch", "vegan", "keto", "low-carb", "high-protein"];
+const KURS_AUSWAHL = ["Familie", "Klassiker", "Pasta", "Vegetarisch", "Fleisch", "Fisch", "Frühstück", "Salat", "Suppe"];
+
+function leererDraft() {
+  return { name: "", kategorie: "Familie", dauerMin: 30, portionen: 2, kcal: "", beschreibung: "",
+    diaet: [], emoji: "🍽️", farbe: "#10b981", bildData: null,
+    zutaten: [{ name: "", menge: "", einheit: "g" }], schritte: [""] };
+}
+
+function captureDraft() {
+  const d = ui.draft, g = (id) => document.getElementById(id);
+  if (g("f-name")) d.name = g("f-name").value;
+  if (g("f-kat")) d.kategorie = g("f-kat").value;
+  if (g("f-dauer")) d.dauerMin = +g("f-dauer").value || 0;
+  if (g("f-portionen")) d.portionen = +g("f-portionen").value || 1;
+  if (g("f-kcal")) d.kcal = g("f-kcal").value;
+  if (g("f-besch")) d.beschreibung = g("f-besch").value;
+  d.zutaten.forEach((z, i) => {
+    if (g(`z-name-${i}`)) z.name = g(`z-name-${i}`).value;
+    if (g(`z-menge-${i}`)) z.menge = g(`z-menge-${i}`).value;
+    if (g(`z-einheit-${i}`)) z.einheit = g(`z-einheit-${i}`).value;
+  });
+  d.schritte.forEach((s, i) => { if (g(`s-${i}`)) d.schritte[i] = g(`s-${i}`).value; });
+}
+
+function sheetRezeptErstellen() {
+  const d = ui.draft;
+  const emojis = EMOJI_AUSWAHL.map((e) => `<button class="emoji-opt ${d.emoji === e ? "on" : ""}" data-act="pickEmoji" data-arg="${e}">${e}</button>`).join("");
+  const kurse = KURS_AUSWAHL.map((k) => `<option value="${k}" ${d.kategorie === k ? "selected" : ""}>${k}</option>`).join("");
+  const diaet = DIAET_AUSWAHL.map((t) => `<button class="cat-chip ${d.diaet.includes(t) ? "active" : ""}" data-act="dietDraft" data-arg="${t}">${t}</button>`).join("");
+  const zutaten = d.zutaten.map((z, i) => `<div class="z-row">
+      <input id="z-name-${i}" placeholder="Zutat" value="${z.name}">
+      <input id="z-menge-${i}" placeholder="Menge" value="${z.menge}" inputmode="decimal" style="max-width:74px">
+      <input id="z-einheit-${i}" placeholder="Einh." value="${z.einheit}" style="max-width:64px">
+      <button data-act="removeZutat" data-arg="${i}" class="rm">${ICON.x}</button></div>`).join("");
+  const schritte = d.schritte.map((s, i) => `<div class="s-row"><span class="snum">${i + 1}</span>
+      <textarea id="s-${i}" placeholder="Schritt beschreiben…" rows="2">${s}</textarea>
+      <button data-act="removeSchritt" data-arg="${i}" class="rm">${ICON.x}</button></div>`).join("");
+
+  return `${sheetHead("Eigenes Rezept")}<div class="sheet-body">
+    <label class="photo-up" style="${d.bildData ? `background-image:url(${d.bildData})` : ""}">
+      <input type="file" accept="image/*" data-act="photo" hidden>
+      ${d.bildData ? `<span class="photo-edit">${ICON.camera} Foto ändern</span>` : `<span class="photo-empty">${ICON.camera}<b>Foto aufnehmen / wählen</b><i>wird automatisch verkleinert</i></span>`}
+    </label>
+
+    <div class="form-field"><label>Name</label><input id="f-name" placeholder="z. B. Omas Gulasch" value="${d.name}"></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Kategorie</label><select id="f-kat">${kurse}</select></div>
+      <div class="form-field"><label>Dauer (min)</label><input id="f-dauer" type="number" inputmode="numeric" value="${d.dauerMin}"></div>
+      <div class="form-field"><label>Portionen</label><input id="f-portionen" type="number" inputmode="numeric" value="${d.portionen}"></div>
+      <div class="form-field"><label>kcal (optional)</label><input id="f-kcal" type="number" inputmode="numeric" value="${d.kcal}"></div>
+    </div>
+    <div class="form-field"><label>Kurzbeschreibung</label><textarea id="f-besch" rows="2" placeholder="Worum geht's?">${d.beschreibung}</textarea></div>
+
+    <div class="form-field"><label>Symbol (Fallback ohne Foto)</label><div class="emoji-row">${emojis}</div></div>
+    <div class="form-field"><label>Ernährung</label><div class="cat-scroll" style="margin:0;padding:0">${diaet}</div></div>
+
+    <div class="section-label" style="margin-left:0">Zutaten</div>
+    ${zutaten}
+    <button class="btn-text" data-act="addZutat" style="text-align:left;padding:8px 2px">${ICON.plus} Zutat hinzufügen</button>
+
+    <div class="section-label" style="margin-left:0">Zubereitung</div>
+    ${schritte}
+    <button class="btn-text" data-act="addSchritt" style="text-align:left;padding:8px 2px">${ICON.plus} Schritt hinzufügen</button>
+
+    <button class="btn btn-primary" style="margin-top:18px" data-act="saveRezept">${ICON.check} Rezept speichern</button>
+  </div>`;
+}
+
+function rezeptSpeichernAusDraft() {
+  captureDraft();
+  const d = ui.draft;
+  if (!d.name.trim()) { toast("Bitte einen Namen eingeben"); return; }
+  const zutaten = d.zutaten.filter((z) => z.name.trim()).map((z) => ({
+    name: z.name.trim(), menge: parseFloat(String(z.menge).replace(",", ".")) || 1,
+    einheit: z.einheit.trim() || "Stk", kategorie: guessKategorie(z.name),
+  }));
+  if (!zutaten.length) { toast("Mindestens eine Zutat angeben"); return; }
+  const schritte = d.schritte.map((s) => s.trim()).filter(Boolean);
+  const diaet = [...d.diaet];
+  const veggie = diaet.includes("vegetarisch") || diaet.includes("vegan");
+  const neu = {
+    id: "u_" + Date.now(), eigen: true, name: d.name.trim(), emoji: d.emoji, farbe: d.farbe,
+    kategorie: d.kategorie, dauerMin: +d.dauerMin || 20, portionen: +d.portionen || 2,
+    kcal: +d.kcal || 0, schwierigkeit: "einfach", veggie, diaet,
+    beliebt: false, budget: false, saison: ["ganzjährig"], rating: 0, bewertungen: 0,
+    beschreibung: d.beschreibung.trim() || "Dein eigenes Rezept.",
+    schritte: schritte.length ? schritte : ["Nach Belieben zubereiten."],
+    bildData: d.bildData, zutaten,
+  };
+  eigenesRezeptSpeichern(neu);
+  ui.sheet = "rezeptDetail"; ui.sheetArg = neu.id; ui.detailPortionen = neu.portionen;
+  render(); toast("Rezept gespeichert ✓");
+}
+
+// Foto im Browser verkleinern (max 900px, JPEG) und als DataURL in den Draft.
+function fotoVerarbeiten(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 900, scale = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      captureDraft();
+      try { ui.draft.bildData = c.toDataURL("image/jpeg", 0.72); } catch (e) { toast("Foto konnte nicht verarbeitet werden"); }
+      render();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 // --------------------------- Onboarding -------------------------------------
 function onboarding() {
   const feat = (ic, t, d) => `<div class="feat">${ic}<div><div class="t">${t}</div><div class="d">${d}</div></div></div>`;
@@ -495,10 +632,57 @@ function formatDatum(iso) {
   return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 }
 
-// Echte Fotos via LoremFlickr (stabil pro Rezept), Farbverlauf+Emoji als Fallback.
+// ---- Fotos ----------------------------------------------------------------
+// Trage hier deinen kostenlosen Pexels-API-Key ein -> perfekt passende Fotos.
+// Solange leer, werden echte Fotos via LoremFlickr (Stichwort) genutzt.
+const PEXELS_KEY = "";
+
 function lockId(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return h % 100000; }
-function bildUrl(r, w, h) { return `https://loremflickr.com/${w}/${h}/${BILDER[r.id] || "food"}?lock=${lockId(r.id)}`; }
-function coverImg(r, w, h) { return `<img class="cover-img" src="${bildUrl(r, w, h)}" alt="" loading="lazy" onerror="this.classList.add('img-hide')">`; }
+function loremUrl(r, w, h) { return `https://loremflickr.com/${w}/${h}/${BILDER[r.id] || "food"}?lock=${lockId(r.id)}`; }
+function rezeptBildSrc(r, w, h) {
+  if (r.bildData) return r.bildData;                 // eigenes Foto (Upload)
+  if (state.bildCache[r.id]) return state.bildCache[r.id]; // gecachtes Pexels-Foto
+  return loremUrl(r, w, h);
+}
+function coverImg(r, w, h) {
+  return `<img class="cover-img" src="${rezeptBildSrc(r, w, h)}" data-rk="${r.id}" alt="" loading="lazy" onerror="this.classList.add('img-hide')">`;
+}
+// Lädt – falls ein Pexels-Key gesetzt ist – passende Fotos nach und cached sie.
+function pexelsNachladen() {
+  if (!PEXELS_KEY) return;
+  document.querySelectorAll("img.cover-img[data-rk]").forEach((el) => {
+    const id = el.dataset.rk, r = rezept(id);
+    if (!r || r.bildData || state.bildCache[id]) return;
+    const kw = BILDER[id] || r.name;
+    fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(kw)}&per_page=1&orientation=landscape`,
+      { headers: { Authorization: PEXELS_KEY } })
+      .then((res) => res.json())
+      .then((d) => {
+        const src = d.photos && d.photos[0] && d.photos[0].src && d.photos[0].src.large;
+        if (src) { state.bildCache[id] = src; persist();
+          document.querySelectorAll(`img.cover-img[data-rk="${id}"]`).forEach((e) => { e.src = src; e.classList.remove("img-hide"); });
+        }
+      }).catch(() => {});
+  });
+}
+
+// Sternebewertung als Markup.
+function sterne(rating) {
+  const voll = Math.round(rating);
+  let s = "";
+  for (let i = 1; i <= 5; i++) s += `<span style="color:${i <= voll ? "#f59e0b" : "var(--separator)"}">${ICON.star}</span>`;
+  return `<span class="stars-row">${s}</span>`;
+}
+
+// Kategorie einer (frei eingegebenen) Zutat schätzen – für das Angebots-Matching.
+const ZUTAT_KAT = {};
+REZEPTE.forEach((r) => r.zutaten.forEach((z) => { if (!ZUTAT_KAT[z.name.toLowerCase()]) ZUTAT_KAT[z.name.toLowerCase()] = z.kategorie; }));
+function guessKategorie(name) {
+  const n = name.toLowerCase().trim();
+  if (ZUTAT_KAT[n]) return ZUTAT_KAT[n];
+  for (const k in ZUTAT_KAT) if (n.includes(k) || k.includes(n)) return ZUTAT_KAT[k];
+  return "sonstiges";
+}
 
 // Count-up-Animation für den Gesamtbetrag.
 function runEntryAnimations() {
@@ -538,6 +722,16 @@ app.addEventListener("click", (e) => {
     case "detailPortion": ui.detailPortionen = Math.max(1, ui.detailPortionen + (+arg)); render(); break;
     case "addToDay": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, ui.detailPortionen); render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
     case "quickAdd": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, rezept(rid)?.portionen); ui.tab = "plan"; ui.zielTag = null; render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
+    case "rate": { const [rid, n] = arg.split("|"); bewertungSetzen(rid, +n); render(); toast("Danke für deine Bewertung ★"); break; }
+    case "openCreate": ui.draft = leererDraft(); ui.sheet = "rezeptErstellen"; ui.sheetArg = null; render(); break;
+    case "addZutat": captureDraft(); ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
+    case "removeZutat": captureDraft(); ui.draft.zutaten.splice(+arg, 1); if (!ui.draft.zutaten.length) ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
+    case "addSchritt": captureDraft(); ui.draft.schritte.push(""); render(); break;
+    case "removeSchritt": captureDraft(); ui.draft.schritte.splice(+arg, 1); if (!ui.draft.schritte.length) ui.draft.schritte.push(""); render(); break;
+    case "dietDraft": { captureDraft(); const s = new Set(ui.draft.diaet); s.has(arg) ? s.delete(arg) : s.add(arg); ui.draft.diaet = [...s]; render(); break; }
+    case "pickEmoji": captureDraft(); ui.draft.emoji = arg; render(); break;
+    case "saveRezept": rezeptSpeichernAusDraft(); break;
+    case "deleteRezept": if (confirm("Eigenes Rezept löschen?")) { rezeptLoeschen(arg); ui.sheet = null; render(); toast("Rezept gelöscht"); } break;
     case "removeMeal": { const [t, i] = arg.split("|"); rezeptEntfernen(t, +i); render(); break; }
     case "portion": { const [t, i, d] = arg.split("|"); portionenAendern(t, +i, +d); render(); break; }
     case "toggleVorrat": toggle("vorratAbgehakt", arg); render(); break;
@@ -571,6 +765,7 @@ app.addEventListener("input", (e) => {
 });
 app.addEventListener("change", (e) => {
   if (e.target.dataset.act === "bio") { setVorgabe("bioGewuenscht", e.target.checked); }
+  if (e.target.dataset.act === "photo" && e.target.files && e.target.files[0]) { fotoVerarbeiten(e.target.files[0]); }
 });
 
 // Mini-Toast

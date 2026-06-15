@@ -15,6 +15,9 @@ const defaults = () => ({
   vorgaben: { budget: 45, bioGewuenscht: false, maxLaeden: 2 },
   aktiveMaerkte: ["aldi", "rewe", "lidl", "edeka"],
   importierteAngebote: [],
+  eigeneRezepte: [],     // vom Nutzer angelegte Rezepte (mit Foto)
+  bewertungen: {},       // rezeptId -> Sterne (1–5) des Nutzers
+  bildCache: {},         // rezeptId -> echte Foto-URL (Pexels), gecacht
   onboardingGesehen: false,
 });
 
@@ -35,14 +38,38 @@ function persist() {
 function reset() { state = defaults(); persist(); }
 
 // --- Abgeleitete Werte ------------------------------------------------------
+function alleRezepte() { return [...state.eigeneRezepte, ...REZEPTE]; }
 function angebotePool() { return [...ANGEBOTE, ...state.importierteAngebote]; }
 function bedarfKey(b) { return `${b.name.toLowerCase()}|${b.einheit}`; }
-function gesamterBedarf() { return bedarfBerechnen(state.plan); }
+function gesamterBedarf() { return bedarfBerechnen(state.plan, alleRezepte()); }
 function offenerBedarf() { return gesamterBedarf().filter((b) => !state.vorratAbgehakt.includes(bedarfKey(b))); }
 function aktuellerPlan() {
   return einkaufsplanBerechnen(offenerBedarf(), state.vorgaben, angebotePool(), state.aktiveMaerkte);
 }
-function rezept(id) { return REZEPTE.find((r) => r.id === id); }
+function rezept(id) { return alleRezepte().find((r) => r.id === id); }
+
+// Eigene Rezepte & Bewertungen
+function eigenesRezeptSpeichern(obj) {
+  state.eigeneRezepte.unshift(obj); persist();
+}
+function rezeptLoeschen(id) {
+  state.eigeneRezepte = state.eigeneRezepte.filter((r) => r.id !== id);
+  for (const tag of Object.keys(state.plan)) {
+    const arr = planEintraege(tag).filter((e) => e.rezeptId !== id);
+    if (arr.length) state.plan[tag] = arr; else delete state.plan[tag];
+  }
+  delete state.bewertungen[id]; persist();
+}
+function bewertungSetzen(id, sterne) { state.bewertungen[id] = sterne; persist(); }
+
+// Effektive Bewertung inkl. eigener Stimme.
+function effektiveBewertung(r) {
+  const meine = state.bewertungen[r.id] ?? null;
+  const basisR = r.rating || 0, basisN = r.bewertungen || 0;
+  if (meine == null) return { rating: basisR, anzahl: basisN, meine: null };
+  const anzahl = basisN + 1;
+  return { rating: (basisR * basisN + meine) / anzahl, anzahl, meine };
+}
 function geplanteGerichte() {
   return Object.values(state.plan).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : (arr ? 1 : 0)), 0);
 }
