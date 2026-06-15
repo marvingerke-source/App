@@ -37,4 +37,6 @@ const ICON = {
   edit:   I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
   fridge: I('<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M6 10h12"/><path d="M9 6v1.5M9 13v2"/>'),
   wand:   I('<path d="M5 19l9-9M14 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M19 14l.6 1.2 1.2.6-1.2.6L19 18l-.6-1.2-1.2-.6 1.2-.6z"/>'),
+  heart:  I('<path d="M12 20s-7-4.5-9.2-9A4.5 4.5 0 0 1 12 6.5 4.5 4.5 0 0 1 21.2 11C19 15.5 12 20 12 20z"/>'),
+  heartFill: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5S3.5 15.5 3.5 9.6A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.5 2.9c0 5.9-8.5 10.9-8.5 10.9z"/></svg>',
 };

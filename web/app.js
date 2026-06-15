@@ -39,11 +39,16 @@ function statusbar() {
 }
 
 // Kompakte Rezept-Karte für horizontale Listen (Vorschläge / Vorrat).
+function favBtn(r) {
+  const on = istFavorit(r.id);
+  return `<button class="fav-btn ${on ? "on" : ""}" data-act="fav" data-arg="${r.id}">${on ? ICON.heartFill : ICON.heart}</button>`;
+}
 function recCard(r, badge) {
   const eb = effektiveBewertung(r);
   return `<div class="rec-card" data-act="openDetail" data-arg="${r.id}">
     <div class="rec-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}bb)">
       <span class="cover-emoji">${r.emoji}</span>${coverImg(r, 320, 220)}
+      ${favBtn(r)}
       ${badge ? `<span class="rec-badge">${badge}</span>` : ""}</div>
     <div class="rec-body"><div class="rt">${r.name}</div>
       <div class="rm">★ ${eb.anzahl ? eb.rating.toFixed(1) : "neu"} · ${r.dauerMin}'</div></div>
@@ -101,8 +106,14 @@ function screenHome() {
 
     ${vorratEmpfehlungSection()}
 
+    ${state.favoriten.length ? `<div class="section-label">Deine Favoriten <a data-act="setFilterGo" data-arg="Favoriten">Alle</a></div>
+      <div class="h-scroll">${favoritenRezepte().map((r) => recCard(r)).join("")}</div>` : ""}
+
     <div class="section-label">Vorschläge für dich <a data-act="openRezepte" data-arg="">Mehr</a></div>
     <div class="h-scroll">${empfehlungen(8).map((r) => recCard(r)).join("")}</div>
+
+    <div class="section-label">Günstig diese Woche 🏷️</div>
+    <div class="h-scroll">${angebotsRezepte(8).map((x) => recCard(x.r, `${x.treffer} Angebote`)).join("")}</div>
 
     <div class="section-label">Angebote der Woche <a data-act="openSheet" data-arg="import">Mehr</a></div>
     <div class="h-scroll">
@@ -153,6 +164,7 @@ function rezepteGefiltert() {
   const q = ui.rezeptSuche.trim().toLowerCase();
   return alleRezepte().filter((r) => {
     if (ui.rezeptFilter === "Eigene") { if (!r.eigen) return false; }
+    else if (ui.rezeptFilter === "Favoriten") { if (!istFavorit(r.id)) return false; }
     else if (!rezeptMatchtFilter(r, ui.rezeptFilter)) return false;
     if (!q) return true;
     return r.name.toLowerCase().includes(q) || r.zutaten.some((z) => z.name.toLowerCase().includes(q));
@@ -178,6 +190,7 @@ function rezeptKarten() {
       <span class="cover-emoji">${r.emoji}</span>
       ${coverImg(r, 600, 400)}
       ${r.eigen ? `<span class="vtag" style="color:#b45309">★ eigenes</span>` : dietBadge(r)}
+      ${favBtn(r)}
       <span class="time">${ICON.clock} ${r.dauerMin}'</span>
     </div>
     <div class="body"><div class="t">${r.name}</div>
@@ -189,6 +202,7 @@ function rezeptKarten() {
 function screenRezepte() {
   const cats = REZEPT_KATEGORIEN.slice();
   if (state.eigeneRezepte.length) cats.splice(1, 0, "Eigene");
+  if (state.favoriten.length) cats.splice(1, 0, "Favoriten");
   const chips = cats.map((k) =>
     `<button class="cat-chip ${ui.rezeptFilter === k ? "active" : ""}" data-act="setFilter" data-arg="${k}">${k}</button>`).join("");
   const kollektionen = KOLLEKTIONEN.map((c) => `<button class="coll-card" style="background:linear-gradient(150deg, ${c.farbe}, ${c.farbe}cc)" data-act="setFilter" data-arg="${c.key}">
@@ -384,10 +398,14 @@ function sheetHead(title) {
 
 function vorratHinweisDetail(r) {
   if (!state.vorrat.length) return "";
-  const fehlend = r.zutaten.filter((z) => !zutatGedeckt(z.name)).map((z) => z.name);
+  const fehlend = [], knapp = [];
+  for (const z of r.zutaten) { const s = zutatStatus(z); if (s === "fehlt") fehlend.push(z.name); else if (s === "teilweise") knapp.push(z.name); }
   const have = r.zutaten.length - fehlend.length;
   if (!have) return "";
-  return `<div class="note" style="margin-top:6px">${ICON.fridge}<div>Du hast <b>${have} von ${r.zutaten.length}</b> Zutaten da${fehlend.length ? ` – es fehlt: ${fehlend.join(", ")}` : ` – alles da! 🎉`}</div></div>`;
+  let txt = `Du hast <b>${have} von ${r.zutaten.length}</b> Zutaten da`;
+  if (!fehlend.length && !knapp.length) txt += " – alles da! 🎉";
+  else { if (fehlend.length) txt += ` – es fehlt: ${fehlend.join(", ")}`; if (knapp.length) txt += `${fehlend.length ? "; " : " – "}knapp: ${knapp.join(", ")}`; }
+  return `<div class="note" style="margin-top:6px">${ICON.fridge}<div>${txt}</div></div>`;
 }
 
 function sheetRezeptDetail(id) {
@@ -407,8 +425,9 @@ function sheetRezeptDetail(id) {
     return `<button class="${hat ? "has" : ""}" data-act="addToDay" data-arg="${tag}|${r.id}">${tag}</button>`;
   }).join("");
 
-  return `<div class="sheet-head" style="position:absolute;right:0;left:0;z-index:2;background:transparent">
-      <span></span><button class="x" data-act="closeSheet" style="background:rgba(255,255,255,.85);color:#111">${ICON.x}</button></div>
+  return `<div class="sheet-head" style="position:absolute;right:0;left:0;z-index:3;background:transparent">
+      <button class="x ${istFavorit(r.id) ? "fav-on" : ""}" data-act="fav" data-arg="${r.id}" style="background:rgba(255,255,255,.9);color:${istFavorit(r.id) ? "#ef4444" : "#111"}">${istFavorit(r.id) ? ICON.heartFill : ICON.heart}</button>
+      <button class="x" data-act="closeSheet" style="background:rgba(255,255,255,.9);color:#111">${ICON.x}</button></div>
     <div class="sheet-body" style="padding-top:0">
       <div class="detail-cover" style="background:linear-gradient(150deg, ${r.farbe}, ${r.farbe}cc)">
         <span class="cover-emoji">${r.emoji}</span>
@@ -435,9 +454,11 @@ function sheetRezeptDetail(id) {
       <div class="section-label" style="margin-top:8px">Zutaten</div>
       <div class="card">${r.zutaten.map((z) => {
         const m = z.menge * faktor, mStr = Number.isInteger(m) ? m : m.toFixed(m < 10 ? 1 : 0);
-        const da = zutatGedeckt(z.name);
-        return `<div class="ing-row"><span class="dot" style="${da ? "background:var(--accent)" : "background:var(--separator)"}"></span>
-          <span class="nm" style="${da ? "color:var(--text-2)" : ""}">${z.name} ${da ? "✓" : ""}</span><span class="qt">${mStr} ${z.einheit}</span></div>`;
+        const st = zutatStatus(z);
+        const farbe = st === "voll" ? "var(--accent)" : st === "teilweise" ? "var(--gold)" : "var(--separator)";
+        const mark = st === "voll" ? "✓" : st === "teilweise" ? "≈" : "";
+        return `<div class="ing-row"><span class="dot" style="background:${farbe}"></span>
+          <span class="nm" style="${st !== "fehlt" ? "color:var(--text-2)" : ""}">${z.name} ${mark}</span><span class="qt">${mStr} ${z.einheit}</span></div>`;
       }).join("")}</div>
 
       <div class="section-label">Zubereitung</div>
@@ -642,7 +663,7 @@ function fotoVerarbeiten(file) {
 // --------------------------- Sheet: Kühlschrank -----------------------------
 function sheetKuehlschrank() {
   const meine = state.vorrat.map((v) =>
-    `<button class="chip accent" data-act="vorratTog" data-arg="${v}">${v} ${ICON.x}</button>`).join("");
+    `<button class="chip accent" data-act="vorratTog" data-arg="${v.name}">${v.name}${v.menge != null ? ` ${v.menge}${v.einheit || ""}` : ""} ${ICON.x}</button>`).join("");
   const quick = VORRAT_HAEUFIG.filter((n) => !vorratHat(n)).map((n) =>
     `<button class="cat-chip" data-act="vorratTog" data-arg="${n}">+ ${n}</button>`).join("");
 
@@ -653,22 +674,29 @@ function sheetKuehlschrank() {
   } else {
     const liste = kochbareRezepte().slice(0, 20);
     ergebnis = liste.map((x) => {
-      const fehltTxt = x.fehlend.length ? `es fehlt: ${x.fehlend.join(", ")}` : "alles da! 🎉";
+      const teile = [];
+      if (x.fehlend.length) teile.push(`fehlt: ${x.fehlend.join(", ")}`);
+      if (x.knapp.length) teile.push(`knapp: ${x.knapp.join(", ")}`);
+      const fehltTxt = teile.length ? teile.join(" · ") : "alles da! 🎉";
       return `<div class="row" data-act="openDetail" data-arg="${x.r.id}">
         <span class="thumb" style="flex:0 0 46px;width:46px;height:46px;border-radius:12px;position:relative;overflow:hidden;background:linear-gradient(150deg, ${x.r.farbe}, ${x.r.farbe}bb)">
           <span class="te" style="position:absolute;inset:0;display:grid;place-items:center;font-size:22px">${x.r.emoji}</span>${coverImg(x.r, 120, 120)}</span>
         <div class="grow"><div class="title">${x.r.name}</div>
-          <div class="sub" style="color:${x.fehlend.length ? "var(--text-2)" : "var(--accent-2)"}">${x.have}/${x.total} Zutaten · ${fehltTxt}</div></div>
+          <div class="sub" style="color:${teile.length ? "var(--text-2)" : "var(--accent-2)"}">${x.have}/${x.total} Zutaten · ${fehltTxt}</div></div>
         <span class="chev">${ICON.chevron}</span></div>`;
     }).join("");
     ergebnis = `<div class="section-label" style="margin-left:0">Das kannst du kochen</div><div class="card">${ergebnis}</div>`;
   }
 
   return `${sheetHead("Mein Kühlschrank")}<div class="sheet-body">
-    <p style="color:var(--text-2);font-size:14px;margin:0 2px 12px">Tippe an, was du zu Hause hast.</p>
-    <div class="searchbar"><input id="vorrat-input" placeholder="Eigene Zutat eingeben…">
-      <button data-act="vorratAdd" style="color:var(--accent-2);font-weight:800;font-size:15px">Add</button></div>
-    ${meine ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${meine}</div>` : ""}
+    <p style="color:var(--text-2);font-size:14px;margin:0 2px 12px">Tippe an, was du da hast. Menge ist optional (für „etwas da" vs. „genug").</p>
+    <div class="vorrat-add">
+      <input id="vorrat-input" placeholder="Zutat…">
+      <input id="vorrat-menge" placeholder="Menge" inputmode="decimal">
+      <input id="vorrat-einheit" placeholder="Einh.">
+      <button class="va-btn" data-act="vorratAdd">${ICON.plus}</button>
+    </div>
+    ${meine ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0">${meine}</div>` : ""}
     <div class="cat-scroll" style="flex-wrap:wrap;margin:0 0 8px;padding:0;overflow:visible">${quick}</div>
     ${ergebnis}
   </div>`;
@@ -810,8 +838,15 @@ app.addEventListener("click", (e) => {
     case "quickAdd": { const [t, rid] = arg.split("|"); rezeptHinzufuegen(t, rid, rezept(rid)?.portionen); ui.tab = "plan"; ui.zielTag = null; render(); toast(`Zu ${t} hinzugefügt ✓`); break; }
     case "rate": { const [rid, n] = arg.split("|"); bewertungSetzen(rid, +n); render(); toast("Danke für deine Bewertung ★"); break; }
     case "vorratTog": vorratToggle(arg); render(); break;
-    case "vorratAdd": { const inp = document.getElementById("vorrat-input"); if (inp && inp.value.trim()) { vorratToggle(inp.value); render(); } break; }
+    case "vorratAdd": {
+      const inp = document.getElementById("vorrat-input");
+      const mg = document.getElementById("vorrat-menge"), eh = document.getElementById("vorrat-einheit");
+      if (inp && inp.value.trim()) { vorratToggle(inp.value, mg ? mg.value : null, eh ? eh.value : null); render(); }
+      break;
+    }
     case "autoPlan": wochePlanenAuto(); render(); toast("Woche automatisch gefüllt ✓"); break;
+    case "fav": favoritToggle(arg); render(); break;
+    case "setFilterGo": if (ui.tab !== "rezepte") ui.prevTab = ui.tab; ui.tab = "rezepte"; ui.zielTag = null; ui.rezeptFilter = arg; render(); break;
     case "openCreate": ui.draft = leererDraft(); ui.sheet = "rezeptErstellen"; ui.sheetArg = null; render(); break;
     case "addZutat": captureDraft(); ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
     case "removeZutat": captureDraft(); ui.draft.zutaten.splice(+arg, 1); if (!ui.draft.zutaten.length) ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
@@ -858,7 +893,9 @@ app.addEventListener("change", (e) => {
 });
 app.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id === "vorrat-input" && e.target.value.trim()) {
-    e.preventDefault(); vorratToggle(e.target.value); render();
+    e.preventDefault();
+    const mg = document.getElementById("vorrat-menge"), eh = document.getElementById("vorrat-einheit");
+    vorratToggle(e.target.value, mg ? mg.value : null, eh ? eh.value : null); render();
   }
 });
 

@@ -19,7 +19,8 @@ const defaults = () => ({
   bewertungen: {},       // rezeptId -> Sterne (1–5) des Nutzers
   bildCache: {},         // rezeptId -> echte Foto-URL (Pexels), gecacht
   bildVersion: 0,        // zum Auffrischen des Foto-Caches bei besseren Stichwörtern
-  vorrat: [],            // Zutaten, die der Nutzer zu Hause hat (Kühlschrank)
+  vorrat: [],            // Kühlschrank: [{ name, menge|null, einheit|null }]
+  favoriten: [],         // gemerkte Rezept-IDs
   onboardingGesehen: false,
 });
 
@@ -28,7 +29,12 @@ let state = lade();
 function lade() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaults(), ...JSON.parse(raw) };
+    if (raw) {
+      const s = { ...defaults(), ...JSON.parse(raw) };
+      // Migration: alter Vorrat war ein String-Array
+      s.vorrat = (s.vorrat || []).map((v) => typeof v === "string" ? { name: v, menge: null, einheit: null } : v);
+      return s;
+    }
   } catch (e) { /* ignore */ }
   return defaults();
 }
@@ -66,30 +72,69 @@ function bewertungSetzen(id, sterne) { state.bewertungen[id] = sterne; persist()
 
 // --- Kühlschrank / „Was kann ich kochen?" -----------------------------------
 function normTxt(s) { return String(s).toLowerCase().trim(); }
-function vorratToggle(name) {
+function vorratToggle(name, menge, einheit) {
   const n = normTxt(name); if (!n) return;
-  const i = state.vorrat.indexOf(n);
-  if (i >= 0) state.vorrat.splice(i, 1); else state.vorrat.push(n);
+  const i = state.vorrat.findIndex((v) => v.name === n);
+  if (i >= 0) state.vorrat.splice(i, 1);
+  else state.vorrat.push({ name: n, menge: menge != null && menge !== "" ? parseFloat(String(menge).replace(",", ".")) : null, einheit: einheit ? einheit.trim() : null });
   persist();
 }
-function vorratHat(name) { return state.vorrat.includes(normTxt(name)); }
+function vorratHat(name) { return state.vorrat.some((v) => v.name === normTxt(name)); }
 
-// Ist eine Rezeptzutat durch den Vorrat gedeckt? (unscharf, wie das KI-Matching)
-function zutatGedeckt(zutatName) {
+// Findet den passenden Vorrats-Eintrag zu einer Rezeptzutat (unscharf).
+function vorratEintrag(zutatName) {
   const n = normTxt(zutatName);
   const stich = MATCH_STICHWOERTER[n] || [n];
-  return state.vorrat.some((v) =>
-    n.includes(v) || v.includes(n) || stich.some((s) => s.includes(v) || v.includes(s)));
+  return state.vorrat.find((v) =>
+    n.includes(v.name) || v.name.includes(n) || stich.some((s) => s.includes(v.name) || v.name.includes(s)));
+}
+function zutatGedeckt(zutatName) { return !!vorratEintrag(zutatName); }
+
+// Status einer Zutat: 'voll' | 'teilweise' | 'fehlt' (Menge wird berücksichtigt).
+function zutatStatus(zutat) {
+  const e = vorratEintrag(zutat.name);
+  if (!e) return "fehlt";
+  if (e.menge != null && e.einheit && normTxt(e.einheit) === normTxt(zutat.einheit) && e.menge < zutat.menge) return "teilweise";
+  return "voll";
 }
 
 // Rezepte nach Deckungsgrad durch den Vorrat.
 function kochbareRezepte() {
   return alleRezepte().map((r) => {
-    const fehlend = r.zutaten.filter((z) => !zutatGedeckt(z.name)).map((z) => z.name);
-    const total = r.zutaten.length, have = total - fehlend.length;
-    return { r, have, total, fehlend, quote: total ? have / total : 0 };
+    let voll = 0, teilweise = 0; const fehlend = [], knapp = [];
+    for (const z of r.zutaten) {
+      const st = zutatStatus(z);
+      if (st === "voll") voll++;
+      else if (st === "teilweise") { teilweise++; knapp.push(z.name); }
+      else fehlend.push(z.name);
+    }
+    const total = r.zutaten.length, have = voll + teilweise;
+    return { r, have, voll, teilweise, total, fehlend, knapp, quote: total ? (voll + 0.5 * teilweise) / total : 0 };
   }).filter((x) => x.have > 0)
     .sort((a, b) => b.quote - a.quote || (b.r.rating || 0) - (a.r.rating || 0));
+}
+
+// --- Favoriten --------------------------------------------------------------
+function favoritToggle(id) {
+  const i = state.favoriten.indexOf(id);
+  if (i >= 0) state.favoriten.splice(i, 1); else state.favoriten.unshift(id);
+  persist();
+}
+function istFavorit(id) { return state.favoriten.includes(id); }
+function favoritenRezepte() { return state.favoriten.map((id) => rezept(id)).filter(Boolean); }
+
+// --- Vorschläge nach aktuellen Angeboten ------------------------------------
+function angebotsTreffer(r) {
+  const pool = angebotePool();
+  let n = 0;
+  for (const z of r.zutaten) if (angebotePassen(z.name, z.kategorie, pool).some((a) => state.aktiveMaerkte.includes(a.markt))) n++;
+  return n;
+}
+function angebotsRezepte(n = 8) {
+  return alleRezepte().map((r) => ({ r, treffer: angebotsTreffer(r) }))
+    .filter((x) => x.treffer >= 2)
+    .sort((a, b) => b.treffer - a.treffer || (b.r.rating || 0) - (a.r.rating || 0))
+    .slice(0, n);
 }
 
 // Automatische Empfehlungen (saisonal + beliebt + Bewertung), ohne bereits Geplantes.
