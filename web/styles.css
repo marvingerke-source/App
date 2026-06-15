@@ -122,7 +122,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; }
 .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.05; margin-top: 3px; }
 .header .sub { color: var(--text-2); font-size: 15px; margin-top: 4px; }
 .icon-btn {
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%;
   background: var(--card); box-shadow: var(--shadow-sm);
   display: grid; place-items: center; flex: 0 0 auto; transition: transform .12s var(--ease);
 }
@@ -446,6 +446,26 @@ input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: none; b
 .onb .start-btn { background: #fff; color: var(--accent-2); padding: 17px; border-radius: var(--radius-m); font-size: 17px; font-weight: 800; box-shadow: var(--shadow-lg); }
 
 .spacer { height: 6px; }
+
+/* ---- KI-Nährwerterkennung ------------------------------------------------ */
+.ki-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--accent-soft); color: var(--accent-2); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 13.5px; margin-bottom: 14px; }
+.ki-bar svg { width: 16px; height: 16px; vertical-align: -3px; }
+.ki-analyzing { display: flex; align-items: center; gap: 10px; justify-content: center; color: var(--accent-2); font-weight: 700; font-size: 14px; padding: 12px; background: var(--accent-soft); border-radius: 14px; margin-bottom: 14px; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid color-mix(in srgb, var(--accent) 30%, transparent); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Apple HIG: Safe-Area, Tap-Targets, Reduced Motion ------------------- */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .statusbar { padding-top: calc(14px + env(safe-area-inset-top) * 0.4); }
+  .scroll { padding-bottom: calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom)); }
+  .tabbar { bottom: calc(14px + env(safe-area-inset-bottom) * 0.5); }
+}
+/* Mindest-Tap-Target 44pt (HIG) – Zeilen/Karten sind selbst ≥44pt hoch */
+.date-nav button, .rm { min-width: 44px; min-height: 44px; }
+.stepper button { width: 44px; height: 44px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
 
 /* ---- Rezeptbuch ---------------------------------------------------------- */
 .searchbar { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow-sm); margin-bottom: 12px; }

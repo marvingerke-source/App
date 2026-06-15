@@ -23,6 +23,7 @@ const defaults = () => ({
   favoriten: [],         // gemerkte Rezept-IDs
   tracking: {},          // datum(ISO) -> [{ id, name, kcal, protein, carbs, fett, bildData?, typ }]
   ziele: { kcal: 2200, protein: 130, carbs: 250, fett: 70 },
+  anthropicKey: "",      // bleibt NUR lokal auf dem Gerät (nicht im Code/Repo)
   onboardingGesehen: false,
 });
 
@@ -194,6 +195,7 @@ function trackingSummen(datum) {
   }), { kcal: 0, protein: 0, carbs: 0, fett: 0 });
 }
 function zielSetzen(key, wert) { state.ziele[key] = Math.max(0, wert); persist(); }
+function apiKeySetzen(k) { state.anthropicKey = (k || "").trim(); persist(); }
 
 // --- Vorschläge nach aktuellen Angeboten ------------------------------------
 function angebotsTreffer(r) {

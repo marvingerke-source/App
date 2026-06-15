@@ -747,6 +747,65 @@ function rezeptSpeichernAusDraft() {
   render(); toast("Rezept gespeichert ✓");
 }
 
+// Günstiges, schnelles Vision-Modell für die Nährwert-Schätzung aus dem Foto.
+const VISION_MODEL = "claude-haiku-4-5";
+
+// Schätzt Gericht + Nährwerte aus dem Foto via Claude (Schlüssel bleibt lokal).
+function analysiereFoto(dataURL) {
+  if (!state.anthropicKey) return;
+  const m = /^data:(image\/[\w.+-]+);base64,(.+)$/.exec(dataURL || "");
+  if (!m) { toast("Foto konnte nicht gelesen werden"); return; }
+  ui.schnellDraft.analyzing = true; render();
+  fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": state.anthropicKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: VISION_MODEL,
+      max_tokens: 512,
+      tools: [{
+        name: "naehrwerte",
+        description: "Trage die geschätzten Nährwerte des Gerichts auf dem Foto ein (für die abgebildete Portion).",
+        input_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Kurzer Name des Gerichts" },
+            kcal: { type: "integer" }, protein: { type: "integer" },
+            carbs: { type: "integer" }, fett: { type: "integer" },
+          },
+          required: ["name", "kcal", "protein", "carbs", "fett"],
+        },
+      }],
+      tool_choice: { type: "tool", name: "naehrwerte" },
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } },
+          { type: "text", text: "Erkenne das Gericht und schätze die Nährwerte für die abgebildete Portion. Antworte ausschließlich über das Tool." },
+        ],
+      }],
+    }),
+  })
+    .then((r) => r.json())
+    .then((d) => {
+      const tu = (d.content || []).find((b) => b.type === "tool_use");
+      if (!tu || !tu.input) throw new Error(d.error ? d.error.message : "keine Antwort");
+      captureSchnell();
+      const i = tu.input, dr = ui.schnellDraft;
+      if (i.name) dr.name = i.name;
+      dr.kcal = i.kcal; dr.protein = i.protein; dr.carbs = i.carbs; dr.fett = i.fett;
+      dr.analyzing = false; render(); toast("Nährwerte erkannt ✨");
+    })
+    .catch((e) => {
+      ui.schnellDraft.analyzing = false; render();
+      toast("KI-Erkennung fehlgeschlagen – bitte manuell");
+    });
+}
+
 // Foto im Browser verkleinern (max 900px, JPEG) und via apply(dataURL) übernehmen.
 function fotoVerarbeiten(file, apply) {
   const reader = new FileReader();
@@ -851,11 +910,20 @@ function sheetTrackGetraenk() {
 
 function sheetTrackSchnell() {
   const d = ui.schnellDraft || (ui.schnellDraft = { name: "", kcal: "", protein: "", carbs: "", fett: "", bildData: null });
+  const kiStatus = state.anthropicKey
+    ? `<div class="ki-bar"><span>${ICON.sparkle} KI-Nährwerterkennung aktiv</span><button class="btn-text" style="padding:0;width:auto" data-act="clearApiKey">Schlüssel entfernen</button></div>`
+    : `<div class="card" style="margin-bottom:14px"><div class="mc-head" style="margin-bottom:8px">${ICON.sparkle} Automatische Erkennung</div>
+        <p style="color:var(--text-2);font-size:13px;margin-bottom:10px">Foto aufnehmen → KI schätzt Gericht & Nährwerte automatisch. Dein Anthropic-API-Key bleibt <b>nur auf diesem Gerät</b>.</p>
+        <div class="vorrat-add"><input id="sf-key" placeholder="Anthropic API-Key (sk-ant-…)" type="password">
+        <button class="va-btn" data-act="setApiKey">${ICON.check}</button></div></div>`;
   return `${sheetHead("Schnell-Eintrag")}<div class="sheet-body">
+    ${kiStatus}
     <label class="photo-up" style="${d.bildData ? `background-image:url(${d.bildData})` : ""}">
       <input type="file" accept="image/*" data-act="schnellFoto" hidden>
-      ${d.bildData ? `<span class="photo-edit">${ICON.camera} Foto ändern</span>` : `<span class="photo-empty">${ICON.camera}<b>Foto vom Gericht</b><i>optional</i></span>`}
+      ${d.bildData ? `<span class="photo-edit">${ICON.camera} Foto ändern</span>` : `<span class="photo-empty">${ICON.camera}<b>Foto vom Gericht</b><i>${state.anthropicKey ? "KI erkennt die Nährwerte" : "optional"}</i></span>`}
     </label>
+    ${d.analyzing ? `<div class="ki-analyzing"><span class="spinner"></span> KI erkennt die Nährwerte…</div>`
+      : (state.anthropicKey && d.bildData ? `<button class="btn btn-ghost" style="margin-bottom:14px" data-act="analyzeFoto">${ICON.sparkle} Foto erneut analysieren</button>` : "")}
     <div class="form-field"><label>Name</label><input id="sf-name" placeholder="z. B. Restaurant-Bowl" value="${d.name}"></div>
     <div class="form-grid">
       <div class="form-field"><label>kcal</label><input id="sf-kcal" type="number" inputmode="numeric" value="${d.kcal}"></div>
@@ -1034,6 +1102,9 @@ app.addEventListener("click", (e) => {
     case "logGetraenk": { const g = GETRAENKE[+arg]; if (!g) break; trackingAdd(ui.trackDatum, { name: g.name, emoji: g.emoji, kcal: g.kcal, protein: g.protein, carbs: g.carbs, fett: g.fett, typ: "getraenk" }); ui.sheet = null; render(); toast(`${g.name} getrackt ✓`); break; }
     case "trackDel": trackingRemove(ui.trackDatum, arg); render(); break;
     case "saveSchnell": saveSchnellEintrag(); break;
+    case "setApiKey": { captureSchnell(); const inp = document.getElementById("sf-key"); if (inp && inp.value.trim()) { apiKeySetzen(inp.value); render(); toast("KI aktiviert – Schlüssel bleibt lokal"); } break; }
+    case "clearApiKey": apiKeySetzen(""); render(); break;
+    case "analyzeFoto": if (ui.schnellDraft && ui.schnellDraft.bildData) analysiereFoto(ui.schnellDraft.bildData); break;
     case "setFilterGo": if (ui.tab !== "rezepte") ui.prevTab = ui.tab; ui.tab = "rezepte"; ui.zielTag = null; ui.rezeptFilter = arg; render(); break;
     case "openCreate": ui.draft = leererDraft(); ui.sheet = "rezeptErstellen"; ui.sheetArg = null; render(); break;
     case "addZutat": captureDraft(); ui.draft.zutaten.push({ name: "", menge: "", einheit: "g" }); render(); break;
@@ -1091,7 +1162,10 @@ app.addEventListener("change", (e) => {
     fotoVerarbeiten(e.target.files[0], (url) => { captureDraft(); ui.draft.bildData = url; });
   }
   if (e.target.dataset.act === "schnellFoto" && e.target.files && e.target.files[0]) {
-    fotoVerarbeiten(e.target.files[0], (url) => { captureSchnell(); ui.schnellDraft.bildData = url; });
+    fotoVerarbeiten(e.target.files[0], (url) => {
+      captureSchnell(); ui.schnellDraft.bildData = url;
+      if (state.anthropicKey) analysiereFoto(url);  // automatische KI-Erkennung
+    });
   }
 });
 app.addEventListener("keydown", (e) => {
