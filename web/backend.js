@@ -4,7 +4,10 @@
 // Ort-Eingabe und echte ortsbezogene Angebote zu aktivieren.
 // (Werte stehen im Supabase-Dashboard unter Project Settings ▸ API.)
 // ============================================================================
-const BACKEND = { url: "", anonKey: "" };
+const BACKEND = {
+  url: "https://zorrbehflufsefddsmkh.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvcnJiZWhmbHVmc2VmZGRzbWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NTY4NzksImV4cCI6MjA5NzQzMjg3OX0.5Kf11DAncos4jyEp4p3nNevMk4ASRnRpskXFF4BDznE",
+};
 
 function backendAktiv() { return !!(BACKEND.url && BACKEND.anonKey); }
 
