@@ -476,6 +476,7 @@ function sheetMarkup() {
   else if (ui.sheet === "trackGetraenk") body = sheetTrackGetraenk();
   else if (ui.sheet === "ziele") body = sheetZiele();
   else if (ui.sheet === "einstellungen") body = sheetEinstellungen();
+  else if (ui.sheet === "konto") body = sheetKonto();
   else if (ui.sheet === "vorgaben") body = sheetVorgaben();
   else if (ui.sheet === "maerkte") body = sheetMaerkte();
   else if (ui.sheet === "import") body = sheetImport();
@@ -953,6 +954,66 @@ function sheetZiele() {
   </div><p style="color:var(--text-3);font-size:13px;text-align:center;margin-top:12px">Richtwerte – passe sie an dein Ziel an (z. B. Muskelaufbau, Abnehmen).</p></div>`;
 }
 
+// --------------------------- Sheet: Konto & Ort -----------------------------
+function sheetKonto() {
+  if (!backendAktiv()) {
+    return `${sheetHead("Konto & Ort")}<div class="sheet-body">
+      <div class="empty" style="padding:30px 16px"><div class="ic">${ICON.pin}</div>
+        <h3>Backend noch nicht verbunden</h3>
+        <p>Sobald ein Supabase-Backend hinterlegt ist (in <b>web/backend.js</b>), kannst du dich anmelden, deinen Ort eingeben und echte Prospekt-Angebote aus deiner Nähe sehen.<br><br>Einrichtung: siehe <b>supabase/README.md</b> & <b>docs/Angebote-Pipeline.md</b>.</p></div></div>`;
+  }
+  if (!state.session) {
+    return `${sheetHead("Anmelden")}<div class="sheet-body">
+      <p style="color:var(--text-2);font-size:14px;margin:0 2px 14px">Melde dich an, um deinen Ort zu speichern und Angebote aus deiner Nähe zu erhalten.</p>
+      <div class="form-field"><label>E-Mail</label><input id="k-email" type="email" inputmode="email" placeholder="du@beispiel.de"></div>
+      <div class="form-field"><label>Passwort</label><input id="k-pw" type="password" placeholder="mind. 6 Zeichen"></div>
+      <button class="btn btn-primary" data-act="kontoLogin">Anmelden</button>
+      <button class="btn-text" data-act="kontoReg">Neu hier? Konto erstellen</button>
+    </div>`;
+  }
+  const p = state.profil;
+  const liste = (state.remoteAngebote || []).slice(0, 20).map((a) => `<div class="row">
+      <div class="grow"><div class="title">${a.produktname} ${a.istBio ? `<span class="tag bio">BIO</span>` : ""}</div>
+      <div class="sub">${a.kette || ""}${a.entfernungKm != null ? " · " + a.entfernungKm + " km" : ""}</div></div>
+      <div style="text-align:right"><div class="price">${euro(a.preis)}</div></div></div>`).join("");
+  return `${sheetHead("Konto & Ort")}<div class="sheet-body">
+    <div class="ki-bar"><span>${ICON.check} Angemeldet: ${state.session.user && state.session.user.email || ""}</span>
+      <button class="btn-text" style="padding:0;width:auto" data-act="kontoLogout">Abmelden</button></div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-field"><label>PLZ</label><input id="k-plz" inputmode="numeric" placeholder="z. B. 50667" value="${p ? p.plz : ""}"></div>
+        <div class="form-field"><label>Umkreis (km)</label><input id="k-radius" type="number" inputmode="numeric" value="${p ? p.radius : 8}"></div>
+      </div>
+      <button class="btn btn-primary" data-act="kontoOrt">${ICON.pin} Ort speichern & Angebote laden</button>
+      ${p ? `<p style="color:var(--text-2);font-size:13px;text-align:center;margin-top:10px">${p.ort || p.plz} · ${p.radius} km Umkreis</p>` : ""}
+    </div>
+    ${state.remoteAngebote ? `<div class="section-label" style="margin-left:4px">Angebote in deiner Nähe <span style="color:var(--text-3);font-weight:600;text-transform:none">${state.remoteAngebote.length}</span></div>
+      <div class="card">${liste || `<p style="color:var(--text-2);font-size:14px;padding:8px">Noch keine Angebote – im Backend sind für diesen Ort/Umkreis noch keine Prospekte hinterlegt.</p>`}</div>` : ""}
+  </div>`;
+}
+function kontoReg() {
+  const e = document.getElementById("k-email"), pw = document.getElementById("k-pw");
+  if (!e || !pw || !e.value.trim() || !pw.value) { toast("Bitte E-Mail & Passwort eingeben"); return; }
+  toast("Konto wird erstellt…");
+  backendRegistrieren(e.value.trim(), pw.value).then(() => { render(); toast("Konto erstellt ✓"); })
+    .catch((err) => toast("Registrierung fehlgeschlagen: " + err.message));
+}
+function kontoLogin() {
+  const e = document.getElementById("k-email"), pw = document.getElementById("k-pw");
+  if (!e || !pw) return;
+  backendAnmelden(e.value.trim(), pw.value).then(() => { render(); toast("Angemeldet ✓"); })
+    .catch((err) => toast("Anmeldung fehlgeschlagen: " + err.message));
+}
+function kontoOrt() {
+  const plzI = document.getElementById("k-plz"), rI = document.getElementById("k-radius");
+  if (!plzI || !plzI.value.trim()) { toast("Bitte PLZ eingeben"); return; }
+  toast("Ort wird gesucht…");
+  ortSpeichern(plzI.value, +(rI && rI.value) || 8)
+    .then(() => angeboteLaden())
+    .then(() => { render(); toast((state.remoteAngebote ? state.remoteAngebote.length : 0) + " Angebote geladen"); })
+    .catch((err) => { render(); toast("Fehler: " + err.message); });
+}
+
 // --------------------------- Sheet: Einstellungen ---------------------------
 function setRow(icon, label, sub, act, arg, danger) {
   return `<div class="set-row" data-act="${act}" ${arg != null ? `data-arg="${arg}"` : ""}>
@@ -963,6 +1024,10 @@ function setRow(icon, label, sub, act, arg, danger) {
 function sheetEinstellungen() {
   const v = state.vorgaben;
   return `${sheetHead("Einstellungen")}<div class="sheet-body">
+    <div class="section-label" style="margin-left:4px">Konto & Ort</div>
+    <div class="card set-card">
+      ${setRow(ICON.pin, "Konto & Ort", backendAktiv() ? (state.session ? (state.profil ? `${state.profil.ort || state.profil.plz} · ${state.profil.radius} km` : "angemeldet – Ort festlegen") : "anmelden für Angebote in der Nähe") : "Backend nicht verbunden", "openSheet", "konto")}
+    </div>
     <div class="section-label" style="margin-left:4px">Einkauf</div>
     <div class="card set-card">
       ${setRow(ICON.sliders, "Budget, Bio & Läden", `${euro(v.budget)} · Bio ${v.bioGewuenscht ? "an" : "aus"} · max. ${v.maxLaeden}`, "openSheet", "vorgaben")}
@@ -1165,6 +1230,10 @@ app.addEventListener("click", (e) => {
     }
     case "finishOnboarding": state.onboardingGesehen = true; persist(); render(); break;
     case "replayOnboarding": state.onboardingGesehen = false; persist(); ui.sheet = null; render(); break;
+    case "kontoReg": kontoReg(); break;
+    case "kontoLogin": kontoLogin(); break;
+    case "kontoLogout": backendAbmelden(); render(); break;
+    case "kontoOrt": kontoOrt(); break;
     case "resetApp": if (confirm("Demo wirklich zurücksetzen?")) { reset(); ui.tab = "home"; render(); } break;
   }
 });

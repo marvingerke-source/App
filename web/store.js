@@ -24,6 +24,9 @@ const defaults = () => ({
   tracking: {},          // datum(ISO) -> [{ id, name, kcal, protein, carbs, fett, bildData?, typ }]
   ziele: { kcal: 2200, protein: 130, carbs: 250, fett: 70 },
   anthropicKey: "",      // bleibt NUR lokal auf dem Gerät (nicht im Code/Repo)
+  session: null,         // Backend-Login (Supabase) – optional
+  profil: null,          // { plz, ort, lat, lng, radius }
+  remoteAngebote: null,  // vom Backend geladene ortsbezogene Angebote
   onboardingGesehen: false,
 });
 
