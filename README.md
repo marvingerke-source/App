@@ -13,7 +13,7 @@ claude.ai-Konto und eine Freigabe mit Bearbeiten-Recht (Teilen-Menü der Seite).
 |----------|----------------------------------------------------------------------------------------------|
 | Liste    | Einkaufsliste nach Kategorien, Keto-Basics per Tipp, Warnung bei kohlenhydratreichen Artikeln, „Einkauf abschließen“ trägt Betrag ins Budget ein und übernimmt Artikel in den Vorrat. |
 | Plan     | Wochenplan (KW), Gerichte pro Tag, Makros pro Person mit Carb-Ampel, Zutaten der Woche auf die Liste (Vorrat wird abgezogen). |
-| Rezepte  | 39 Keto-/Karnivor-/OMAD-/Meal-Prep-Rezepte für 2 Portionen, eigene Rezepte mit Quellen-Link.   |
+| Rezepte  | 37 Keto-/Karnivor-/OMAD-/Meal-Prep-Rezepte für 2 Portionen, eigene Rezepte mit Quellen-Link.   |
 | Vorrat   | Kühlschrank / Tiefkühler / Vorratsschrank mit MHD-Warnung, „Nachkaufen“ setzt auf die Liste.  |
 | Fasten   | Fasten-Timer je Person, Ziel nach Phase (12 h / 16 h / 23 h), Serie, Verlauf, Elektrolyt-Check. |
 | Budget   | Monatsbudget, Ausgaben je Laden, Hochrechnung zum Monatsende, eigene Preise (sonst Richtwerte). |

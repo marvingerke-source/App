@@ -298,9 +298,6 @@ const BUILTIN = [
   { id: "b-thunfisch", name: "Thunfisch-Avocado-Salat", tags: ["keto"], m: [650, 35, 52, 4], min: 10,
     ing: [[2, "Dose", "Thunfisch (naturell)"], [2, "Stk", "Avocado"], [3, "EL", "Mayonnaise"], [1, "Stk", "Salatgurke"]],
     steps: "Alles würfeln, mit Mayo, Zitrone, Salz und Pfeffer mischen." },
-  { id: "b-leber", name: "Rinderleber mit Zwiebeln in Butter", tags: ["keto", "karnivor"], m: [450, 45, 25, 8], min: 15,
-    ing: [[400, "g", "Rinderleber"], [40, "g", "Butter"], [1, "Stk", "Zwiebel"]],
-    steps: "Zwiebel in Butter glasig, Leber kurz scharf braten (innen rosa), erst danach salzen. Karnivor: Zwiebel weglassen." },
   { id: "b-zoodles", name: "Zucchini-Nudeln Bolognese", tags: ["keto"], m: [650, 48, 45, 10], min: 30,
     ing: [[500, "g", "Rinderhack"], [600, "g", "Zucchini"], [200, "g", "Passierte Tomaten"], [50, "g", "Parmesan"], [1, "EL", "Olivenöl"]],
     steps: "Hack anbraten, Tomaten dazu, 15 min köcheln. Zucchini spiralisieren, 2 min anbraten. Mit Parmesan servieren." },
@@ -361,9 +358,6 @@ const BUILTIN = [
   { id: "b-lachsbutter", name: "Lachs in Butter (karnivor)", tags: ["karnivor"], m: [650, 50, 50, 0], min: 15,
     ing: [[500, "g", "Lachsfilet"], [40, "g", "Butter"]],
     steps: "Lachs auf der Haut knusprig braten, wenden, mit brauner Butter übergießen. Salzen." },
-  { id: "b-herz", name: "Gebratenes Rinderherz", tags: ["karnivor"], m: [380, 40, 22, 1], min: 15,
-    ing: [[400, "g", "Rinderherz"], [30, "g", "Butter"]],
-    steps: "Herz von Sehnen befreien, in Scheiben schneiden, kurz und heiß in Butter braten. Erst danach salzen." },
   { id: "b-wings", name: "Chicken Wings aus dem Ofen", tags: ["keto", "karnivor"], m: [800, 60, 60, 0], min: 50,
     ing: [[1, "kg", "Hähnchenflügel"], [30, "g", "Butter"]],
     steps: "Flügel trocken tupfen, salzen, 45 min bei 210 °C auf dem Gitter backen. In geschmolzener Butter schwenken." },
@@ -398,7 +392,7 @@ const PRICE_DEF = [
   ["Hähnchenschenkel", 5, 1, "kg"], ["Hähnchenbrust", 10, 1, "kg"], ["Hähnchenflügel", 5, 1, "kg"],
   ["Schweinebauch", 9, 1, "kg"], ["Schweinenacken", 8, 1, "kg"], ["Schweineschnitzel", 10, 1, "kg"], ["Bacon", 15, 1, "kg"],
   ["Kochschinken", 12, 1, "kg"], ["Salami", 14, 1, "kg"], ["Leberkäse", 9, 1, "kg"], ["Bratwurst", 8, 1, "kg"],
-  ["Rinderleber", 8, 1, "kg"], ["Rinderherz", 9, 1, "kg"], ["Markknochen", 4, 1, "kg"], ["Lammkoteletts", 30, 1, "kg"],
+  ["Markknochen", 4, 1, "kg"], ["Lammkoteletts", 30, 1, "kg"],
   ["Lachsfilet", 22, 1, "kg"], ["Garnelen", 22, 1, "kg"], ["Makrele", 9, 1, "kg"], ["Thunfisch", 1.5, 1, "Dose"],
   ["Sahne", 6, 1, "l"], ["Gouda", 9, 1, "kg"], ["Cheddar", 12, 1, "kg"], ["Feta", 9, 1, "kg"], ["Parmesan", 20, 1, "kg"],
   ["Mozzarella", 7, 1, "kg"], ["Emmentaler", 10, 1, "kg"], ["Mascarpone", 8, 1, "kg"], ["Schmand", 4, 1, "kg"],
@@ -465,11 +459,13 @@ function failWrite(e) {
 
 // ---------- Zustand ----------
 const S = { items: [], pantry: [], recipes: [], plan: [], expenses: [], fasts: [], elec: [], settings: [], prices: [], measures: [], supps: [], loaded: new Set() };
-const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, ...(S.settings.find(s => s.id === "main") || {}) });
+const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, exclude: "Innereien (Leber, Herz, Niere usw.)", ...(S.settings.find(s => s.id === "main") || {}) });
 const persons = () => { const s = settings(); return [s.p1 || "Person 1", s.p2 || "Person 2"]; };
 const me = () => lsGet("kk_me", 0);
 const allRecipes = () => [...BUILTIN, ...S.recipes.map(r => ({ ...r, own: true }))];
 const recipeById = id => allRecipes().find(r => r.id === id);
+const excludeWords = () => String(settings().exclude || "").toLowerCase().split(/[,;\n]/).map(w => w.replace(/\(.*?\)/g, "").trim()).filter(w => w.length > 2);
+const isExcluded = r => { const ws = excludeWords(); return ws.length && r.ing.some(([, , n]) => ws.some(w => norm(n).includes(w))); };
 function catOrder() { const o = settings().catOrder; const base = Array.isArray(o) ? o.filter(c => CATS.includes(c)) : []; return [...base, ...CATS.filter(c => !base.includes(c))]; }
 function priceFor(name, unit) {
   const n = norm(name);
@@ -733,7 +729,7 @@ views.plan = {
   },
   async autoFill(keys) {
     const s = settings(); const per = (s.phase === "omad" || s.phase === "carniomad") ? 1 : 2;
-    const all = allRecipes().filter(r => r.m && !(r.tags || []).includes("dessert") && (r.min || 0) <= 180);
+    const all = allRecipes().filter(r => r.m && !(r.tags || []).includes("dessert") && (r.min || 0) <= 180 && !isExcluded(r));
     let pool = s.phase === "carniomad" ? all.filter(r => r.tags.includes("karnivor"))
       : s.phase === "omad" ? all.filter(r => r.tags.includes("omad") || Number(r.m[0]) >= 800)
       : all.filter(r => (r.tags || []).includes("keto"));
@@ -826,6 +822,7 @@ views.rezepte = {
 Phase: ${ph.label}. Höchstens ${s.carbLimit} g Netto-Kohlenhydrate pro Person und Tag.${s.phase === "omad" || s.phase === "carniomad" ? " Es ist die einzige Mahlzeit des Tages: proteinreich und sättigend, mindestens 900 kcal pro Portion." : ""}${s.phase === "carniomad" ? " Nur tierische Lebensmittel, Salz erlaubt." : ""}
 Vorrat (heute ist ${today}): ${pantry}
 Nutze vorrangig den Vorrat, besonders Artikel mit nahem MHD. Fehlende Zutaten dürfen dazukommen, sollen aber in einem deutschen Supermarkt erhältlich sein.
+Das essen wir nicht: ${settings().exclude || "nichts ausgeschlossen"}
 Wunsch: ${(this.wish && this.wish.value.trim()) || "keiner"}
 Nicht vorschlagen (schon vorhanden): ${allRecipes().map(r => r.name).join(", ")}
 Antworte nur mit JSON in genau dieser Form:
@@ -1178,6 +1175,7 @@ views.settings = {
     const phase = h("select", { id: "stPhase" }, Object.entries(PHASES).map(([k, v]) => h("option", { value: k, selected: k === s.phase ? "selected" : null }, v.label)));
     const carb = h("input", { type: "number", id: "stCarb", min: 5, max: 100, value: s.carbLimit });
     const budget = h("input", { type: "number", id: "stBudget", min: 0, step: 10, value: s.budget });
+    const excl = h("input", { type: "text", id: "stExcl", value: s.exclude || "", placeholder: "z. B. Innereien, Fisch, Pilze" });
     const meSel = h("select", { id: "stMe" }, [0, 1].map(i => h("option", { value: i, selected: me() === i ? "selected" : null }, persons()[i])));
     const order = catOrder();
     const orderList = h("ul", { class: "order" });
@@ -1188,7 +1186,7 @@ views.settings = {
     root.append(h("h2", null, "Einstellungen"),
       h("form", { class: "card", onsubmit: e => {
         e.preventDefault();
-        Store.set("settings", "main", { p1: p1.value.trim() || "Person 1", p2: p2.value.trim() || "Person 2", phase: phase.value, carbLimit: toNum(carb.value) || 20, budget: toNum(budget.value) || 0, catOrder: order });
+        Store.set("settings", "main", { p1: p1.value.trim() || "Person 1", p2: p2.value.trim() || "Person 2", phase: phase.value, carbLimit: toNum(carb.value) || 20, budget: toNum(budget.value) || 0, catOrder: order, exclude: excl.value.trim() });
         lsSet("kk_me", Number(meSel.value));
         toast("Einstellungen gespeichert"); go(lsGet("kk_prevTab", "liste"));
       } },
@@ -1196,6 +1194,7 @@ views.settings = {
         h("label", { class: "f" }, "Wer nutzt dieses Gerät?", meSel),
         h("label", { class: "f" }, "Ernährungsphase", phase),
         h("div", { class: "row" }, h("label", { class: "f grow" }, "Netto-Carbs pro Tag (g)", carb), h("label", { class: "f grow" }, "Monatsbudget Lebensmittel (€)", budget)),
+        h("label", { class: "f" }, "Das essen wir nicht (für Vorschläge und automatische Planung, mit Komma getrennt)", excl),
         h("details", null, h("summary", { style: "cursor:pointer;font-weight:600" }, "Reihenfolge der Einkaufsliste (wie die Gänge in eurem Laden)"), orderList),
         h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, "Speichern"), h("button", { class: "btn ghost", type: "button", onclick: () => go(lsGet("kk_prevTab", "liste")) }, "Zurück"))),
       h("div", { class: "card small" }, h("h3", null, "Gemeinsam nutzen"),
