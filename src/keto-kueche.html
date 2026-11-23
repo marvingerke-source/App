@@ -75,7 +75,7 @@ input[type=text], input[type=number], input[type=date], input[type=datetime-loca
 }
 textarea { min-height: 90px; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-label.f { display: grid; gap: 4px; font-size: .8rem; font-weight: 600; color: var(--ink-2); min-width: 0; }
+label.f { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; font-size: .8rem; font-weight: 600; color: var(--ink-2); min-width: 0; }
 
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 14px; min-height: 42px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
@@ -94,6 +94,17 @@ label.f { display: grid; gap: 4px; font-size: .8rem; font-weight: 600; color: va
 .tag.omad { background: var(--butter-soft); color: var(--butter); }
 .tag.warn { background: var(--bad-soft); color: var(--bad); }
 .tag.soon { background: var(--butter-soft); color: var(--butter); }
+.tag.prep { background: var(--surface-2); color: var(--ink); }
+a { color: var(--accent); font-weight: 600; }
+.spark { width: 100%; height: 44px; display: block; }
+.spark .ln { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.spark .ar { fill: var(--accent-soft); stroke: none; }
+.ai-out { white-space: pre-wrap; }
+.order li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px solid var(--line); }
+.order li:first-child { border-top: 0; }
+.order { list-style: none; margin: 0; padding: 0; }
+.order span { flex: 1; }
+input.mini { width: 72px; min-height: 32px; padding: 4px 8px; }
 
 /* Liste */
 .group h4 { margin: 4px 0 2px; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
@@ -299,6 +310,98 @@ const BUILTIN = [
   { id: "b-markknochen", name: "Rinderbrühe aus Markknochen", tags: ["karnivor"], m: [120, 10, 8, 0], min: 480,
     ing: [[1.5, "kg", "Markknochen"], [1, "Pck", "Meersalz"]],
     steps: "Knochen anrösten, mit Wasser bedecken, 8–12 h simmern lassen. Gut bei Fasten und für Elektrolyte." },
+  { id: "b-frikadellen", name: "Frikadellen ohne Brot", tags: ["keto", "karnivor", "prep"], m: [780, 55, 60, 1], min: 25,
+    ing: [[600, "g", "Rinderhack"], [1, "Stk", "Eier"], [20, "g", "Schweineschmalz"]],
+    steps: "Hack mit Ei und Salz verkneten, 6 Frikadellen formen, im Schmalz von beiden Seiten braten. Halten sich 3 Tage im Kühlschrank." },
+  { id: "b-chili", name: "Chili con Carne ohne Bohnen", tags: ["keto", "prep"], m: [760, 48, 56, 9], min: 40,
+    ing: [[500, "g", "Rinderhack"], [1, "Stk", "Paprika"], [200, "g", "Passierte Tomaten"], [100, "g", "Schmand"], [50, "g", "Cheddar"]],
+    steps: "Hack scharf anbraten, Paprika dazu, Tomaten, Chili, Kreuzkümmel. 25 min köcheln, mit Schmand und Cheddar servieren." },
+  { id: "b-curry", name: "Hähnchen-Curry mit Kokosmilch", tags: ["keto", "prep"], m: [720, 60, 48, 8], min: 25,
+    ing: [[500, "g", "Hähnchenbrust"], [400, "ml", "Kokosmilch"], [200, "g", "Blattspinat"], [1, "EL", "Currypaste"]],
+    steps: "Hähnchen würfeln und anbraten, Currypaste kurz mitrösten, Kokosmilch angießen, 10 min köcheln, Spinat unterheben." },
+  { id: "b-gulasch", name: "Rindergulasch", tags: ["keto", "prep"], m: [560, 55, 36, 5], min: 150,
+    ing: [[500, "g", "Rindergulasch"], [1, "Stk", "Zwiebel"], [1, "EL", "Tomatenmark"], [30, "g", "Butterschmalz"]],
+    steps: "Fleisch portionsweise scharf anbraten, Zwiebel und Tomatenmark dazu, mit Wasser oder Brühe ablöschen, 2 h schmoren. Lässt sich gut in größerer Menge einfrieren." },
+  { id: "b-schnitzel", name: "Schnitzel in Parmesan-Kruste", tags: ["keto"], m: [620, 58, 42, 1], min: 20,
+    ing: [[400, "g", "Schweineschnitzel"], [60, "g", "Parmesan"], [1, "Stk", "Eier"], [30, "g", "Butterschmalz"]],
+    steps: "Schnitzel dünn klopfen, durch Ei ziehen, in geriebenem Parmesan wenden, in Butterschmalz goldbraun braten." },
+  { id: "b-garnelen", name: "Knoblauch-Garnelen mit Zucchini", tags: ["keto"], m: [420, 38, 26, 6], min: 15,
+    ing: [[400, "g", "Garnelen"], [400, "g", "Zucchini"], [40, "g", "Butter"], [3, "Zehe", "Knoblauch"]],
+    steps: "Zucchini in Scheiben anbraten. Garnelen mit Knoblauch in Butter 3 min braten, mit Zitrone abschmecken." },
+  { id: "b-makrele", name: "Ofen-Makrele mit Feldsalat", tags: ["keto"], m: [700, 45, 56, 2], min: 25,
+    ing: [[600, "g", "Makrele"], [150, "g", "Feldsalat"], [3, "EL", "Olivenöl"]],
+    steps: "Makrelen salzen, 20 min bei 200 °C backen. Feldsalat mit Öl, Essig und Senf anmachen." },
+  { id: "b-eiersalat", name: "Eiersalat mit Speck", tags: ["keto", "prep"], m: [680, 32, 60, 2], min: 15,
+    ing: [[8, "Stk", "Eier"], [4, "EL", "Mayonnaise"], [100, "g", "Bacon"]],
+    steps: "Eier 10 min kochen, abschrecken, würfeln. Speck knusprig braten, alles mit Mayo, Senf und Pfeffer mischen." },
+  { id: "b-quiche", name: "Quiche Lorraine ohne Boden", tags: ["keto", "prep"], m: [850, 40, 74, 4], min: 45,
+    ing: [[6, "Stk", "Eier"], [200, "ml", "Sahne"], [150, "g", "Bacon"], [100, "g", "Emmentaler"]],
+    steps: "Speck anbraten, in eine gefettete Form geben. Eier, Sahne und Käse verquirlen, darübergießen, 35 min bei 180 °C backen." },
+  { id: "b-fleischpizza", name: "Pizza mit Hackfleischboden", tags: ["keto"], m: [820, 58, 60, 5], min: 35,
+    ing: [[400, "g", "Rinderhack"], [1, "Stk", "Eier"], [100, "g", "Passierte Tomaten"], [125, "g", "Mozzarella"], [80, "g", "Salami"]],
+    steps: "Hack mit Ei und Gewürzen dünn aufs Blech drücken, 15 min bei 200 °C vorbacken. Tomate, Mozzarella und Salami drauf, nochmal 10 min." },
+  { id: "b-spitzkohl", name: "Spitzkohl-Hack-Pfanne", tags: ["keto"], m: [700, 48, 50, 9], min: 25,
+    ing: [[500, "g", "Rinderhack"], [500, "g", "Spitzkohl"], [100, "ml", "Sahne"]],
+    steps: "Hack anbraten, Spitzkohl in Streifen dazu, 8 min mitbraten, Sahne angießen, mit Kümmel und Salz abschmecken." },
+  { id: "b-pulled", name: "Pulled Pork aus dem Ofen", tags: ["keto", "karnivor", "prep"], m: [650, 50, 50, 1], min: 300,
+    ing: [[600, "g", "Schweinenacken"], [1, "Pck", "Meersalz"]],
+    steps: "Nacken kräftig salzen, abgedeckt 5 h bei 130 °C garen, dann mit zwei Gabeln zerpflücken. Ideal für mehrere Tage." },
+  { id: "b-pfeffer", name: "Rumpsteak mit Pfefferrahm", tags: ["keto", "omad"], m: [720, 55, 54, 3], min: 20,
+    ing: [[500, "g", "Rumpsteak"], [150, "ml", "Sahne"], [20, "g", "Butter"]],
+    steps: "Steaks braten und ruhen lassen. Bratensatz mit Sahne lösen, grünen Pfeffer dazu, einkochen lassen." },
+  { id: "b-steakei", name: "Steak und Eier (karnivor)", tags: ["karnivor", "omad"], m: [760, 68, 53, 1], min: 15,
+    ing: [[500, "g", "Rumpsteak"], [4, "Stk", "Eier"], [30, "g", "Butter"]],
+    steps: "Steak scharf braten, ruhen lassen. Eier in der Steakpfanne mit Butter braten. Nur Salz." },
+  { id: "b-lachsbutter", name: "Lachs in Butter (karnivor)", tags: ["karnivor"], m: [650, 50, 50, 0], min: 15,
+    ing: [[500, "g", "Lachsfilet"], [40, "g", "Butter"]],
+    steps: "Lachs auf der Haut knusprig braten, wenden, mit brauner Butter übergießen. Salzen." },
+  { id: "b-herz", name: "Gebratenes Rinderherz", tags: ["karnivor"], m: [380, 40, 22, 1], min: 15,
+    ing: [[400, "g", "Rinderherz"], [30, "g", "Butter"]],
+    steps: "Herz von Sehnen befreien, in Scheiben schneiden, kurz und heiß in Butter braten. Erst danach salzen." },
+  { id: "b-wings", name: "Chicken Wings aus dem Ofen", tags: ["keto", "karnivor"], m: [800, 60, 60, 0], min: 50,
+    ing: [[1, "kg", "Hähnchenflügel"], [30, "g", "Butter"]],
+    steps: "Flügel trocken tupfen, salzen, 45 min bei 210 °C auf dem Gitter backen. In geschmolzener Butter schwenken." },
+  { id: "b-zucchinifuell", name: "Gefüllte Zucchini mit Hack und Feta", tags: ["keto"], m: [560, 38, 42, 6], min: 35,
+    ing: [[2, "Stk", "Zucchini"], [300, "g", "Rinderhack"], [100, "g", "Feta"]],
+    steps: "Zucchini längs halbieren, aushöhlen. Hack mit dem Fruchtfleisch anbraten, einfüllen, Feta drauf, 20 min bei 200 °C." },
+  { id: "b-avocadoei", name: "Gebackene Avocado mit Ei", tags: ["keto"], m: [520, 20, 46, 3], min: 20,
+    ing: [[2, "Stk", "Avocado"], [4, "Stk", "Eier"], [50, "g", "Bacon"]],
+    steps: "Avocados halbieren, Kern raus, je ein Ei hinein, 15 min bei 200 °C backen. Mit Speckwürfeln bestreuen." },
+  { id: "b-beeren", name: "Beeren mit Mascarpone", tags: ["keto", "dessert"], m: [560, 6, 56, 7], min: 5,
+    ing: [[250, "g", "Mascarpone"], [150, "g", "Himbeeren"]],
+    steps: "Mascarpone mit etwas Vanille glatt rühren, Beeren darauf. Als Nachtisch in der Keto-Phase, nicht für OMAD-Tage gedacht." },
+  { id: "b-auflauf", name: "Brokkoli-Hähnchen-Auflauf", tags: ["keto", "prep"], m: [780, 58, 54, 7], min: 40,
+    ing: [[400, "g", "Hähnchenbrust"], [400, "g", "Brokkoli"], [200, "ml", "Sahne"], [100, "g", "Gouda"]],
+    steps: "Hähnchen anbraten, mit Brokkoliröschen in eine Form, Sahne darüber, mit Gouda bestreuen, 25 min bei 200 °C." },
+  { id: "b-leberkaese", name: "Leberkäse mit Spiegelei", tags: ["keto"], m: [820, 40, 72, 2], min: 15,
+    ing: [[400, "g", "Leberkäse"], [4, "Stk", "Eier"]],
+    steps: "Leberkäse in dicken Scheiben braten, Spiegeleier dazu. Günstiges Feierabendessen." },
+  { id: "b-bratwurst", name: "Bratwurst mit Sauerkraut", tags: ["keto"], m: [700, 30, 62, 5], min: 20,
+    ing: [[400, "g", "Bratwurst"], [400, "g", "Sauerkraut"], [2, "TL", "Senf"]],
+    steps: "Würste braten, Sauerkraut im Bratfett erwärmen. Mit Senf servieren. Auf Zucker in der Wurst achten." },
+  { id: "b-carniplatte", name: "OMAD-Karnivor-Platte", tags: ["karnivor", "omad"], m: [1250, 80, 100, 1], min: 20,
+    ing: [[500, "g", "Rinderhack"], [150, "g", "Bacon"], [4, "Stk", "Eier"], [30, "g", "Butter"]],
+    steps: "Bacon knusprig braten, Hack als zwei große Patties im Speckfett braten, Eier dazu, Butter obendrauf." },
+];
+const TAGLABEL = { keto: "Keto", karnivor: "Karnivor", omad: "OMAD", prep: "Meal-Prep", dessert: "Dessert" };
+
+// Preis-Richtwerte (Schätzung Discounter/Supermarkt): [Name, Preis €, pro Menge, Einheit]
+const PRICE_DEF = [
+  ["Eier", 0.3, 1, "Stk"], ["Butter", 2.4, 250, "g"], ["Butterschmalz", 12, 1, "kg"], ["Schweineschmalz", 6, 1, "kg"],
+  ["Rinderhack", 9, 1, "kg"], ["Ribeye-Steak", 35, 1, "kg"], ["Rumpsteak", 28, 1, "kg"], ["Rindergulasch", 15, 1, "kg"],
+  ["Hähnchenschenkel", 5, 1, "kg"], ["Hähnchenbrust", 10, 1, "kg"], ["Hähnchenflügel", 5, 1, "kg"],
+  ["Schweinebauch", 9, 1, "kg"], ["Schweinenacken", 8, 1, "kg"], ["Schweineschnitzel", 10, 1, "kg"], ["Bacon", 15, 1, "kg"],
+  ["Kochschinken", 12, 1, "kg"], ["Salami", 14, 1, "kg"], ["Leberkäse", 9, 1, "kg"], ["Bratwurst", 8, 1, "kg"],
+  ["Rinderleber", 8, 1, "kg"], ["Rinderherz", 9, 1, "kg"], ["Markknochen", 4, 1, "kg"], ["Lammkoteletts", 30, 1, "kg"],
+  ["Lachsfilet", 22, 1, "kg"], ["Garnelen", 22, 1, "kg"], ["Makrele", 9, 1, "kg"], ["Thunfisch", 1.5, 1, "Dose"],
+  ["Sahne", 6, 1, "l"], ["Gouda", 9, 1, "kg"], ["Cheddar", 12, 1, "kg"], ["Feta", 9, 1, "kg"], ["Parmesan", 20, 1, "kg"],
+  ["Mozzarella", 7, 1, "kg"], ["Emmentaler", 10, 1, "kg"], ["Mascarpone", 8, 1, "kg"], ["Schmand", 4, 1, "kg"],
+  ["Brokkoli", 3, 1, "kg"], ["Blumenkohl", 3, 1, "kg"], ["Zucchini", 3, 1, "kg"], ["Blattspinat", 6, 1, "kg"],
+  ["Spitzkohl", 2.5, 1, "kg"], ["Grüne Bohnen", 5, 1, "kg"], ["Sauerkraut", 2, 1, "kg"], ["Feldsalat", 12, 1, "kg"],
+  ["Himbeeren", 15, 1, "kg"], ["Passierte Tomaten", 2, 1, "kg"], ["Kokosmilch", 4, 1, "l"],
+  ["Avocado", 1, 1, "Stk"], ["Salatgurke", 0.8, 1, "Stk"], ["Zwiebel", 0.15, 1, "Stk"], ["Paprika", 0.8, 1, "Stk"], ["Zucchini", 0.6, 1, "Stk"],
+  ["Knoblauch", 0.15, 1, "Zehe"], ["Mayonnaise", 0.1, 1, "EL"], ["Olivenöl", 0.15, 1, "EL"], ["Currypaste", 0.3, 1, "EL"],
+  ["Tomatenmark", 0.1, 1, "EL"], ["Senf", 0.05, 1, "TL"], ["Meersalz", 1, 1, "Pck"],
 ];
 
 const PHASES = {
@@ -311,14 +414,15 @@ const PLACES = ["Kühlschrank", "Tiefkühler", "Vorratsschrank"];
 const UNITS = ["Stk", "g", "kg", "ml", "l", "EL", "TL", "Pck", "Dose", "Zehe", "Bund"];
 
 // ---------- Speicher ----------
-const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings"];
+const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings", "prices", "measures", "supps"];
 const Store = {
   db: null, live: false, listeners: {},
   async init() {
     try {
       if (window.claude && typeof window.claude.use === "function") {
-        const db = await window.claude.use("db");
+        const [db, sample] = await Promise.all([window.claude.use("db"), window.claude.use("sample").catch(() => null)]);
         if (db) { this.db = db; this.live = true; }
+        if (sample) this.sample = sample;
       }
     } catch (e) { /* lokal weiter */ }
   },
@@ -354,12 +458,42 @@ function failWrite(e) {
 }
 
 // ---------- Zustand ----------
-const S = { items: [], pantry: [], recipes: [], plan: [], expenses: [], fasts: [], elec: [], settings: [], loaded: new Set() };
+const S = { items: [], pantry: [], recipes: [], plan: [], expenses: [], fasts: [], elec: [], settings: [], prices: [], measures: [], supps: [], loaded: new Set() };
 const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, ...(S.settings.find(s => s.id === "main") || {}) });
 const persons = () => { const s = settings(); return [s.p1 || "Person 1", s.p2 || "Person 2"]; };
 const me = () => lsGet("kk_me", 0);
 const allRecipes = () => [...BUILTIN, ...S.recipes.map(r => ({ ...r, own: true }))];
 const recipeById = id => allRecipes().find(r => r.id === id);
+function catOrder() { const o = settings().catOrder; const base = Array.isArray(o) ? o.filter(c => CATS.includes(c)) : []; return [...base, ...CATS.filter(c => !base.includes(c))]; }
+function priceFor(name, unit) {
+  const n = norm(name);
+  const pick = list => list.find(p => norm(p.name) === n && p.u === unit) || list.find(p => norm(p.name) === n) || list.find(p => norm(p.name).length > 3 && n.includes(norm(p.name)));
+  const own = pick(S.prices);
+  if (own) return { eur: Number(own.eur), per: Number(own.per) || 1, u: own.u, own: true };
+  const d = pick(PRICE_DEF.map(([name, eur, per, u]) => ({ name, eur, per, u })));
+  return d ? { ...d, own: false } : null;
+}
+function costOf(q, u, name) {
+  const p = priceFor(name, u); if (!p) return null;
+  const [aq, au] = normUnit(q, u), [pq, pu] = normUnit(p.per, p.u);
+  return au === pu && pq ? aq / pq * p.eur : null;
+}
+function recipeCost(r) {
+  let sum = 0, known = 0;
+  for (const [q, u, n] of r.ing) { const c = costOf(Number(q), u, n); if (c != null) { sum += c; known++; } }
+  return { perPortion: sum / 2, known, total: r.ing.length, ok: r.ing.length && known / r.ing.length >= 0.6 };
+}
+function sparkline(vals) {
+  if (vals.length < 2) return null;
+  const min = Math.min(...vals), max = Math.max(...vals), rng = max - min || 1;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * 200, 38 - (v - min) / rng * 32]);
+  const line = pts.map(p => p.map(x => x.toFixed(1)).join(",")).join(" ");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 200 42"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "spark"); svg.setAttribute("aria-hidden", "true");
+  const area = document.createElementNS(svg.namespaceURI, "polygon"); area.setAttribute("class", "ar"); area.setAttribute("points", `0,42 ${line} 200,42`);
+  const pl = document.createElementNS(svg.namespaceURI, "polyline"); pl.setAttribute("class", "ln"); pl.setAttribute("points", line);
+  svg.append(area, pl); return svg;
+}
 
 let tab = lsGet("kk_tab", "liste");
 let weekStart = mondayOf(new Date());
@@ -384,7 +518,7 @@ function showQty(q, u) {
   if (u === "ml" && q >= 1000) return numDE(q / 1000) + " l";
   return numDE(q) + (u ? " " + u : "");
 }
-async function addItem(name, q, u, src, note) {
+async function addItem(name, q, u, src, note, cat) {
   name = String(name || "").trim();
   if (!name) return;
   let nq = q, nu = u || "";
@@ -392,7 +526,7 @@ async function addItem(name, q, u, src, note) {
   const ex = S.items.find(i => !i.done && norm(i.name) === norm(name) && (i.u || "") === nu && (i.q != null) === (nq != null));
   if (ex && nq != null) return Store.update("items", ex.id, { q: (ex.q || 0) + nq });
   if (ex && nq == null) return;
-  return Store.set("items", uid(), { name, q: nq, u: nu, note: note || "", cat: guessCat(name), done: false, by: me(), src: src || "", t: Date.now() });
+  return Store.set("items", uid(), { name, q: nq, u: nu, note: note || "", cat: cat || guessCat(name), done: false, by: me(), src: src || "", t: Date.now() });
 }
 
 // ---------- Tabs ----------
@@ -469,7 +603,7 @@ views.liste = {
       this.footer.replaceChildren(); return;
     }
     const P = persons();
-    const groups = CATS.map(c => [c, items.filter(i => (i.cat || "Sonstiges") === c)]).filter(([, l]) => l.length);
+    const groups = catOrder().map(c => [c, items.filter(i => (i.cat || "Sonstiges") === c)]).filter(([, l]) => l.length);
     this.list.replaceChildren(h("div", { class: "card" }, groups.map(([cat, list]) => h("div", { class: "group" },
       h("h4", null, cat),
       list.sort((a, b) => (a.done - b.done) || a.name.localeCompare(b.name, "de")).map(i => h("div", { class: "item" + (i.done ? " done" : "") },
@@ -565,10 +699,13 @@ views.plan = {
     );
     const keys = [...Array(7)].map((_, i) => dkey(addDays(weekStart, i)));
     const planned = keys.reduce((n, k) => n + (((S.plan.find(p => p.id === k) || {}).meals) || []).length, 0);
+    const weekCost = keys.reduce((sum, k) => sum + ((((S.plan.find(p => p.id === k) || {}).meals) || []).reduce((a, m) => { const r = recipeById(m.rid); const c = r && recipeCost(r); return a + (c && c.ok ? c.perPortion * 2 : 0); }, 0)), 0);
     this.actions.replaceChildren(
       h("div", { class: "between" }, h("div", null, h("strong", null, ph.label), h("div", { class: "muted small" }, `Ziel: ${ph.meals} pro Tag · max. ${s.carbLimit} g Netto-Carbs`)),
-        h("button", { class: "btn primary", disabled: planned ? null : true, onclick: () => this.toList(keys) }, "Zutaten auf die Liste")),
-      h("div", { class: "muted small" }, planned ? `${planned} Gerichte geplant. Rezepte sind für 2 Portionen, Vorrat wird abgezogen.` : "Noch nichts geplant. Wähl pro Tag ein Gericht aus.")
+        h("div", { class: "row" },
+          h("button", { class: "btn", onclick: () => this.autoFill(keys) }, "Woche automatisch füllen"),
+          h("button", { class: "btn primary", disabled: planned ? null : true, onclick: () => this.toList(keys) }, "Zutaten auf die Liste"))),
+      h("div", { class: "muted small" }, planned ? `${planned} Gerichte geplant${weekCost ? `, ca. ${euro(weekCost)} für euch beide (Schätzung)` : ""}. Rezepte sind für 2 Portionen, der Vorrat wird abgezogen.` : "Noch nichts geplant. Wähl pro Tag ein Gericht aus oder lass die Woche automatisch füllen.")
     );
     const today = dkey(new Date());
     this.days.replaceChildren(...keys.map(k => {
@@ -587,6 +724,38 @@ views.plan = {
         recipeSelect(rid => addToPlan(k, rid), `Gericht für ${WDL[d.getDay()]}`)
       );
     }));
+  },
+  async autoFill(keys) {
+    const s = settings(); const per = (s.phase === "omad" || s.phase === "carniomad") ? 1 : 2;
+    const all = allRecipes().filter(r => r.m && !(r.tags || []).includes("dessert") && (r.min || 0) <= 180);
+    let pool = s.phase === "carniomad" ? all.filter(r => r.tags.includes("karnivor"))
+      : s.phase === "omad" ? all.filter(r => r.tags.includes("omad") || Number(r.m[0]) >= 800)
+      : all.filter(r => (r.tags || []).includes("keto"));
+    if (!pool.length) pool = all;
+    const pantry = S.pantry.map(p => norm(p.name));
+    const used = new Map();
+    keys.forEach(k => ((((S.plan.find(p => p.id === k) || {}).meals) || [])).forEach(m => used.set(m.rid, (used.get(m.rid) || 0) + 1)));
+    const today = dkey(new Date());
+    let filled = 0;
+    for (const k of keys) {
+      if (k < today) continue;
+      const doc = S.plan.find(p => p.id === k);
+      if (doc && (doc.meals || []).length) continue;
+      const meals = []; let carbs = 0;
+      for (let i = 0; i < per; i++) {
+        const scored = pool.filter(r => !meals.some(m => m.rid === r.id) && carbs + Number(r.m[3]) <= s.carbLimit).map(r => {
+          let sc = Math.random() * 2 - (used.get(r.id) || 0) * 4;
+          sc += r.ing.filter(([, , n]) => pantry.some(p => p.includes(norm(n)) || norm(n).includes(p))).length * 1.5;
+          const c = recipeCost(r); if (c.ok) sc -= c.perPortion / 3;
+          return [r, sc];
+        }).sort((a, b) => b[1] - a[1]);
+        const pick = scored.length ? scored[0][0] : null;
+        if (!pick) break;
+        meals.push({ rid: pick.id, k: uid() }); carbs += Number(pick.m[3]); used.set(pick.id, (used.get(pick.id) || 0) + 1);
+      }
+      if (meals.length) { await Store.set("plan", k, { meals }); filled++; }
+    }
+    toast(filled ? `${filled} Tage gefüllt. Einzelne Gerichte kannst du austauschen.` : "Keine freien Tage mehr in dieser Woche.");
   },
   async toList(keys) {
     const need = {};
@@ -617,13 +786,65 @@ views.rezepte = {
     const search = h("input", { type: "text", id: "reSearch", placeholder: "Rezept oder Zutat suchen", value: this.q, oninput: e => { this.q = e.target.value; this.update(); } });
     this.chips = h("div", { class: "chips" });
     this.list = h("div", { class: "stack" });
-    root.append(h("h2", null, "Rezepte"), h("div", { class: "stack" }, search, this.chips), this.list, this.form());
+    this.ai = h("div", { class: "card", hidden: Store.sample ? null : true });
+    root.append(h("h2", null, "Rezepte"), this.ai, h("div", { class: "stack" }, search, this.chips), this.list, this.form());
+    this.renderAi();
+  },
+  renderAi(result, busy, err) {
+    if (!Store.sample) { this.ai.hidden = true; return; }
+    this.ai.hidden = false;
+    if (!this.wish) this.wish = h("input", { type: "text", id: "aiWish", placeholder: "Wunsch, z. B. schnell, mit Hähnchen, für die Spätschicht" });
+    const kids = [h("h3", null, "Was koche ich aus dem Vorrat?"),
+      h("div", { class: "muted small" }, `Claude schlägt ein Gericht passend zu eurer Phase vor und nutzt bevorzugt, was im Vorrat ist (${S.pantry.length} Artikel).`),
+      h("div", { class: "row" }, h("div", { class: "grow" }, this.wish), h("button", { class: "btn primary", disabled: busy ? true : null, onclick: () => this.suggest() }, busy ? "Denkt nach …" : "Vorschlag holen"))];
+    if (err) kids.push(h("div", { class: "note small" }, err));
+    if (result) {
+      const r = result;
+      const missing = r.ing.filter(([, , n]) => !(r.ausVorrat || []).some(v => norm(v) === norm(n)));
+      kids.push(h("div", { class: "stack", style: "border-top:1px solid var(--line);padding-top:10px" },
+        h("div", { class: "between" }, h("strong", null, r.name), h("span", { class: "row" }, (r.tags || []).map(t => h("span", { class: "tag " + t }, TAGLABEL[t] || t)))),
+        h("div", { class: "macros" }, h("span", null, h("b", null, r.m[0]), " kcal"), h("span", null, "P ", h("b", null, r.m[1])), h("span", null, "F ", h("b", null, r.m[2])), h("span", null, "KH ", h("b", { class: carbClass(r.m[3], settings().carbLimit) }, r.m[3], " g")), h("span", null, "pro Portion, geschätzt")),
+        h("ul", { class: "ing" }, r.ing.map(([q, u, n]) => h("li", null, `${numDE(q)} ${u} ${n}`, (r.ausVorrat || []).some(v => norm(v) === norm(n)) ? h("span", { class: "tag keto", style: "margin-left:6px" }, "im Vorrat") : null))),
+        h("p", { class: "small", style: "margin:0" }, r.steps || ""),
+        h("div", { class: "row" },
+          h("button", { class: "btn sm primary", onclick: () => { Store.set("recipes", uid(), { name: r.name, tags: r.tags, m: r.m, ing: r.ing, steps: r.steps || "", min: r.min || 0, src: "", ai: true, by: me(), t: Date.now() }); toast("Als eigenes Rezept gespeichert"); this.renderAi(); } }, "Als Rezept speichern"),
+          missing.length ? h("button", { class: "btn sm", onclick: () => { missing.forEach(([q, u, n]) => addItem(n, q, u)); toast(`${missing.length} fehlende Zutaten auf der Liste`); } }, `Fehlende Zutaten auf die Liste (${missing.length})`) : null)));
+    }
+    this.ai.replaceChildren(...kids);
+  },
+  async suggest() {
+    const s = settings(); const ph = PHASES[s.phase] || PHASES.keto;
+    const today = dkey(new Date());
+    const pantry = S.pantry.map(p => `${p.name} (${showQty(Number(p.q), p.u)}${p.mhd ? ", MHD " + p.mhd : ""})`).join("; ") || "leer";
+    const prompt = `Du planst Gerichte für ein Paar, das sich ketogen bzw. karnivor ernährt. Schlage genau EIN Gericht für 2 Portionen vor.
+Phase: ${ph.label}. Höchstens ${s.carbLimit} g Netto-Kohlenhydrate pro Person und Tag.${s.phase === "omad" || s.phase === "carniomad" ? " Es ist die einzige Mahlzeit des Tages: proteinreich und sättigend, mindestens 900 kcal pro Portion." : ""}${s.phase === "carniomad" ? " Nur tierische Lebensmittel, Salz erlaubt." : ""}
+Vorrat (heute ist ${today}): ${pantry}
+Nutze vorrangig den Vorrat, besonders Artikel mit nahem MHD. Fehlende Zutaten dürfen dazukommen, sollen aber in einem deutschen Supermarkt erhältlich sein.
+Wunsch: ${(this.wish && this.wish.value.trim()) || "keiner"}
+Nicht vorschlagen (schon vorhanden): ${allRecipes().map(r => r.name).join(", ")}
+Antworte nur mit JSON in genau dieser Form:
+{"name": "Name auf Deutsch", "tags": ["keto"], "m": [kcal, protein_g, fett_g, netto_kh_g], "min": Minuten, "ing": [[Menge, "Einheit", "Zutat"]], "steps": "Zubereitung in höchstens 3 Sätzen", "ausVorrat": ["Zutatennamen, die aus dem Vorrat kommen"]}
+tags nur aus: keto, karnivor, omad, prep. Einheiten nur aus: ${UNITS.join(", ")}. m-Werte pro Portion als Zahlen.`;
+    this.renderAi(null, true);
+    try {
+      const r = await Store.sample.json(prompt, { modelTier: "default", cache: false });
+      if (!r || typeof r.name !== "string" || !Array.isArray(r.ing) || !Array.isArray(r.m)) throw { code: "shape" };
+      r.ing = r.ing.filter(x => Array.isArray(x) && x.length >= 3).map(([q, u, n]) => [Number(q) || 1, UNITS.includes(u) ? u : "Stk", String(n)]);
+      r.m = [0, 1, 2, 3].map(i => Math.round(Number(r.m[i]) || 0));
+      r.tags = (Array.isArray(r.tags) ? r.tags : []).filter(t => TAGLABEL[t] && t !== "dessert");
+      this.renderAi(r);
+    } catch (e) {
+      const c = e && e.code;
+      if (c === "not_granted") { this.ai.hidden = true; toast("Vorschläge sind für diese Seite nicht freigegeben."); return; }
+      this.renderAi(null, false, c === "rate_limited" ? "Gerade zu viele Anfragen. Bitte in ein paar Minuten nochmal versuchen." : "Der Vorschlag hat nicht geklappt. Bitte nochmal versuchen.");
+    }
   },
   form() {
     const f = { name: h("input", { type: "text", id: "nrName", required: true }), ing: h("textarea", { id: "nrIng", placeholder: "500 g Rinderhack\n4 Stk Eier\n200 ml Sahne" }),
       steps: h("textarea", { id: "nrSteps", placeholder: "Kurz die Zubereitung" }),
+      src: h("input", { type: "text", id: "nrSrc", inputmode: "url", placeholder: "https://…" }),
       kcal: h("input", { type: "number", id: "nrKcal", min: 0 }), p: h("input", { type: "number", id: "nrP", min: 0 }), fat: h("input", { type: "number", id: "nrF", min: 0 }), c: h("input", { type: "number", id: "nrC", min: 0, step: "0.5" }) };
-    const tags = ["keto", "karnivor", "omad"].map(t => h("input", { type: "checkbox", class: "check", id: "nrT" + t, value: t, checked: t === "keto" }));
+    const tags = ["keto", "karnivor", "omad", "prep"].map(t => h("input", { type: "checkbox", class: "check", id: "nrT" + t, value: t, checked: t === "keto" }));
     const det = h("details", { class: "card" }, h("summary", { style: "cursor:pointer;font-weight:700" }, "Eigenes Rezept anlegen"),
       h("form", { class: "stack", onsubmit: e => {
         e.preventDefault();
@@ -633,39 +854,53 @@ views.rezepte = {
           if (m) return [toNum(m[1]), "Stk", (m[2] + " " + m[3])];
           return [1, "Stk", l];
         });
-        Store.set("recipes", uid(), { name: f.name.value.trim(), tags: tags.filter(t => t.checked).map(t => t.value), ing, steps: f.steps.value.trim(),
+        Store.set("recipes", uid(), { name: f.name.value.trim(), tags: tags.filter(t => t.checked).map(t => t.value), ing, steps: f.steps.value.trim(), src: /^https?:\/\//.test(f.src.value.trim()) ? f.src.value.trim() : "",
           m: [toNum(f.kcal.value) || 0, toNum(f.p.value) || 0, toNum(f.fat.value) || 0, toNum(f.c.value) || 0], min: 0, by: me(), t: Date.now() });
         e.target.reset(); det.open = false; toast("Rezept gespeichert");
       } },
         h("label", { class: "f" }, "Name", f.name),
-        h("div", { class: "row" }, tags.map(t => h("label", { class: "row small", for: t.id }, t, t.value))),
+        h("div", { class: "row" }, tags.map(t => h("label", { class: "row small", for: t.id }, t, TAGLABEL[t.value]))),
         h("label", { class: "f" }, "Zutaten für 2 Portionen, eine pro Zeile (Menge Einheit Zutat)", f.ing),
         h("div", { class: "eyebrow" }, "Pro Portion (optional)"),
         h("div", { class: "row" }, h("label", { class: "f grow" }, "kcal", f.kcal), h("label", { class: "f grow" }, "Protein g", f.p), h("label", { class: "f grow" }, "Fett g", f.fat), h("label", { class: "f grow" }, "Netto-KH g", f.c)),
         h("label", { class: "f" }, "Zubereitung", f.steps),
+        h("label", { class: "f" }, "Quelle (Link zum Original, optional)", f.src),
+        h("div", { class: "muted small" }, "Rezepte aus dem Internet: nur Zutaten und eine kurze eigene Notiz eintragen und das Original verlinken."),
         h("button", { class: "btn primary", type: "submit" }, "Rezept speichern")));
     return det;
   },
   update() {
-    const F = [["alle", "Alle"], ["keto", "Keto"], ["karnivor", "Karnivor"], ["omad", "OMAD-tauglich"], ["eigene", "Eigene"]];
+    const F = [["alle", "Alle"], ["keto", "Keto"], ["karnivor", "Karnivor"], ["omad", "OMAD-tauglich"], ["prep", "Meal-Prep"], ["guenstig", "Günstig"], ["eigene", "Eigene"]];
     this.chips.replaceChildren(...F.map(([k, l]) => h("button", { class: "chip", "aria-pressed": this.filter === k ? "true" : "false", onclick: () => { this.filter = k; this.update(); } }, l)));
     const q = norm(this.q);
-    const rs = allRecipes().filter(r => this.filter === "alle" || (this.filter === "eigene" ? r.own : (r.tags || []).includes(this.filter)))
+    const rs = allRecipes().filter(r => this.filter === "alle" || (this.filter === "eigene" ? r.own : this.filter === "guenstig" ? (c => c.ok && c.perPortion <= 3.5)(recipeCost(r)) : (r.tags || []).includes(this.filter)))
       .filter(r => !q || norm(r.name).includes(q) || r.ing.some(i => norm(i[2]).includes(q)));
     const s = settings();
     if (!rs.length) { this.list.replaceChildren(h("div", { class: "card empty" }, this.filter === "eigene" ? "Noch keine eigenen Rezepte. Unten kannst du eins anlegen." : "Kein Rezept gefunden.")); return; }
-    this.list.replaceChildren(...rs.map(r => h("details", { class: "card recipe" },
+    this.openIds ||= new Set();
+    this.list.replaceChildren(...rs.map(r => h("details", { class: "card recipe", open: this.openIds.has(r.id), ontoggle: e => e.target.open ? this.openIds.add(r.id) : this.openIds.delete(r.id) },
       h("summary", null,
-        h("div", { class: "between" }, h("strong", null, r.name), h("span", { class: "row" }, (r.tags || []).map(t => h("span", { class: "tag " + t }, t === "omad" ? "OMAD" : t)))),
+        h("div", { class: "between" }, h("strong", null, r.name), h("span", { class: "row" }, (r.tags || []).map(t => h("span", { class: "tag " + t }, TAGLABEL[t] || t)))),
         r.m ? h("div", { class: "macros" }, h("span", null, h("b", null, r.m[0]), " kcal"), h("span", null, "P ", h("b", null, r.m[1])), h("span", null, "F ", h("b", null, r.m[2])),
-          h("span", null, "KH ", h("b", { class: carbClass(r.m[3], s.carbLimit) }, r.m[3], " g")), r.min ? h("span", null, r.min >= 120 ? Math.round(r.min / 60) + " h" : r.min + " min") : null, h("span", null, "pro Portion")) : null),
+          h("span", null, "KH ", h("b", { class: carbClass(r.m[3], s.carbLimit) }, r.m[3], " g")), r.min ? h("span", null, r.min >= 120 ? Math.round(r.min / 60) + " h" : r.min + " min") : null, (c => c.ok ? h("span", null, "≈ ", h("b", null, euro(c.perPortion))) : null)(recipeCost(r)), h("span", null, "pro Portion")) : null),
       h("ul", { class: "ing" }, r.ing.map(([q, u, n]) => h("li", null, `${numDE(q)} ${u} ${n}`))),
       r.steps ? h("p", { class: "small", style: "margin:0" }, r.steps) : null,
+      r.src ? h("a", { href: r.src, target: "_blank", rel: "noopener noreferrer", class: "small" }, "Original-Rezept öffnen") : null,
+      this.prepRow(r),
       h("div", { class: "row" },
         h("button", { class: "btn sm primary", onclick: () => { r.ing.forEach(([q, u, n]) => addItem(n, Number(q), u)); toast("Zutaten auf der Liste"); } }, "Zutaten auf die Liste"),
         h("button", { class: "btn sm", onclick: () => { addToPlan(dkey(new Date()), r.id); toast("Für heute eingeplant"); } }, "Heute einplanen"),
         r.own ? h("button", { class: "btn sm danger ghost", onclick: () => this.askDelete(r) }, "Löschen") : null)
     )));
+  },
+  prepRow(r) {
+    this.prepN ||= {};
+    const n = h("input", { type: "number", class: "mini", id: "mp-" + r.id, min: 2, max: 30, step: 1, value: this.prepN[r.id] || 6, "aria-label": "Portionen für Meal-Prep", oninput: e => { this.prepN[r.id] = e.target.value; } });
+    const portions = () => Math.max(1, Math.round(toNum(n.value) || 6));
+    return h("div", { class: "row small", style: "border-top:1px solid var(--line);padding-top:8px" },
+      h("span", { class: "muted" }, "Meal-Prep"), n, h("span", { class: "muted" }, "Portionen"),
+      h("button", { class: "btn sm", onclick: () => { const f = portions() / 2; r.ing.forEach(([q, u, nm]) => addItem(nm, Math.round(Number(q) * f * 10) / 10, u)); toast(`Zutaten für ${portions()} Portionen auf der Liste`); } }, "Zutaten auf die Liste"),
+      h("button", { class: "btn sm", onclick: () => { Store.set("pantry", uid(), { name: r.name + " (Portion)", q: portions(), u: "Stk", place: "Tiefkühler", mhd: dkey(addDays(new Date(), 90)), t: Date.now() }); toast(`${portions()} Portionen im Tiefkühler`); } }, "Eingefroren"));
   },
   askDelete(r) {
     if (this.confirmId === r.id) { Store.del("recipes", r.id); this.confirmId = null; toast("Rezept gelöscht"); return; }
@@ -738,7 +973,68 @@ views.fasten = {
     this.info = h("div");
     this.cards = h("div", { class: "grid2" });
     this.hist = h("div", { class: "card" });
-    root.append(h("h2", null, "Fasten"), this.info, this.cards, this.hist);
+    this.mOut = h("div", { class: "grid2" });
+    this.sOut = h("div");
+    const P = persons();
+    const mWho = h("select", { id: "msWho", "aria-label": "Person" }, [0, 1].map(i => h("option", { value: i, selected: me() === i ? "selected" : null }, P[i])));
+    const mKg = h("input", { type: "text", id: "msKg", inputmode: "decimal", placeholder: "kg" });
+    const mKet = h("input", { type: "text", id: "msKet", inputmode: "decimal", placeholder: "mmol/l" });
+    const measureForm = h("form", { class: "card", onsubmit: e => {
+      e.preventDefault(); const kg = toNum(mKg.value), ket = toNum(mKet.value);
+      if (kg == null && ket == null) { mKg.focus(); return; }
+      Store.set("measures", uid(), { person: Number(mWho.value), date: dkey(new Date()), kg, ket, t: Date.now() });
+      mKg.value = ""; mKet.value = ""; toast("Messwert gespeichert");
+    } }, h("h3", null, "Messwerte"),
+      h("div", { class: "row" }, h("label", { class: "f grow" }, "Wer", mWho), h("label", { class: "f grow" }, "Gewicht (kg)", mKg), h("label", { class: "f grow" }, "Ketone Blut (mmol/l)", mKet)),
+      h("button", { class: "btn primary", type: "submit" }, "Eintragen"), this.mOut);
+    const f = { name: h("input", { type: "text", id: "spName", placeholder: "z. B. Vitamin D3/K2", required: true }), brand: h("input", { type: "text", id: "spBrand", placeholder: "Hersteller" }),
+      dose: h("input", { type: "text", id: "spDose", placeholder: "z. B. 1 Kapsel" }),
+      when: h("select", { id: "spWhen" }, ["morgens", "mittags", "abends", "zur Mahlzeit"].map(x => h("option", null, x))),
+      who: h("select", { id: "spWho" }, h("option", { value: "both" }, "beide"), [0, 1].map(i => h("option", { value: i }, P[i]))),
+      stock: h("input", { type: "number", id: "spStock", min: 0, placeholder: "z. B. 120" }), perDay: h("input", { type: "number", id: "spPer", min: 0, step: "0.5", value: 1 }) };
+    const suppForm = h("details", null, h("summary", { style: "cursor:pointer;font-weight:600" }, "Supplement hinzufügen"),
+      h("form", { class: "stack", style: "padding-top:8px", onsubmit: e => {
+        e.preventDefault(); if (!f.name.value.trim()) return;
+        Store.set("supps", uid(), { name: f.name.value.trim(), brand: f.brand.value.trim(), dose: f.dose.value.trim(), when: f.when.value,
+          who: f.who.value === "both" ? "both" : Number(f.who.value), stock: toNum(f.stock.value), perDay: toNum(f.perDay.value) || 1, t: Date.now() });
+        e.target.reset(); f.perDay.value = 1; toast("Supplement gespeichert");
+      } },
+        h("div", { class: "row" }, h("label", { class: "f grow" }, "Name", f.name), h("label", { class: "f grow" }, "Hersteller", f.brand)),
+        h("div", { class: "row" }, h("label", { class: "f grow" }, "Dosis", f.dose), h("label", { class: "f grow" }, "Wann", f.when), h("label", { class: "f grow" }, "Für", f.who)),
+        h("div", { class: "row" }, h("label", { class: "f grow" }, "Bestand (Kapseln/Portionen)", f.stock), h("label", { class: "f grow" }, "Pro Tag und Person", f.perDay)),
+        h("button", { class: "btn primary", type: "submit" }, "Speichern")));
+    root.append(h("h2", null, "Fasten, Supplemente und Werte"), this.info, this.cards,
+      h("div", { class: "card" }, h("h3", null, "Supplemente"), this.sOut, suppForm), measureForm, this.hist);
+  },
+  renderSupps() {
+    const P = persons();
+    if (!S.supps.length) { this.sOut.replaceChildren(h("div", { class: "muted small" }, "Noch keine Supplemente eingetragen. Mit Bestand und Tagesdosis rechnet die App aus, wann nachbestellt werden muss. Das tägliche Abhaken zieht den Bestand automatisch ab.")); return; }
+    this.sOut.replaceChildren(h("div", null, S.supps.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(x => {
+      const ppl = x.who === "both" ? 2 : 1;
+      const days = x.stock != null && x.perDay ? Math.floor(Number(x.stock) / (Number(x.perDay) * ppl)) : null;
+      const stock = h("input", { type: "number", class: "mini", id: "sps-" + x.id, min: 0, value: x.stock ?? "", "aria-label": "Bestand " + x.name, onchange: e => Store.update("supps", x.id, { stock: toNum(e.target.value) }) });
+      return h("div", { class: "item" },
+        h("div", { class: "name" }, h("span", null, x.name), " ", days != null && days <= 7 ? h("span", { class: "tag soon" }, "bald nachbestellen") : null,
+          h("small", null, [x.brand, x.dose, x.when, x.who === "both" ? "beide" : P[x.who], days != null ? `reicht noch ca. ${days} Tage` : ""].filter(Boolean).join(" · "))),
+        stock,
+        h("button", { class: "btn sm", onclick: () => { addItem(x.name, null, "", "supp", [x.brand, "Supplement"].filter(Boolean).join(" · "), "Drogerie & Haushalt"); toast(x.name + " auf der Liste"); } }, "Nachkaufen"),
+        h("button", { class: "x", "aria-label": x.name + " löschen", onclick: () => Store.del("supps", x.id) }, "×"));
+    })));
+  },
+  renderMeasures() {
+    const P = persons();
+    this.mOut.replaceChildren(...[0, 1].map(pi => {
+      const ms = S.measures.filter(m => m.person === pi).sort((a, b) => a.t - b.t);
+      const kgs = ms.filter(m => m.kg != null); const kets = ms.filter(m => m.ket != null);
+      const last = kgs[kgs.length - 1], first = kgs[0], ket = kets[kets.length - 1];
+      const ketTxt = ket ? (ket.ket < 0.5 ? "keine Ketose" : ket.ket <= 3 ? "Ketose" : "hoch, beobachten") : "";
+      return h("div", { class: "stack", style: "min-width:0" },
+        h("div", { class: "between" }, h("strong", null, P[pi]), last ? h("span", { class: "num" }, h("b", null, numDE(last.kg) + " kg"), first && first !== last ? h("span", { class: "muted small" }, ` (${last.kg - first.kg > 0 ? "+" : ""}${numDE(last.kg - first.kg)} seit ${fmtD(parseKey(first.date))})`) : null) : h("span", { class: "muted small" }, "noch kein Gewicht")),
+        sparkline(kgs.slice(-30).map(m => Number(m.kg))),
+        ket ? h("div", { class: "small num" }, "Ketone zuletzt: ", h("b", { class: ket.ket < 0.5 ? "carb-mid" : ket.ket <= 3 ? "carb-ok" : "carb-bad" }, numDE(ket.ket) + " mmol/l"), ` · ${ketTxt} · ${fmtD(parseKey(ket.date))}`) : null,
+        ms.length ? h("div", { class: "small muted" }, ms.slice(-3).reverse().map(m => h("div", { class: "between" }, h("span", { class: "num" }, `${fmtD(parseKey(m.date))} ${m.kg != null ? numDE(m.kg) + " kg" : ""} ${m.ket != null ? numDE(m.ket) + " mmol/l" : ""}`),
+          h("button", { class: "x", "aria-label": "Messwert löschen", onclick: () => Store.del("measures", m.id) }, "×")))) : null);
+    }));
   },
   update() {
     const s = settings(); const ph = PHASES[s.phase] || PHASES.keto; const P = persons();
@@ -771,11 +1067,18 @@ views.fasten = {
             Store.set("fasts", uid(), { person: pi, start: Math.min(t, Date.now()), end: null, goal: ph.goal });
           } }, "Fasten starten")
         ],
-        h("div", { class: "eyebrow" }, "Elektrolyte heute"),
-        h("div", { class: "chips" }, [["salz", "Salz"], ["kalium", "Kalium"], ["magnesium", "Magnesium"]].map(([k, l]) =>
-          h("button", { class: "chip", "aria-pressed": mine[k] ? "true" : "false", onclick: () => { const { id, ...rest } = elecDoc; Store.set("elec", tk, { ...rest, ["p" + pi]: { ...mine, [k]: !mine[k] } }); } }, (mine[k] ? "✓ " : "") + l)))
+        h("div", { class: "eyebrow" }, "Heute eingenommen"),
+        h("div", { class: "chips" }, [["salz", "Salz", null], ["kalium", "Kalium", null], ["magnesium", "Magnesium", null],
+          ...S.supps.filter(x => (x.who === "both" || x.who === pi) && !/^(salz|kalium|magnesium)$/i.test(x.name)).map(x => [x.id, x.name, x])].map(([k, l, sp]) =>
+          h("button", { class: "chip", "aria-pressed": mine[k] ? "true" : "false", title: sp ? [sp.brand, sp.dose, sp.when].filter(Boolean).join(" · ") : null, onclick: () => {
+            const { id, ...rest } = elecDoc; const on = !mine[k];
+            Store.set("elec", tk, { ...rest, ["p" + pi]: { ...mine, [k]: on } });
+            if (sp && sp.stock != null && sp.perDay) Store.update("supps", sp.id, { stock: Math.max(0, Number(sp.stock) + (on ? -1 : 1) * Number(sp.perDay)) });
+          } }, (mine[k] ? "✓ " : "") + l)))
       );
     }));
+    if (!(document.activeElement && this.sOut.contains(document.activeElement))) this.renderSupps();
+    this.renderMeasures();
     const done = S.fasts.filter(f => f.end).sort((a, b) => b.end - a.end).slice(0, 14);
     this.hist.replaceChildren(h("h3", null, "Verlauf"), done.length ? h("div", { style: "overflow-x:auto" }, h("table", { class: "t" },
       h("thead", null, h("tr", null, h("th", null, "Wer"), h("th", null, "Ende"), h("th", { class: "r" }, "Dauer"), h("th", { class: "r" }, "Ziel"), h("th", null, ""))),
@@ -798,6 +1101,20 @@ views.budget = {
     const shop = h("input", { type: "text", id: "bdShop", placeholder: "Laden" });
     const amt = h("input", { type: "text", id: "bdAmt", inputmode: "decimal", placeholder: "Betrag €" });
     this.list = h("div", { class: "card" });
+    this.prices = h("div");
+    const pn = h("input", { type: "text", id: "prName", placeholder: "Artikel, z. B. Rinderhack" });
+    const pe = h("input", { type: "text", id: "prEur", inputmode: "decimal", placeholder: "€" });
+    const pq = h("input", { type: "text", id: "prPer", inputmode: "decimal", value: "1", "aria-label": "Menge" });
+    const pu = h("select", { id: "prUnit", "aria-label": "Einheit" }, UNITS.map(x => h("option", { selected: x === "kg" ? "selected" : null }, x)));
+    this.priceCard = h("div", { class: "card" }, h("h3", null, "Eure Preise"),
+      h("div", { class: "muted small" }, "Daraus berechnet die App die Kosten pro Portion. Ohne eigenen Eintrag gelten Richtwerte (Schätzung)."),
+      h("form", { class: "row", onsubmit: e => {
+        e.preventDefault(); const eur = toNum(pe.value); if (!pn.value.trim() || eur == null) return;
+        const ex = S.prices.find(p => norm(p.name) === norm(pn.value) && p.u === pu.value);
+        Store.set("prices", ex ? ex.id : uid(), { name: pn.value.trim(), eur, per: toNum(pq.value) || 1, u: pu.value, t: Date.now() });
+        pn.value = ""; pe.value = ""; toast("Preis gespeichert");
+      } }, h("div", { class: "grow" }, pn), h("div", { style: "width:80px" }, pe), h("span", { class: "muted small" }, "pro"), h("div", { style: "width:60px" }, pq), h("div", { style: "width:80px" }, pu), h("button", { class: "btn primary", type: "submit" }, "Speichern")),
+      this.prices);
     root.append(this.head, this.stats,
       h("form", { class: "card", onsubmit: e => {
         e.preventDefault(); const a = toNum(amt.value); if (!a) { amt.focus(); return; }
@@ -806,7 +1123,7 @@ views.budget = {
       } }, h("h3", null, "Ausgabe eintragen"),
         h("div", { class: "row" }, h("div", { class: "grow" }, shop), h("div", { style: "width:120px" }, amt)),
         h("div", { class: "row" }, h("div", { class: "grow" }, date), h("button", { class: "btn primary", type: "submit" }, "Speichern"))),
-      this.list);
+      this.list, this.priceCard);
   },
   update() {
     const s = settings(); const P = persons();
@@ -831,6 +1148,12 @@ views.budget = {
       h("div", { class: "bar" + (sum > budget ? " over" : "") }, h("i", { style: `width:${pct}%` })),
       h("div", { class: "muted small num" }, isCur && sum ? `Hochrechnung Monatsende: ${euro(forecast)} · Schnitt pro Woche: ${euro(sum / dayN * 7)}` : `${list.length} Einkäufe`),
       Object.keys(byShop).length ? h("div", { class: "chips" }, Object.entries(byShop).sort((a, b) => b[1] - a[1]).map(([k, v]) => h("span", { class: "tag" }, `${k}: ${euro(v)}`))) : null);
+    this.prices.replaceChildren(
+      S.prices.length ? h("div", null, S.prices.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(p => h("div", { class: "item" },
+        h("div", { class: "name" }, h("span", null, p.name)), h("span", { class: "qty" }, `${euro(p.eur)} / ${numDE(p.per)} ${p.u}`),
+        h("button", { class: "x", "aria-label": p.name + " löschen", onclick: () => Store.del("prices", p.id) }, "×")))) : null,
+      h("details", { class: "small" }, h("summary", { style: "cursor:pointer" }, `Richtwerte ansehen (${PRICE_DEF.length})`),
+        h("div", { class: "muted", style: "padding-top:6px" }, PRICE_DEF.map(([n, e, q, u]) => `${n} ${euro(e)}/${q === 1 ? "" : numDE(q) + " "}${u}`).join(" · "))));
     this.list.replaceChildren(h("h3", null, "Einkäufe"), list.length ? h("div", null, list.map(e => h("div", { class: "item" },
       h("div", { class: "name" }, h("span", null, e.shop), h("small", null, fmtD(parseKey(e.date)) + " · " + (P[e.by] || P[0]))),
       h("span", { class: "qty" }, euro(e.amount)),
@@ -850,10 +1173,16 @@ views.settings = {
     const carb = h("input", { type: "number", id: "stCarb", min: 5, max: 100, value: s.carbLimit });
     const budget = h("input", { type: "number", id: "stBudget", min: 0, step: 10, value: s.budget });
     const meSel = h("select", { id: "stMe" }, [0, 1].map(i => h("option", { value: i, selected: me() === i ? "selected" : null }, persons()[i])));
+    const order = catOrder();
+    const orderList = h("ul", { class: "order" });
+    const drawOrder = () => orderList.replaceChildren(...order.map((c, i) => h("li", null, h("span", null, c),
+      h("button", { type: "button", class: "btn sm", "aria-label": c + " nach oben", disabled: i === 0 ? true : null, onclick: () => { [order[i - 1], order[i]] = [order[i], order[i - 1]]; drawOrder(); } }, "↑"),
+      h("button", { type: "button", class: "btn sm", "aria-label": c + " nach unten", disabled: i === order.length - 1 ? true : null, onclick: () => { [order[i + 1], order[i]] = [order[i], order[i + 1]]; drawOrder(); } }, "↓"))));
+    drawOrder();
     root.append(h("h2", null, "Einstellungen"),
       h("form", { class: "card", onsubmit: e => {
         e.preventDefault();
-        Store.set("settings", "main", { p1: p1.value.trim() || "Person 1", p2: p2.value.trim() || "Person 2", phase: phase.value, carbLimit: toNum(carb.value) || 20, budget: toNum(budget.value) || 0 });
+        Store.set("settings", "main", { p1: p1.value.trim() || "Person 1", p2: p2.value.trim() || "Person 2", phase: phase.value, carbLimit: toNum(carb.value) || 20, budget: toNum(budget.value) || 0, catOrder: order });
         lsSet("kk_me", Number(meSel.value));
         toast("Einstellungen gespeichert"); go(lsGet("kk_prevTab", "liste"));
       } },
@@ -861,6 +1190,7 @@ views.settings = {
         h("label", { class: "f" }, "Wer nutzt dieses Gerät?", meSel),
         h("label", { class: "f" }, "Ernährungsphase", phase),
         h("div", { class: "row" }, h("label", { class: "f grow" }, "Netto-Carbs pro Tag (g)", carb), h("label", { class: "f grow" }, "Monatsbudget Lebensmittel (€)", budget)),
+        h("details", null, h("summary", { style: "cursor:pointer;font-weight:600" }, "Reihenfolge der Einkaufsliste (wie die Gänge in eurem Laden)"), orderList),
         h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, "Speichern"), h("button", { class: "btn ghost", type: "button", onclick: () => go(lsGet("kk_prevTab", "liste")) }, "Zurück"))),
       h("div", { class: "card small" }, h("h3", null, "Gemeinsam nutzen"),
         Store.live ? "Alle Änderungen werden live mit allen geteilt, die diese Seite mit Bearbeiten-Recht geöffnet haben. Die Auswahl „Wer nutzt dieses Gerät?“ bleibt nur auf diesem Gerät."
