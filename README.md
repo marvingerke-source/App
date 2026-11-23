@@ -1,70 +1,36 @@
-# Smarter Wochen-Einkauf
+# Unsere Keto-Küche
 
-Übersetzt deinen Wochenplan in eine nach Läden sortierte Einkaufsliste – auf
-Basis der aktuell beworbenen **Prospekt-Angebote** und unter Berücksichtigung
-von **Budget**, **Bio-Wunsch** und einer **Obergrenze für die Anzahl der Läden**.
+Gemeinsame Einkaufs- und Ernährungsplanung für zwei Personen: zuerst ketogen,
+später OMAD bzw. karnivor.
 
-Dieses Repository enthält die Umsetzung von **Stufe 1** aus dem Konzeptpapier
-(Rezepte → Wochenplan → automatische Liste → Vorgaben → bestes Angebots-Paket
-→ Einkaufsliste). Angebote sind hier noch als Beispieldaten hinterlegt; der
-KI-gestützte Prospekt-Import ist Stufe 2.
+**Geteilte Live-Version (claude.ai):** https://claude.ai/artifact/ThAy1uhKDtpb2mjjKatSjc
+Beide Personen sehen denselben Stand. Wer mitplanen soll, braucht ein
+claude.ai-Konto und eine Freigabe mit Bearbeiten-Recht (Teilen-Menü der Seite).
 
-## Inhalt
+## Funktionen
 
-| Ordner  | Was                                                                                  |
-|---------|--------------------------------------------------------------------------------------|
-| `web/`  | **Klickbarer Prototyp** (HTML/CSS/JS) der fünf Kern-Screens – ohne Mac lauffähig.    |
-| `ios/`  | **SwiftUI-Quellcode** der nativen App (zum Öffnen in Xcode auf einem Mac).           |
+| Bereich  | Was                                                                                          |
+|----------|----------------------------------------------------------------------------------------------|
+| Liste    | Einkaufsliste nach Kategorien, Keto-Basics per Tipp, Warnung bei kohlenhydratreichen Artikeln, „Einkauf abschließen“ trägt Betrag ins Budget ein und übernimmt Artikel in den Vorrat. |
+| Plan     | Wochenplan (KW), Gerichte pro Tag, Makros pro Person mit Carb-Ampel, Zutaten der Woche auf die Liste (Vorrat wird abgezogen). |
+| Rezepte  | 15 Keto-/Karnivor-/OMAD-Rezepte für 2 Portionen, eigene Rezepte anlegen.                     |
+| Vorrat   | Kühlschrank / Tiefkühler / Vorratsschrank mit MHD-Warnung, „Nachkaufen“ setzt auf die Liste.  |
+| Fasten   | Fasten-Timer je Person, Ziel nach Phase (12 h / 16 h / 23 h), Serie, Verlauf, Elektrolyt-Check. |
+| Budget   | Monatsbudget, Ausgaben je Laden, Hochrechnung zum Monatsende.                                |
 
-Beide teilen dieselbe Logik (Bausteine A, C, D) und dieselben Beispieldaten.
+Phase (Keto → 16:8 → OMAD → Karnivor + OMAD), Namen, Carb-Grenze und Budget
+werden über das Zahnrad eingestellt.
 
-## Web-Prototyp starten
+## Aufbau
+
+- `src/keto-kueche.html` – Quelle (einzelne Datei, ohne Abhängigkeiten außer Google Fonts).
+  Auf claude.ai speichert sie in der geteilten Datenbank, sonst im `localStorage`.
+- `web/index.html` – eigenständige Version, erzeugt mit `scripts/build-web.sh`.
+  Speichert nur auf dem jeweiligen Gerät.
 
 ```bash
-cd web
-python3 -m http.server 8000   # oder: npx serve
-# Browser: http://localhost:8000
+./scripts/build-web.sh
+cd web && python3 -m http.server 8000
 ```
 
-Am besten in der mobilen Geräteansicht der Entwicklertools (390×844). Der
-Prototyp ist voll interaktiv: Gerichte planen, Vorräte abhaken, Budget/Bio/
-Läden einstellen, optimiertes Paket berechnen und Einkauf abhaken.
-
-## iOS-App
-
-`ios/SmartEinkauf/` ist reiner SwiftUI-Quellcode. Auf einem Mac:
-
-1. In Xcode ein neues iOS-App-Projekt „SmartEinkauf" anlegen.
-2. Die Dateien aus `ios/SmartEinkauf/` in das Target ziehen (statt der
-   generierten `ContentView`/`App`-Datei).
-3. Build & Run – kein externes Paket nötig.
-
-> Hinweis: Der Code wurde unter Linux geschrieben und konnte hier nicht
-> kompiliert werden. Er folgt idiomatischem SwiftUI und ist als Startgerüst
-> gedacht.
-
-## Architektur (gemäß Konzept Abschnitt 3)
-
-- **Baustein A – Plan & Bedarf:** Wochenplan mit Slots; gleiche Zutaten über
-  die Woche werden zu einer Bedarfsliste zusammengeführt
-  (`bedarfBerechnen` / `Einkaufsplaner.bedarf`).
-- **Baustein C – Matching:** unscharfer Abgleich Zutat ↔ Prospekt-Angebot über
-  Kategorie + Stichwörter. In der echten App übernimmt das ein KI-Modell; hier
-  eine Stichwort-Heuristik (`MATCH_STICHWOERTER`).
-- **Baustein D – Optimierung:** findet die Laden-Kombination (≤ max. Läden), die
-  die meisten Positionen abdeckt und den Gesamtpreis minimiert, respektiert den
-  Bio-Wunsch und meldet, wenn sich ein zusätzlicher Laden kaum lohnt.
-
-## Datenmodell (Abschnitt 4)
-
-`Rezept` (zutaten[]), `Angebot` (markt, preis, istBio, gültigBis …), `Markt`.
-Der berechnete `Einkaufsplan` ist eine Zuordnung pro Markt inkl. Summe und
-Ersparnis gegenüber Normalpreis.
-
-## Roadmap (Abschnitt 7)
-
-- [x] **Stufe 1** – Rezepte, Wochenplan, automatische Liste, Budget/Bio-Filter,
-      Optimierung über Läden (Angebote manuell/als Beispieldaten).
-- [ ] **Stufe 2** – KI-gestützter Prospekt-Import (OCR + Sprachmodell).
-- [ ] **Stufe 3** – Feinschliff Mehr-Laden-Optimierung mit Fahrten-Obergrenze.
-- [ ] **Stufe 4** – Mehr Märkte, Standort/Entfernung, automatische Aktualisierung.
+Makroangaben der Rezepte sind Richtwerte pro Portion.
