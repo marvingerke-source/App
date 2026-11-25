@@ -95,7 +95,9 @@ button.cell:active, .tap:active { background: var(--fill); }
 .check[aria-checked="true"] { background: var(--tint-fill); border-color: var(--tint-fill); }
 .check[aria-checked="true"]::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
 
-.swipe { position: relative; background: var(--red); overflow: hidden; }
+.swipe { position: relative; background: transparent; overflow: hidden; }
+.swipe.swiping { background: var(--red); }
+.swipe:not(.swiping) .del { visibility: hidden; }
 .swipe > .cell { background: var(--card); transition: transform .2s; touch-action: pan-y; }
 .sheet .swipe > .cell { background: var(--sheet-card); }
 .swipe .del { position: absolute; right: 0; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 18px; color: #fff; font-size: 15px; font-weight: 600; }
@@ -481,7 +483,7 @@ const UNITS = ["Stk", "g", "kg", "ml", "l", "EL", "TL", "Pck", "Dose", "Zehe", "
 
 
 // ---------- Speicher ----------
-const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings", "prices", "measures", "supps", "freq", "queue"];
+const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings", "prices", "measures", "supps", "freq", "queue", "offers"];
 const Store = {
   db: null, sample: null, live: false, listeners: {},
   async init() {
@@ -524,7 +526,8 @@ function deleteWithUndo(col, doc, label) {
 // ---------- Zustand ----------
 const S = { loaded: new Set() };
 COLS.forEach(c => S[c] = []);
-const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, exclude: "Innereien (Leber, Herz, Niere usw.)", shops: [], ...(S.settings.find(s => s.id === "main") || {}) });
+const DEFAULT_SHOPS = ["Aldi Seesen", "Lidl Seesen", "REWE Seesen", "Edeka Bad Gandersheim"];
+const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, exclude: "Innereien (Leber, Herz, Niere usw.)", shops: DEFAULT_SHOPS, ...(S.settings.find(s => s.id === "main") || {}) });
 const saveSettings = patch => { const { id, ...cur } = settings(); return Store.set("settings", "main", { ...cur, ...patch }); };
 const persons = () => { const s = settings(); return [s.p1 || "Person 1", s.p2 || "Person 2"]; };
 const meIdx = () => { const v = lsGet("kk_me", null); return v === 1 ? 1 : 0; };
@@ -580,9 +583,23 @@ function catalog() {
 }
 
 // ---------- Preise ----------
+// ---------- Angebote ----------
+const compact = s => norm(s).replace(/[^a-z0-9äöüß]/g, "");
+const activeOffers = () => { const t = dkey(new Date()), soon = dkey(addDays(new Date(), 3)); return S.offers.filter(o => (!o.to || o.to >= t) && (!o.from || o.from <= soon)); };
+function offerMatch(o, name) {
+  const n = compact(name); if (n.length < 3) return false;
+  const hay = [o.name, ...(Array.isArray(o.match) ? o.match : String(o.match || "").split(","))].map(compact);
+  return hay.some(x => x && (x === n || x.includes(n) || (x.length > 4 && n.includes(x))));
+}
+const offerSort = (a, b) => (a.base ?? a.price ?? 99) - (b.base ?? b.price ?? 99);
+const offersFor = name => activeOffers().filter(o => offerMatch(o, name)).sort(offerSort);
+const untilTxt = o => o.to ? `bis ${WD[parseKey(o.to).getDay()]} ${fmtD(parseKey(o.to))}` : "";
+const offerSub = o => [o.size, o.base != null ? `${euro(o.base)}/${o.baseUnit || "kg"}` : "", untilTxt(o), o.cond].filter(Boolean).join(" · ");
 function priceFor(name, unit) {
   const n = norm(name);
   const pick = list => list.find(p => norm(p.name) === n && p.u === unit) || list.find(p => norm(p.name) === n) || list.find(p => norm(p.name).length > 3 && n.includes(norm(p.name)));
+  const off = offersFor(name).find(o => o.base != null && o.baseUnit);
+  if (off) return { eur: Number(off.base), per: 1, u: off.baseUnit, offer: true };
   const own = pick(S.prices);
   if (own) return { eur: Number(own.eur), per: Number(own.per) || 1, u: own.u, own: true };
   const d = pick(PRICE_DEF.map(([name, eur, per, u]) => ({ name, eur, per, u })));
@@ -621,13 +638,13 @@ function swipeable(cell, onDelete) {
   cell.addEventListener("pointermove", e => {
     if (x0 == null) return;
     const mx = e.clientX - x0, my = e.clientY - y0;
-    if (!active && Math.abs(mx) > 12 && Math.abs(mx) > Math.abs(my) * 1.5 && mx < 0) { active = true; cell.style.transition = "none"; try { cell.setPointerCapture(e.pointerId); } catch {} }
+    if (!active && Math.abs(mx) > 12 && Math.abs(mx) > Math.abs(my) * 1.5 && mx < 0) { active = true; wrap.classList.add("swiping"); cell.style.transition = "none"; try { cell.setPointerCapture(e.pointerId); } catch {} }
     if (active) { dx = Math.max(-160, Math.min(0, mx)); cell.style.transform = `translateX(${dx}px)`; e.preventDefault(); }
   });
   const end = () => {
     if (x0 == null) return; x0 = null; cell.style.transition = "";
     if (active && dx < -90) { cell.style.transform = "translateX(-110%)"; setTimeout(onDelete, REDUCED ? 0 : 180); }
-    else cell.style.transform = "";
+    else { cell.style.transform = ""; setTimeout(() => wrap.classList.remove("swiping"), REDUCED ? 0 : 200); }
     if (active) { cell.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); }, { capture: true, once: true }); }
     active = false;
   };
@@ -728,9 +745,10 @@ views.einkauf = {
     this.sugg = h("div");
     this.shopSeg = h("div");
     this.chips = h("div");
+    this.offerRow = h("div");
     this.list = h("div");
     this.cart = h("div");
-    root.append(largeTitle("Einkauf"), this.sub, form, this.sugg, this.shopSeg, this.chips, this.list, this.cart);
+    root.append(largeTitle("Einkauf"), this.sub, form, this.sugg, this.shopSeg, this.chips, this.offerRow, this.list, this.cart);
   },
   addFromInput(raw) {
     const p = parseEntry(raw ?? this.input.value);
@@ -768,7 +786,7 @@ views.einkauf = {
     const shops = (s.shops || []).filter(Boolean);
     if (shops.length && !shops.includes(this.shop)) this.shop = "";
     fill(this.shopSeg, shops.length ? h("div", { class: "seg", style: "margin-top:12px" },
-      [["", "Alle"], ...shops.map(x => [x, x])].map(([k, l]) => h("button", { type: "button", "aria-pressed": this.shop === k ? "true" : "false", onclick: () => { this.shop = k; this.update(); } }, l))) : "");
+      [["", "Alle"], ...shops.map(x => [x, x.split(" ")[0]])].map(([k, l]) => h("button", { type: "button", title: k || null, "aria-pressed": this.shop === k ? "true" : "false", onclick: () => { this.shop = k; this.update(); } }, l))) : "");
     // Häufig gekauft
     const on = onListNames();
     let sug = S.freq.filter(f => !on.has(norm(f.name))).sort((a, b) => (b.n || 0) - (a.n || 0)).map(f => ({ name: f.name, q: f.q, u: f.u }));
@@ -776,6 +794,13 @@ views.einkauf = {
     sug = sug.slice(0, 16);
     fill(this.chips, sug.length ? h("section", { class: "sec" }, h("div", { class: "sec-h" }, S.freq.length ? "Häufig gekauft" : "Keto-Basics"),
       h("div", { class: "chiprow" }, sug.map(x => h("button", { class: "chip", type: "button", onclick: () => { addItem(x.name, x.q, x.u, "", "", null, this.shop); } }, h("span", { class: "plus" }, "+"), x.name)))) : "");
+    // Angebote
+    const offs = activeOffers(); const oShops = new Set(offs.map(o => o.shop));
+    const hits = open.filter(i => offersFor(i.name).length).length;
+    const newest = S.offers.reduce((m, o) => Math.max(m, o.t || 0), 0);
+    fill(this.offerRow, sec("", [row({ title: offs.length ? "Angebote dieser Woche" : "Angebote einlesen",
+      sub: offs.length ? `${offs.length} Angebote · ${oShops.size} ${oShops.size === 1 ? "Markt" : "Märkte"}${hits ? ` · ${hits} passen zu eurer Liste` : ""}${newest ? ` · Stand ${fmtD(new Date(newest))}` : ""}` : "Prospekt-Screenshot oder Recherche vom Mac übernehmen",
+      badges: hits ? h("span", { class: "badge orange" }, hits) : null, onclick: () => offersSheet() })]));
     // Liste
     if (!S.loaded.has("items")) { fill(this.list, sec("", h("div", { class: "empty" }, "Liste wird geladen …"))); fill(this.cart, ); return; }
     const vis = open.filter(i => !this.shop || !i.shop || i.shop === this.shop);
@@ -797,10 +822,11 @@ views.einkauf = {
       h("div", { class: "btn-row" }, h("button", { class: "btn", type: "button", onclick: () => finishSheet() }, "Einkauf abschließen"))) : "");
   },
   itemRow(i, isNew, P) {
-    const sub = [i.note, i.shop, i.src === "plan" ? "aus dem Wochenplan" : i.src === "vorrat" ? "Vorrat nachkaufen" : i.src === "supp" ? "Supplement" : "", isNew ? "von " + P[i.by] : ""].filter(Boolean).join(" · ");
+    const best = !i.done ? offersFor(i.name)[0] : null;
+    const sub = [best ? `${best.shop} ${euro(best.price)} ${untilTxt(best)}` : "", i.note, i.shop && (!best || best.shop !== i.shop) ? i.shop : "", i.src === "plan" ? "aus dem Wochenplan" : i.src === "vorrat" ? "Vorrat nachkaufen" : i.src === "supp" ? "Supplement" : "", isNew ? "von " + P[i.by] : ""].filter(Boolean).join(" · ");
     const cell = row({
       cls: "ind" + (i.done ? " done" : ""), title: i.name, sub, detail: showQty(i.q, i.u), noChev: true,
-      badges: [isNew ? h("span", { class: "badge new" }, "Neu") : null, !i.done && carbWarn(i.name) ? h("span", { class: "badge red" }, "nicht keto?") : null],
+      badges: [isNew ? h("span", { class: "badge new" }, "Neu") : null, best ? h("span", { class: "badge orange" }, "Angebot") : null, !i.done && carbWarn(i.name) ? h("span", { class: "badge red" }, "nicht keto?") : null],
       lead: check(i.done, () => Store.update("items", i.id, { done: !i.done }), i.name + (i.done ? " zurück auf die Liste" : " abhaken")),
       onclick: () => itemSheet(i),
     });
@@ -813,12 +839,15 @@ function itemSheet(i) {
   const name = h("input", { type: "text", id: "isName", value: i.name });
   const qty = h("input", { type: "text", id: "isQty", value: showQty(i.q, i.u), placeholder: "z. B. 500 g" });
   const cat = h("select", { id: "isCat" }, CATS.map(c => h("option", { value: c, selected: c === i.cat ? "selected" : null }, c)));
-  const shops = (s.shops || []).filter(Boolean);
+  const shops = [...new Set([...(s.shops || []), ...offersFor(i.name).map(o => o.shop), i.shop].filter(Boolean))];
   const shop = h("select", { id: "isShop" }, h("option", { value: "" }, "Egal"), shops.map(x => h("option", { value: x, selected: x === i.shop ? "selected" : null }, x)));
   const note = h("input", { type: "text", id: "isNote", value: i.note || "", placeholder: "z. B. Bio, vom Metzger" });
   openSheet("Artikel", close => [
     h("div", { class: "group", style: "margin-top:8px" }, frow("Name", name), frow("Menge", qty), frow("Kategorie", cat), shops.length ? frow("Laden", shop) : null, frow("Notiz", note)),
     h("div", { class: "sec-f" }, "Die Kategorie merkt sich die App für das nächste Mal."),
+    (o => o.length ? sec("Angebote", o.map(x => row({ title: x.shop, sub: [x.name, offerSub(x)].filter(Boolean).join(" · "), detail: euro(x.price), noChev: true,
+      trail: x.shop === i.shop ? h("span", { style: "color:var(--tint);font-weight:700" }, "✓") : null,
+      onclick: () => { shop.value = x.shop; Store.update("items", i.id, { shop: x.shop }); toast(`Bei ${x.shop} kaufen`); } })), { foot: "Antippen, um den Artikel diesem Laden zuzuordnen." }) : null)(offersFor(i.name)),
     h("div", { class: "group", style: "margin-top:22px" }, h("button", { class: "cell danger", type: "button", onclick: () => { close(); deleteWithUndo("items", i); } }, "Artikel löschen")),
   ], { action: { label: "Fertig", run: close => {
     const m = String(qty.value).trim().match(/^([\d.,]+)\s*([a-zA-ZäöüÄÖÜ]+)?$/);
@@ -842,6 +871,11 @@ function finishSheet() {
     h("div", { class: "group" }, frow("Laden", shop), frow("Betrag", amt), h("label", { class: "cell frow" }, h("span", { style: "flex:1" }, "In den Vorrat übernehmen"), toPantry)),
     h("datalist", { id: "shopList" }, shops.map(x => h("option", { value: x }))),
     h("div", { class: "sec-f" }, "Der Betrag landet im Monatsbudget. Ohne Betrag wird nur abgeschlossen."),
+    imageOk() ? sec("", [imagePicker("Kassenbon fotografieren", "fsBon", false, async files => {
+      const r = await readReceipt(files); if (!r) return;
+      if (r.shop) shop.value = r.shop; if (r.total) amt.value = numDE(r.total);
+      toast(`Bon gelesen: ${r.saved} Preise gemerkt`);
+    })], { foot: "Claude liest Laden, Summe und Preise vom Bon. Gespeichert werden nur Artikel, Preise, Laden und Datum, nicht das Foto." }) : null,
   ], { focus: "#fsAmt", action: { label: "Fertig", run: async close => {
     const list = done(); const a = toNum(amt.value);
     if (a != null && a > 0) { lsSet("kk_lastShop", shop.value.trim()); await Store.set("expenses", uid(), { date: dkey(new Date()), shop: shop.value.trim() || "Einkauf", amount: a, by: meIdx(), t: Date.now() }); }
@@ -856,6 +890,139 @@ function finishSheet() {
     }
     close(); toast("Einkauf abgeschlossen" + (a ? ` · ${euro(a)}` : ""));
   } } });
+}
+
+// ---------- Bilder an Claude (Prospekt, Kassenbon) ----------
+let IMG_LIMITS = null;
+const imageOk = () => !!(Store.sample && IMG_LIMITS);
+async function loadImageLimits() { try { const l = Store.sample && await Store.sample.limits(); IMG_LIMITS = l && l.images ? l.images : null; } catch { IMG_LIMITS = null; } }
+async function shrink(file) {
+  try {
+    const bmp = await createImageBitmap(file); const k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(b => res(b || file), "image/jpeg", .85));
+  } catch { return file; }
+}
+function imagePicker(label, id, multiple, onFiles) {
+  const inp = h("input", { type: "file", accept: "image/*", id, class: "sr", multiple: multiple ? true : null });
+  const btn = h("button", { class: "cell link", type: "button", onclick: () => inp.click() }, label);
+  inp.addEventListener("change", async () => {
+    const files = [...inp.files].slice(0, (IMG_LIMITS && IMG_LIMITS.maxCount) || 4); inp.value = "";
+    if (!files.length) return;
+    const old = btn.textContent; btn.textContent = "Claude liest …"; btn.disabled = true;
+    try { await onFiles(await Promise.all(files.map(shrink))); }
+    catch (e) { toast(e && e.code === "rate_limited" ? "Gerade zu viele Anfragen, bitte gleich nochmal" : e && e.code === "not_granted" ? "Bilder an Claude sind nicht freigegeben" : "Das Bild ließ sich nicht lesen. Bitte nochmal versuchen."); }
+    btn.textContent = old; btn.disabled = false;
+  });
+  return [btn, inp];
+}
+const OFFER_FORMAT = `{"offers":[{"shop":"Lidl Seesen","name":"Rinder-Hackfleisch","match":["Rinderhack","Hackfleisch"],"price":4.99,"size":"500 g","base":9.98,"baseUnit":"kg","from":"JJJJ-MM-TT","to":"JJJJ-MM-TT","cond":"nur mit Lidl Plus oder leer"}]}`;
+const KETO_SCOPE = "Nur Artikel, die zu ketogener oder karnivorer Ernährung passen: Fleisch, Wurst, Fisch, Eier, Butter, Sahne, Käse, Quark, Joghurt natur, Öle und Fette, Avocado, Gemüse mit wenig Kohlenhydraten, Beeren, Nüsse, Mineralwasser, Kaffee, Tee. Keine Süßwaren, Backwaren, Nudeln, Reis, Kartoffeln, Säfte oder Fertiggerichte mit Zucker.";
+function ingredientNames() { return [...new Set([...QUICK.map(x => x[0]), ...allRecipes().flatMap(r => r.ing.map(i => i[2]))])].join(", "); }
+async function readFlyer(files, shopName) {
+  const prompt = `Das sind Screenshots aus dem aktuellen Angebotsprospekt von „${shopName}“. Heute ist ${dkey(new Date())}.
+Lies alle Angebote aus. ${KETO_SCOPE}
+Für jedes Angebot: name (wie im Prospekt), price (Angebotspreis in Euro als Zahl), size (Packungsgröße, z. B. "500 g"), base (Grundpreis in Euro pro kg, l oder Stück als Zahl, selbst ausrechnen wenn nicht angegeben), baseUnit ("kg", "l" oder "Stk"), from und to (Gültigkeit als JJJJ-MM-TT, falls erkennbar), cond (Bedingung wie "nur mit Lidl Plus", sonst leer), match (1–3 passende Begriffe aus dieser Liste: ${ingredientNames()}; sonst ein schlichter deutscher Oberbegriff).
+Antworte nur mit JSON: ${OFFER_FORMAT}`;
+  const r = await Store.sample.json(prompt, { images: files, modelTier: "default", cache: false });
+  return importOffers(r, { shop: shopName, replace: false });
+}
+async function readReceipt(files) {
+  const prompt = `Das ist ein Kassenbon aus einem deutschen Supermarkt. Lies nur: Laden (Kette und Ort, z. B. "Aldi Seesen"), Datum (JJJJ-MM-TT), Gesamtsumme und die Artikel.
+Ignoriere Kartennummern, Payback- oder Kundennummern, Namen und Zahlungsdaten vollständig, gib sie nicht zurück.
+Für jeden Artikel: name (verständlicher deutscher Name, z. B. "Rinderhack" statt "RI-HACKFL."), price (bezahlter Preis in Euro), qty und unit (Menge und Einheit "g", "kg", "ml", "l" oder "Stk", aus Artikeltext oder Gewicht, sonst 1 und "Stk").
+Antworte nur mit JSON: {"shop":"","date":"","total":0,"items":[{"name":"","price":0,"qty":1,"unit":"Stk"}]}`;
+  const r = await Store.sample.json(prompt, { images: files, modelTier: "default", cache: false });
+  if (!r || !Array.isArray(r.items)) throw { code: "shape" };
+  const shopName = String(r.shop || "").slice(0, 60), date = /^\d{4}-\d{2}-\d{2}$/.test(r.date || "") ? r.date : dkey(new Date());
+  let saved = 0;
+  for (const it of r.items) {
+    const price = Number(it.price), qty = Number(it.qty) || 1, unit = ["g", "kg", "ml", "l", "Stk"].includes(it.unit) ? it.unit : "Stk";
+    if (!it.name || !(price > 0)) continue;
+    const ex = S.prices.find(p => norm(p.name) === norm(it.name) && p.u === unit && (p.shop || "") === shopName);
+    await Store.set("prices", ex ? ex.id : uid(), { name: String(it.name).slice(0, 60), eur: price, per: qty, u: unit, shop: shopName, date, src: "bon", t: Date.now() });
+    saved++;
+  }
+  return { shop: shopName, total: Number(r.total) || null, saved };
+}
+async function importOffers(data, opts = {}) {
+  const arr = Array.isArray(data) ? data : data && Array.isArray(data.offers) ? data.offers : null;
+  if (!arr) throw { code: "shape" };
+  const okDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d : "";
+  const clean = arr.map(o => ({
+    shop: String(opts.shop || o.shop || "").trim().slice(0, 60), name: String(o.name || "").trim().slice(0, 80),
+    match: (Array.isArray(o.match) ? o.match : String(o.match || "").split(",")).map(x => String(x).trim()).filter(Boolean).slice(0, 4),
+    price: Number(o.price) || null, size: String(o.size || "").slice(0, 30), base: o.base != null && Number(o.base) > 0 ? Number(o.base) : null,
+    baseUnit: ["kg", "l", "Stk"].includes(o.baseUnit) ? o.baseUnit : (o.base ? "kg" : ""), from: okDate(o.from), to: okDate(o.to), cond: String(o.cond || "").slice(0, 60),
+  })).filter(o => o.shop && o.name && o.price && (!o.to || o.to >= dkey(new Date())));
+  if (!clean.length) throw { code: "empty" };
+  const shops = new Set(clean.map(o => o.shop)); const today = dkey(new Date());
+  for (const o of S.offers) if ((o.to && o.to < today) || (opts.replace && shops.has(o.shop))) await Store.del("offers", o.id);
+  for (const o of clean) {
+    const dup = S.offers.find(x => x.shop === o.shop && norm(x.name) === norm(o.name) && x.price === o.price);
+    await Store.set("offers", dup ? dup.id : uid(), { ...o, by: meIdx(), src: opts.src || "foto", t: Date.now() });
+  }
+  const s = settings(); const known = new Set(s.shops || []);
+  const add = [...shops].filter(x => !known.has(x)); if (add.length) saveSettings({ shops: [...(s.shops || []), ...add] });
+  toast(`${clean.length} Angebote übernommen`);
+  return clean.length;
+}
+function offersSheet() {
+  const body = h("div"); let f = "";
+  const draw = () => {
+    const offs = activeOffers(); const shops = [...new Set(offs.map(o => o.shop))].sort();
+    if (f && !shops.includes(f)) f = "";
+    const on = onListNames(); const open = S.items.filter(i => !i.done);
+    const assignable = open.filter(i => { const b = offersFor(i.name)[0]; return b && b.shop !== i.shop; });
+    const flyerShop = h("select", { id: "ofShop" }, [...new Set([...(settings().shops || []), ...DEFAULT_SHOPS])].map(x => h("option", { selected: x === f ? "selected" : null }, x)));
+    fill(body,
+      offs.length ? h("div", { class: "seg", style: "margin:6px 0 4px" }, [["", "Alle"], ...shops.map(x => [x, x.split(" ")[0]])].map(([k, l]) => h("button", { type: "button", "aria-pressed": f === k ? "true" : "false", onclick: () => { f = k; draw(); } }, l))) : null,
+      assignable.length ? h("div", { class: "btn-row" }, h("button", { class: "btn", type: "button", onclick: () => {
+        assignable.forEach(i => Store.update("items", i.id, { shop: offersFor(i.name)[0].shop }));
+        toast(`${assignable.length} Artikel dem günstigsten Laden zugeordnet`); setTimeout(draw, 100);
+      } }, `Liste nach günstigstem Laden aufteilen (${assignable.length})`)) : null,
+      ...(offs.length ? shops.filter(x => !f || x === f).map(shop => sec(shop, offs.filter(o => o.shop === shop).sort((a, b) => a.name.localeCompare(b.name, "de")).map(o => {
+        const listed = on.has(norm(o.match && o.match[0] || o.name));
+        return row({ title: o.name, sub: offerSub(o), detail: euro(o.price), noChev: true,
+          trail: h("button", { type: "button", class: "round", style: "width:30px;height:30px;margin:0", "aria-label": `${o.name} auf die Liste`, html: listed ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>' : ICON.plus,
+            onclick: e => { e.stopPropagation(); if (listed) return; addItem((o.match && o.match[0]) || o.name, null, "", "", `Angebot ${euro(o.price)}${o.size ? " / " + o.size : ""}`, null, o.shop); toast(`${o.name} auf der Liste`); setTimeout(draw, 100); } }) });
+      }))) : [h("div", { class: "empty" }, h("strong", null, "Noch keine Angebote."), h("span", null, "Screenshot aus dem Prospekt einlesen oder die Recherche vom Mac einfügen."))]),
+      sec("Angebote einlesen", [
+        imageOk() ? [frow("Markt", flyerShop), imagePicker("Prospekt-Screenshots auswählen", "ofImg", true, async files => { await readFlyer(files, flyerShop.value); draw(); })] : null,
+        row({ title: "Auftrag für den Mac kopieren", sub: "In der Claude-App auf dem Mac einfügen, mit Claude in Chrome", noChev: true, onclick: () => copyText(macPrompt(), "Auftrag kopiert") }),
+        row({ title: "Recherche vom Mac einfügen", sub: "Das Ergebnis der Mac-Sitzung hier einfügen", onclick: () => pasteOffersSheet(draw) }),
+        S.offers.length ? h("button", { class: "cell danger", type: "button", onclick: () => { const all = [...S.offers]; all.forEach(o => Store.del("offers", o.id)); toast("Angebote gelöscht", "Rückgängig", () => all.forEach(o => Store.set("offers", o.id, strip(o)))); setTimeout(draw, 100); } }, "Alle Angebote löschen") : null,
+      ], { foot: "Screenshots: in kaufDA oder der Markt-App die Angebotsseiten abfotografieren, bis zu " + ((IMG_LIMITS && IMG_LIMITS.maxCount) || 4) + " auf einmal. Abgelaufene Angebote verschwinden automatisch. Angebotspreise fließen in die Kosten pro Rezept ein." }));
+  };
+  draw();
+  openSheet("Angebote", body);
+}
+function macPrompt() {
+  const shops = [...new Set([...(settings().shops || []), ...DEFAULT_SHOPS])];
+  return `Bitte recherchiere mit Claude in Chrome die aktuellen Angebote der Woche für diese Märkte: ${shops.join(", ")}.
+Nutze die Angebotsseiten der Märkte selbst (aldi-nord.de, lidl.de, rewe.de, edeka.de) und wähle jeweils die passende Filiale. Nur wenn das nicht klappt, kaufDA in Chrome ansehen.
+Nichts einloggen, nichts bestellen. Cookie-Banner nur mit „Nur notwendige“ oder „Ablehnen“ schließen.
+${KETO_SCOPE}
+Pro Angebot: name wie im Prospekt, price (Angebotspreis), size (Packungsgröße), base (Grundpreis pro kg, l oder Stück, selbst ausrechnen wenn er fehlt), baseUnit ("kg", "l" oder "Stk"), from und to (JJJJ-MM-TT), cond (z. B. "nur mit Lidl Plus", sonst leer).
+match: 1–3 passende Begriffe aus dieser Liste: ${ingredientNames()}. Passt nichts, einen schlichten deutschen Oberbegriff.
+shop ist immer genau einer dieser Namen: ${shops.join(", ")}.
+Gib am Ende genau einen Codeblock mit diesem JSON aus: ${OFFER_FORMAT}
+Darunter in zwei Sätzen, welche Märkte geklappt haben und wo es Probleme gab.`;
+}
+function copyText(txt, okMsg) {
+  const fallback = () => openSheet("Zum Kopieren", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell" }, (() => { const t = h("textarea", { class: "ta", id: "cpText", readonly: true, style: "min-height:260px;font-size:13px" }); t.value = txt; setTimeout(() => { t.focus(); t.select(); }, 350); return t; })())), h("div", { class: "sec-f" }, "Text ist markiert. Lange drücken → Kopieren.")));
+  try { navigator.clipboard.writeText(txt).then(() => toast(okMsg), fallback); } catch { fallback(); }
+}
+function pasteOffersSheet(after) {
+  const ta = h("textarea", { class: "ta", id: "ofPaste", placeholder: '{"offers": [ … ]}', style: "min-height:180px;font-size:13px" });
+  openSheet("Recherche einfügen", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell" }, ta)),
+    h("div", { class: "sec-f" }, "Den Block, den die Mac-Sitzung ausgibt, hier einfügen. Angebote derselben Märkte werden dabei ersetzt.")),
+    { cancel: "Abbrechen", focus: "#ofPaste", action: { label: "Übernehmen", run: async close => {
+      const txt = ta.value; const m = txt.match(/[\[{][\s\S]*[\]}]/);
+      try { await importOffers(JSON.parse(m ? m[0] : txt), { replace: true, src: "mac" }); close(); if (after) setTimeout(after, 150); }
+      catch { toast("Der Text ließ sich nicht lesen. Bitte den ganzen Block kopieren."); }
+    } } });
 }
 
 function budgetSheet() {
@@ -912,7 +1079,7 @@ function pricesSheet() {
         Store.set("prices", ex ? ex.id : uid(), { name: n.value.trim(), eur, per: toNum(q.value) || 1, u: u.value, t: Date.now() }).then(draw);
         n.value = ""; e.value = ""; toast("Preis gesichert");
       } }, "Preis sichern")], { foot: "Eigene Preise ersetzen die Richtwerte bei der Berechnung der Kosten pro Portion." }),
-    S.prices.length ? sec("Eure Preise", S.prices.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(p => swipeable(row({ title: p.name, detail: `${euro(p.eur)} / ${numDE(p.per)} ${p.u}` }), () => { deleteWithUndo("prices", p); setTimeout(draw, 50); }))) : null,
+    S.prices.length ? sec("Eure Preise", S.prices.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(p => swipeable(row({ title: p.name, sub: [p.shop, p.date ? fmtD(parseKey(p.date)) : ""].filter(Boolean).join(" · ") || null, detail: `${euro(p.eur)} / ${numDE(p.per)} ${p.u}` }), () => { deleteWithUndo("prices", p); setTimeout(draw, 50); }))) : null,
     sec("Richtwerte (Schätzung)", PRICE_DEF.map(([nm, eur, per, un]) => row({ title: nm, detail: `${euro(eur)} / ${per === 1 ? "" : numDE(per) + " "}${un}` }))));
   draw();
   openSheet("Preise", body);
@@ -1443,6 +1610,7 @@ async function start() {
   renderTabs(); go(tab);
   await Store.init();
   setSync(Store.live ? "live" : "local");
+  loadImageLimits().then(refresh);
   for (const col of COLS) Store.watch(col, docs => {
     S[col] = docs; const first = !S.loaded.has(col); S.loaded.add(col); refresh();
     if (first && col === "settings") setTimeout(welcome, 400);
