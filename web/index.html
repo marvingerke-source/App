@@ -1007,20 +1007,33 @@ ${KETO_SCOPE}
 Pro Angebot: name wie im Prospekt, price (Angebotspreis), size (Packungsgröße), base (Grundpreis pro kg, l oder Stück, selbst ausrechnen wenn er fehlt), baseUnit ("kg", "l" oder "Stk"), from und to (JJJJ-MM-TT), cond (z. B. "nur mit Lidl Plus", sonst leer).
 match: 1–3 passende Begriffe aus dieser Liste: ${ingredientNames()}. Passt nichts, einen schlichten deutschen Oberbegriff.
 shop ist immer genau einer dieser Namen: ${shops.join(", ")}.
-Gib am Ende genau einen Codeblock mit diesem JSON aus: ${OFFER_FORMAT}
+Gib am Ende pro Markt einen eigenen Codeblock mit diesem JSON aus, damit nichts abgeschnitten wird: ${OFFER_FORMAT}
 Darunter in zwei Sätzen, welche Märkte geklappt haben und wo es Probleme gab.`;
 }
 function copyText(txt, okMsg) {
   const fallback = () => openSheet("Zum Kopieren", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell" }, (() => { const t = h("textarea", { class: "ta", id: "cpText", readonly: true, style: "min-height:260px;font-size:13px" }); t.value = txt; setTimeout(() => { t.focus(); t.select(); }, 350); return t; })())), h("div", { class: "sec-f" }, "Text ist markiert. Lange drücken → Kopieren.")));
   try { navigator.clipboard.writeText(txt).then(() => toast(okMsg), fallback); } catch { fallback(); }
 }
+function parseOffersText(txt) {
+  const blocks = [...String(txt).matchAll(/```(?:json)?\s*([\s\S]*?)(?:```|$)/g)].map(m => m[1]);
+  const all = [];
+  for (let b of (blocks.length ? blocks : [txt])) {
+    const i = b.indexOf("{"); if (i < 0) continue; b = b.slice(i).trim();
+    let data = null;
+    try { data = JSON.parse(b); } catch {
+      for (const c of [b.lastIndexOf("},"), b.lastIndexOf("}")]) { if (c < 0) continue; try { data = JSON.parse(b.slice(0, c + 1) + "]}"); break; } catch {} }
+    }
+    const arr = Array.isArray(data) ? data : data && Array.isArray(data.offers) ? data.offers : null;
+    if (arr) all.push(...arr);
+  }
+  return all;
+}
 function pasteOffersSheet(after) {
   const ta = h("textarea", { class: "ta", id: "ofPaste", placeholder: '{"offers": [ … ]}', style: "min-height:180px;font-size:13px" });
   openSheet("Recherche einfügen", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell" }, ta)),
-    h("div", { class: "sec-f" }, "Den Block, den die Mac-Sitzung ausgibt, hier einfügen. Angebote derselben Märkte werden dabei ersetzt.")),
+    h("div", { class: "sec-f" }, "Die Blöcke der Mac-Sitzung hier einfügen, gern alle auf einmal. Angebote derselben Märkte werden dabei ersetzt.")),
     { cancel: "Abbrechen", focus: "#ofPaste", action: { label: "Übernehmen", run: async close => {
-      const txt = ta.value; const m = txt.match(/[\[{][\s\S]*[\]}]/);
-      try { await importOffers(JSON.parse(m ? m[0] : txt), { replace: true, src: "mac" }); close(); if (after) setTimeout(after, 150); }
+      try { await importOffers({ offers: parseOffersText(ta.value) }, { replace: true, src: "mac" }); close(); if (after) setTimeout(after, 150); }
       catch { toast("Der Text ließ sich nicht lesen. Bitte den ganzen Block kopieren."); }
     } } });
 }

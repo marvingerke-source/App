@@ -22,7 +22,7 @@ Regeln:
   Passt nichts, nimm einen schlichten deutschen Oberbegriff (z. B. „Quark“).
 
 Ausgabe:
-Gib am Ende **genau einen Codeblock** mit diesem JSON aus, ohne weiteren Text darin:
+Gib am Ende **pro Markt einen eigenen Codeblock** mit diesem JSON aus (so wird nichts abgeschnitten), ohne weiteren Text darin:
 
 ```json
 {"offers":[
@@ -39,7 +39,7 @@ Schreib unter den Codeblock in zwei Sätzen, welche Märkte geklappt haben und w
 
 ## In die App übernehmen
 
-1. Den JSON-Codeblock kopieren.
+1. Die JSON-Codeblöcke kopieren (gern alle auf einmal).
 2. In der App: **Einkauf → Angebote → „Recherche vom Mac einfügen“** → einfügen → **Übernehmen**.
 
 Angebote derselben Märkte werden dabei ersetzt, abgelaufene verschwinden automatisch.
