@@ -9,18 +9,14 @@ claude.ai-Konto und eine Freigabe mit Bearbeiten-Recht (Teilen-Menü der Seite).
 
 ## Funktionen
 
-| Bereich  | Was                                                                                          |
-|----------|----------------------------------------------------------------------------------------------|
-| Liste    | Einkaufsliste nach Kategorien, Keto-Basics per Tipp, Warnung bei kohlenhydratreichen Artikeln, „Einkauf abschließen“ trägt Betrag ins Budget ein und übernimmt Artikel in den Vorrat. |
-| Plan     | Wochenplan (KW), Gerichte pro Tag, Makros pro Person mit Carb-Ampel, Zutaten der Woche auf die Liste (Vorrat wird abgezogen). |
-| Rezepte  | 37 Keto-/Karnivor-/OMAD-/Meal-Prep-Rezepte für 2 Portionen, eigene Rezepte mit Quellen-Link.   |
-| Vorrat   | Kühlschrank / Tiefkühler / Vorratsschrank mit MHD-Warnung, „Nachkaufen“ setzt auf die Liste.  |
-| Fasten   | Fasten-Timer je Person, Ziel nach Phase (12 h / 16 h / 23 h), Serie, Verlauf, Elektrolyt-Check. |
-| Budget   | Monatsbudget, Ausgaben je Laden, Hochrechnung zum Monatsende, eigene Preise (sonst Richtwerte). |
-| Extras   | Woche automatisch füllen (Phase, Carb-Grenze, Vorrat, Kosten), Rezeptvorschlag aus dem Vorrat durch Claude (nur claude.ai-Version), Meal-Prep mit Einfrieren, Kosten pro Portion, Supplemente mit Bestand und Nachkauf, Gewicht/Ketone mit Verlauf, Gang-Reihenfolge der Liste. |
+Aufbau im iPhone-Stil mit vier Bereichen:
 
-Phase (Keto → 16:8 → OMAD → Karnivor + OMAD), Namen, Carb-Grenze und Budget
-werden über das Zahnrad eingestellt.
+| Bereich | Was                                                                                          |
+|---------|----------------------------------------------------------------------------------------------|
+| Einkauf | Eingabe mit Mengenerkennung („500 g Rinderhack“) und Autovervollständigung, „Häufig gekauft“ lernt aus euren Einkäufen und blendet aus, was schon auf der Liste steht. Kategorien merken sich Korrekturen, Filter nach Laden, „Neu“-Markierung für Einträge der anderen Person, Wischen zum Löschen mit Rückgängig, „Einkauf abschließen“ mit Budget und Vorrat. Budget und Preise über die Zeile unter dem Titel. |
+| Woche   | Tagesleiste, Carb-Ring pro Tag, Woche automatisch füllen, Zutaten der Woche auf die Liste, Merkliste. Rezepte (37) mit Filtern, Portionen-Umrechnung, Kochmodus (Bildschirm bleibt an), Meal-Prep, Kosten pro Portion, Rezeptvorschlag aus dem Vorrat durch Claude. |
+| Vorrat  | Kühlschrank / Tiefkühler / Schrank, MHD-Warnung, Nachkaufen.                                  |
+| Ich     | Fasten-Ring je Person, Carbs heute, Supplemente zum Abhaken mit Bestand, Gewicht und Ketone, Einstellungen. |
 
 ## Aufbau
 

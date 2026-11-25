@@ -6,196 +6,244 @@
 </head><body>
 <title>Unsere Keto-Küche</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: eine schmale App-Spalte (max. 640px), Kopfzeile oben, Tab-Leiste unten fixiert.
-   Farben: Wald-Grün als Akzent, Butter-Gelb für Fett, Rot nur für Warnungen. */
+/* Layout: iOS-Stil. Eine Spalte (max. 640px), große Titel, gruppierte Listen,
+   Tab-Leiste unten, Eingaben als Fenster von unten (Sheets). */
 :root {
-  --bg: #f3f6f3;
-  --surface: #ffffff;
-  --surface-2: #e8eee9;
-  --ink: #18211c;
-  --ink-2: #57655d;
-  --line: #d6dfd8;
-  --accent: #24684a;
-  --accent-ink: #ffffff;
-  --accent-soft: #dcece3;
-  --butter: #c9930f;
-  --butter-soft: #f7ecc8;
-  --ok: #24804f;
-  --warn: #b7791f;
-  --bad: #c0392b;
-  --bad-soft: #f8e1de;
-  --font-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
-  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --r: 14px;
-  --tabbar: 64px;
+  --bg: #f2f2f7; --card: #ffffff; --sheet-bg: #f2f2f7; --sheet-card: #ffffff;
+  --fill: rgba(118, 118, 128, .12); --fill2: rgba(120, 120, 128, .2);
+  --label: #000000; --label2: rgba(60, 60, 67, .6); --label3: rgba(60, 60, 67, .3); --sep: rgba(60, 60, 67, .2);
+  --tint: #248a3d; --tint-fill: #34c759; --on-tint: #ffffff; --tint-soft: rgba(52, 199, 89, .15);
+  --red: #ff3b30; --red-text: #d70015; --orange: #ff9500; --orange-text: #c93400; --blue: #007aff;
+  --bar: rgba(249, 249, 249, .9); --backdrop: rgba(0, 0, 0, .32);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --font-d: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --r: 12px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1512; --surface: #18201b; --surface-2: #212b25; --ink: #e6eee8; --ink-2: #9aaba1;
-    --line: #2c3831; --accent: #6cc196; --accent-ink: #0c1a12; --accent-soft: #1d3428;
-    --butter: #e7b93c; --butter-soft: #3a3018; --ok: #6cc196; --warn: #e3a948; --bad: #ef7b6c; --bad-soft: #3b201c;
+    --bg: #000000; --card: #1c1c1e; --sheet-bg: #1c1c1e; --sheet-card: #2c2c2e;
+    --fill: rgba(118, 118, 128, .24); --fill2: rgba(120, 120, 128, .36);
+    --label: #ffffff; --label2: rgba(235, 235, 245, .6); --label3: rgba(235, 235, 245, .3); --sep: rgba(84, 84, 88, .65);
+    --tint: #30d158; --tint-fill: #30d158; --on-tint: #000000; --tint-soft: rgba(48, 209, 88, .2);
+    --red: #ff453a; --red-text: #ff6961; --orange: #ff9f0a; --orange-text: #ffb340; --blue: #0a84ff;
+    --bar: rgba(22, 22, 24, .88); --backdrop: rgba(0, 0, 0, .55);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1512; --surface: #18201b; --surface-2: #212b25; --ink: #e6eee8; --ink-2: #9aaba1;
-  --line: #2c3831; --accent: #6cc196; --accent-ink: #0c1a12; --accent-soft: #1d3428;
-  --butter: #e7b93c; --butter-soft: #3a3018; --ok: #6cc196; --warn: #e3a948; --bad: #ef7b6c; --bad-soft: #3b201c;
+  --bg: #000000; --card: #1c1c1e; --sheet-bg: #1c1c1e; --sheet-card: #2c2c2e;
+  --fill: rgba(118, 118, 128, .24); --fill2: rgba(120, 120, 128, .36);
+  --label: #ffffff; --label2: rgba(235, 235, 245, .6); --label3: rgba(235, 235, 245, .3); --sep: rgba(84, 84, 88, .65);
+  --tint: #30d158; --tint-fill: #30d158; --on-tint: #000000; --tint-soft: rgba(48, 209, 88, .2);
+  --red: #ff453a; --red-text: #ff6961; --orange: #ff9f0a; --orange-text: #ffb340; --blue: #0a84ff;
+  --bar: rgba(22, 22, 24, .88); --backdrop: rgba(0, 0, 0, .55);
   color-scheme: dark;
 }
-* { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--label); font-family: var(--font); font-size: 17px; line-height: 1.3; -webkit-font-smoothing: antialiased; }
+body.locked { overflow: hidden; }
 button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 
-header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
-header.top .wrap { display: flex; align-items: center; gap: 10px; padding-block: 12px; }
-.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; flex: 1; min-width: 0; }
-.brand small { display: block; font-family: var(--font-body); font-weight: 500; font-size: .78rem; color: var(--ink-2); letter-spacing: 0; }
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
-.pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-2); }
-.pill.live .dot { background: var(--ok); }
-.iconbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer; }
-.iconbtn svg { width: 20px; height: 20px; }
+/* Navigationsleiste oben (kleiner Titel erscheint beim Scrollen) */
+.topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 8; padding-top: env(safe-area-inset-top, 0px); background: var(--bg); transition: background .2s, box-shadow .2s; }
+.topbar.scrolled { background: var(--bar); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); box-shadow: 0 .5px 0 var(--sep); }
+.topbar .in { max-width: 640px; margin: 0 auto; height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topbar .t { font-weight: 600; font-size: 17px; opacity: 0; transition: opacity .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
+.topbar.scrolled .t { opacity: 1; }
+.sync { justify-self: end; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--label2); }
+.sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--label3); }
+.sync.live i { background: var(--tint-fill); }
+.sync.err i { background: var(--red); }
 
-main { padding-block: 16px calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 24px); display: grid; gap: 16px; }
-h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; margin: 0; }
-.muted { color: var(--ink-2); }
-.small { font-size: .82rem; }
-.num { font-variant-numeric: tabular-nums; }
-.eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+main { padding-top: 44px; padding-bottom: calc(50px + env(safe-area-inset-bottom, 0px) + 28px); }
+.lt-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 2px 0 8px; }
+.lt { font-family: var(--font-d); font-size: 34px; font-weight: 700; letter-spacing: .01em; line-height: 1.15; margin: 0; text-wrap: balance; min-width: 0; }
+.lt-sub { margin: -4px 0 10px; color: var(--label2); font-size: 15px; }
+.lt-sub button { border: 0; background: none; padding: 0; color: var(--label2); text-align: left; }
+.lt-sub b { color: var(--label); font-weight: 600; }
+.round { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--fill); color: var(--tint); display: grid; place-items: center; flex: none; margin-bottom: 4px; }
+.round svg { width: 18px; height: 18px; }
 
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; min-width: 0; }
-.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.row > .grow { flex: 1 1 140px; min-width: 0; }
-.stack { display: grid; gap: 8px; }
-.between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* Gruppierte Listen */
+.sec { margin-top: 22px; }
+.sec:first-child { margin-top: 6px; }
+.sec-h { font-size: 13px; color: var(--label2); text-transform: uppercase; letter-spacing: .02em; padding: 0 16px 7px; display: flex; justify-content: space-between; gap: 8px; }
+.sec-h button { border: 0; background: none; padding: 0; color: var(--tint); text-transform: none; font-size: 15px; letter-spacing: 0; }
+.sec-f { font-size: 13px; color: var(--label2); padding: 7px 16px 0; line-height: 1.35; }
+.group { background: var(--card); border-radius: var(--r); overflow: hidden; }
+.sheet .group { background: var(--sheet-card); }
+.cell { position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 16px; background: inherit; width: 100%; border: 0; text-align: left; color: inherit; }
+.cell + .cell::before, .swipe + .swipe .cell::before, .cell + .swipe .cell::before, .swipe + .cell::before { content: ""; position: absolute; top: 0; right: 0; left: 16px; height: .5px; background: var(--sep); }
+.cell.ind + .cell.ind::before, .swipe + .swipe .cell.ind::before { left: 50px; }
+.cell-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.cell-title { overflow-wrap: anywhere; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cell-sub { font-size: 13px; color: var(--label2); overflow-wrap: anywhere; }
+.cell-detail { color: var(--label2); font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chev { width: 8px; height: 13px; flex: none; color: var(--label3); }
+.cell.link { color: var(--tint); }
+.cell.danger { color: var(--red); justify-content: center; }
+.cell.center { justify-content: center; }
+button.cell { cursor: pointer; }
+button.cell:active, .tap:active { background: var(--fill); }
+.done .cell-title { color: var(--label2); text-decoration: line-through; }
 
-input[type=text], input[type=number], input[type=date], input[type=datetime-local], select, textarea {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; min-height: 42px; width: 100%; min-width: 0;
-}
-textarea { min-height: 90px; resize: vertical; }
-input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-label.f { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; font-size: .8rem; font-weight: 600; color: var(--ink-2); min-width: 0; }
+.check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--label3); background: none; flex: none; display: grid; place-items: center; padding: 0; }
+.check[aria-checked="true"] { background: var(--tint-fill); border-color: var(--tint-fill); }
+.check[aria-checked="true"]::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
 
-.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 14px; min-height: 42px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.ghost { background: transparent; }
-.btn.danger { color: var(--bad); }
-.btn.sm { min-height: 32px; padding: 4px 10px; font-size: .85rem; border-radius: 8px; }
-.btn:disabled { opacity: .5; cursor: default; }
+.swipe { position: relative; background: var(--red); overflow: hidden; }
+.swipe > .cell { background: var(--card); transition: transform .2s; touch-action: pan-y; }
+.sheet .swipe > .cell { background: var(--sheet-card); }
+.swipe .del { position: absolute; right: 0; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 18px; color: #fff; font-size: 15px; font-weight: 600; }
 
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 11px; font-size: .84rem; font-weight: 500; cursor: pointer; }
-.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 5px; background: var(--fill); color: var(--label2); white-space: nowrap; }
+.badge.new { background: var(--blue); color: #fff; }
+.badge.red { background: rgba(255, 59, 48, .14); color: var(--red-text); }
+.badge.orange { background: rgba(255, 149, 0, .16); color: var(--orange-text); }
+.badge.green { background: var(--tint-soft); color: var(--tint); }
 
-.tag { font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
-.tag.keto { background: var(--accent-soft); color: var(--accent); }
-.tag.karnivor { background: var(--bad-soft); color: var(--bad); }
-.tag.omad { background: var(--butter-soft); color: var(--butter); }
-.tag.warn { background: var(--bad-soft); color: var(--bad); }
-.tag.soon { background: var(--butter-soft); color: var(--butter); }
-.tag.prep { background: var(--surface-2); color: var(--ink); }
-a { color: var(--accent); font-weight: 600; }
-.spark { width: 100%; height: 44px; display: block; }
-.spark .ln { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.spark .ar { fill: var(--accent-soft); stroke: none; }
-.ai-out { white-space: pre-wrap; }
-.order li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px solid var(--line); }
-.order li:first-child { border-top: 0; }
-.order { list-style: none; margin: 0; padding: 0; }
-.order span { flex: 1; }
-input.mini { width: 72px; min-height: 32px; padding: 4px 8px; }
+/* Suchfeld */
+.search { display: flex; align-items: center; gap: 6px; background: var(--fill); border-radius: 10px; padding: 0 10px; height: 40px; }
+.search svg { width: 17px; height: 17px; color: var(--label2); flex: none; }
+.search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; height: 100%; font-size: 17px; }
+.search input::placeholder { color: var(--label2); }
+.search button { border: 0; background: var(--tint-fill); color: #fff; border-radius: 50%; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; flex: none; }
 
-/* Liste */
-.group h4 { margin: 4px 0 2px; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
-.item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); min-width: 0; }
-.item:first-of-type { border-top: 0; }
-.item .name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.item .name small { display: block; color: var(--ink-2); font-size: .76rem; }
-.item.done .name > span { text-decoration: line-through; color: var(--ink-2); }
-.check { appearance: none; width: 24px; height: 24px; border: 2px solid var(--line); border-radius: 7px; flex: none; cursor: pointer; display: grid; place-items: center; background: var(--surface); }
-.check:checked { background: var(--accent); border-color: var(--accent); }
-.check:checked::after { content: ""; width: 6px; height: 11px; border: solid var(--accent-ink); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg) translate(-1px, -1px); }
-.x { border: 0; background: transparent; color: var(--ink-2); cursor: pointer; width: 32px; height: 32px; border-radius: 8px; font-size: 1.1rem; flex: none; }
-.x:hover { background: var(--surface-2); }
-.qty { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .88rem; white-space: nowrap; }
+/* Chips und Segmente */
+.chiprow { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+.chiprow::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 0; background: var(--card); border-radius: 18px; padding: 7px 13px; font-size: 15px; white-space: nowrap; }
+.sheet .chip { background: var(--sheet-card); }
+.chip[aria-pressed="true"] { background: var(--tint-fill); color: #fff; }
+.chip .plus { color: var(--tint); font-weight: 600; margin-right: 3px; }
+.seg { display: flex; background: var(--fill); border-radius: 9px; padding: 2px; gap: 2px; }
+.seg button { flex: 1; border: 0; background: none; border-radius: 7px; padding: 6px 8px; font-size: 14px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, .14); font-weight: 600; }
+.sheet .seg button[aria-pressed="true"] { background: var(--sheet-card); }
 
-/* Plan */
-.day { display: grid; gap: 8px; }
-.day.today { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
-.meal { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--surface-2); border-radius: 9px; min-width: 0; }
-.meal .name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
-.macros { display: flex; gap: 10px; flex-wrap: wrap; font-size: .78rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.macros b { color: var(--ink); font-weight: 700; }
-.carb-ok { color: var(--ok) !important; } .carb-mid { color: var(--warn) !important; } .carb-bad { color: var(--bad) !important; }
+.btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--tint-fill); color: #fff; font-size: 17px; font-weight: 600; padding: 0 16px; }
+.btn.gray { background: var(--fill); color: var(--tint); }
+.btn.red { background: var(--red); }
+.btn:disabled { opacity: .45; }
+.btn-row { display: grid; gap: 10px; margin-top: 14px; }
 
-/* Rezepte */
-details.recipe summary { list-style: none; cursor: pointer; display: grid; gap: 6px; }
-details.recipe summary::-webkit-details-marker { display: none; }
-details.recipe[open] summary { padding-bottom: 8px; border-bottom: 1px solid var(--line); }
-.ing { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
-.ing li { overflow-wrap: anywhere; }
+/* Wochenleiste */
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.week button { border: 0; background: none; padding: 6px 0 4px; display: grid; justify-items: center; gap: 3px; border-radius: 10px; min-width: 0; }
+.week .wd { font-size: 12px; color: var(--label2); font-weight: 500; }
+.week .dn { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 19px; font-variant-numeric: tabular-nums; }
+.week .today .dn { color: var(--red); font-weight: 600; }
+.week [aria-pressed="true"] .dn { background: var(--label); color: var(--bg); font-weight: 600; }
+.week .today[aria-pressed="true"] .dn { background: var(--red); color: #fff; }
+.week .dots { height: 5px; display: flex; gap: 3px; }
+.week .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--label3); }
+.weekhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.weekhead strong { font-size: 15px; }
+.weekhead .navs { display: flex; gap: 4px; }
+.weekhead .navs button { border: 0; background: none; color: var(--tint); font-size: 15px; padding: 6px 8px; }
 
-/* Fasten */
-.fast-time { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.bar { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
-.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s; }
-.bar.butter > i { background: var(--butter); }
-.bar.over > i { background: var(--bad); }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-table.t { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
-table.t th, table.t td { text-align: left; padding: 6px 4px; border-top: 1px solid var(--line); }
-table.t th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); border-top: 0; }
-table.t td.r, table.t th.r { text-align: right; }
+/* Karten mit Ringen */
+.card { background: var(--card); border-radius: var(--r); padding: 16px; }
+.sheet .card { background: var(--sheet-card); }
+.ringbox { display: grid; justify-items: center; gap: 12px; }
+.ring { position: relative; display: grid; place-items: center; }
+.ring svg { display: block; transform: rotate(-90deg); }
+.ring .track { stroke: var(--fill2); }
+.ring .prog { transition: stroke-dashoffset .6s ease; }
+.ring .mid { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; text-align: center; gap: 2px; }
+.ring .big { font-family: var(--font-d); font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1; }
+.ring .small { font-size: 13px; color: var(--label2); }
+.ring.done .prog { animation: pulse 1.2s ease 1; }
+@keyframes pulse { 50% { stroke-width: 22; } }
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat-row span { font-size: 12px; color: var(--label2); }
+.today-row { display: flex; align-items: center; gap: 16px; }
+.today-row .txt { display: grid; gap: 2px; min-width: 0; }
+.ok { color: var(--tint); } .warn { color: var(--orange-text); } .bad { color: var(--red-text); }
 
-/* Budget */
-.big { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.stats > div { display: grid; gap: 2px; min-width: 0; }
-@media (max-width: 420px) { .stats { grid-template-columns: 1fr 1fr; } .big { font-size: 1.5rem; } }
+.spark { width: 100%; height: 48px; display: block; margin-top: 6px; }
+.spark .ln { fill: none; stroke: var(--tint-fill); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.spark .ar { fill: var(--tint-soft); stroke: none; }
+.bar { height: 8px; border-radius: 4px; background: var(--fill2); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--tint-fill); border-radius: 4px; }
+.bar.over i { background: var(--red); }
 
-.empty { text-align: center; padding: 22px 10px; color: var(--ink-2); display: grid; gap: 6px; }
-.empty strong { color: var(--ink); }
-.note { background: var(--butter-soft); border-radius: 10px; padding: 10px 12px; font-size: .86rem; }
-.note.info { background: var(--accent-soft); }
+.empty { padding: 28px 20px; text-align: center; color: var(--label2); display: grid; gap: 6px; font-size: 15px; }
+.empty strong { color: var(--label); font-size: 17px; }
+.banner { background: rgba(255, 149, 0, .14); color: var(--label); border-radius: var(--r); padding: 12px 14px; font-size: 15px; }
+.banner.info { background: var(--tint-soft); }
 
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
-nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, 1fr); height: var(--tabbar); }
-nav.tabs button { border: 0; background: transparent; display: grid; place-items: center; align-content: center; gap: 3px; font-size: .68rem; font-weight: 600; color: var(--ink-2); cursor: pointer; padding: 0; min-width: 0; position: relative; }
-nav.tabs button svg { width: 22px; height: 22px; }
-nav.tabs button[aria-current="page"] { color: var(--accent); }
-nav.tabs .badge { position: absolute; top: 6px; left: calc(50% + 6px); background: var(--accent); color: var(--accent-ink); font-size: .62rem; border-radius: 99px; padding: 0 5px; min-width: 16px; line-height: 16px; }
+/* Formularzeilen (wie Einstellungen) */
+.frow { display: flex; align-items: center; gap: 12px; }
+.frow > span { flex: none; min-width: 96px; }
+.frow input, .frow select { flex: 1; min-width: 0; border: 0; background: none; text-align: right; outline: none; padding: 0; height: 24px; color: var(--label2); }
+.frow input:focus, .frow select:focus { color: var(--label); }
+.frow textarea, .ta { width: 100%; border: 0; background: none; outline: none; resize: vertical; min-height: 96px; padding: 0; }
+.fstack { display: grid; gap: 6px; }
+.fstack input { border: 0; background: none; outline: none; padding: 0; width: 100%; }
+input.switch { appearance: none; width: 51px; height: 31px; border-radius: 16px; background: var(--fill2); position: relative; flex: none; transition: background .2s; margin: 0; }
+input.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); transition: transform .2s; }
+input.switch:checked { background: var(--tint-fill); }
+input.switch:checked::after { transform: translateX(20px); }
+.stepper { display: inline-flex; align-items: center; background: var(--fill); border-radius: 9px; }
+.stepper button { border: 0; background: none; width: 44px; height: 32px; font-size: 20px; color: var(--label); }
+.stepper span { min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
 
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 14px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: .88rem; font-weight: 600; z-index: 20; max-width: calc(100% - 32px); }
-.sheet { border: 2px solid var(--accent); }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* Sheets */
+.backdrop { position: fixed; inset: 0; background: var(--backdrop); animation: fade .2s ease; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-width: 640px; margin: 0 auto; max-height: calc(100% - env(safe-area-inset-top, 0px) - 24px); background: var(--sheet-bg); border-radius: 12px 12px 0 0; display: flex; flex-direction: column; animation: up .28s cubic-bezier(.2, .8, .2, 1); }
+.sheet.out { animation: down .22s ease forwards; } .backdrop.out { animation: fade .22s ease reverse forwards; }
+@keyframes up { from { transform: translateY(100%); } } @keyframes down { to { transform: translateY(100%); } } @keyframes fade { from { opacity: 0; } }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--label3); margin: 6px auto 0; flex: none; }
+.sheet-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px max(16px, env(safe-area-inset-left, 0px)) 6px max(16px, env(safe-area-inset-right, 0px)); min-height: 44px; flex: none; }
+.sheet-bar strong { font-size: 17px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-bar button { border: 0; background: none; color: var(--tint); font-size: 17px; padding: 6px 0; justify-self: start; }
+.sheet-bar button.r { justify-self: end; font-weight: 600; }
+.sheet-body { overflow-y: auto; padding: 4px max(16px, env(safe-area-inset-left, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)); -webkit-overflow-scrolling: touch; }
+.sheet h2 { font-family: var(--font-d); font-size: 28px; font-weight: 700; margin: 4px 0 8px; text-wrap: balance; }
+.macros4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.macros4 div { background: var(--sheet-card); border-radius: 10px; padding: 10px 6px; text-align: center; display: grid; gap: 1px; }
+.macros4 b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.macros4 span { font-size: 12px; color: var(--label2); }
+
+/* Kochmodus */
+.cook { position: fixed; inset: 0; z-index: 60; background: var(--card); overflow-y: auto; padding: calc(env(safe-area-inset-top, 0px) + 12px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 40px) max(20px, env(safe-area-inset-left, 0px)); }
+.cook .in { max-width: 640px; margin: 0 auto; display: grid; gap: 18px; }
+.cook h2 { font-family: var(--font-d); font-size: 30px; margin: 0; }
+.cook ol { margin: 0; padding-left: 26px; display: grid; gap: 14px; font-size: 22px; line-height: 1.4; }
+.cook .ing { display: grid; gap: 4px; }
+.cook .ing button { border: 0; background: none; text-align: left; font-size: 21px; padding: 6px 0; display: flex; gap: 12px; align-items: center; }
+.cook .ing button.got { color: var(--label3); text-decoration: line-through; }
+
+/* Tab-Leiste */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--bar); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); box-shadow: 0 -.5px 0 var(--sep); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: 50px; }
+nav.tabs button { border: 0; background: none; display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 10px; font-weight: 500; color: var(--label2); position: relative; padding: 0; }
+nav.tabs button svg { width: 26px; height: 26px; }
+nav.tabs button[aria-current="page"] { color: var(--tint); }
+nav.tabs .cnt { position: absolute; top: 3px; left: calc(50% + 7px); background: var(--red); color: #fff; font-size: 11px; font-weight: 600; min-width: 18px; height: 18px; line-height: 18px; border-radius: 9px; padding: 0 5px; font-variant-numeric: tabular-nums; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(50px + env(safe-area-inset-bottom, 0px) + 14px); z-index: 90; background: rgba(30, 30, 32, .94); color: #fff; padding: 11px 16px; border-radius: 14px; font-size: 15px; display: flex; gap: 14px; align-items: center; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0, 0, 0, .25); animation: fade .2s ease; }
+.toast button { border: 0; background: none; color: #64d2ff; font-weight: 600; padding: 0; white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 
-<header class="top">
-  <div class="wrap">
-    <div class="brand">Unsere Keto-Küche<small id="phaseLabel">Phase: Keto</small></div>
-    <span class="pill" id="syncPill"><span class="dot"></span><span id="syncText">Verbinde …</span></span>
-    <button class="iconbtn" id="settingsBtn" aria-label="Einstellungen" title="Einstellungen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-    </button>
-  </div>
-</header>
-
+<header class="topbar" id="topbar"><div class="in"><span></span><span class="t" id="barTitle"></span><span class="sync" id="sync"><i></i><span id="syncText">Verbinde …</span></span></div></header>
 <main class="wrap" id="main"></main>
-
 <nav class="tabs" aria-label="Bereiche"><div class="in" id="tabs"></div></nav>
 
 <script>
 "use strict";
 /* ============================================================
-   Unsere Keto-Küche – gemeinsame Einkaufs- und Ernährungsplanung
-   Speicher: claude.ai-Datenbank (live geteilt) oder localStorage.
+   Unsere Keto-Küche · iOS-Stil
+   Speicher: geteilte claude.ai-Datenbank (live) oder localStorage.
    ============================================================ */
 
 // ---------- Hilfsfunktionen ----------
@@ -203,15 +251,15 @@ function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
   if (attrs) for (const [k, v] of Object.entries(attrs)) {
     if (v == null || v === false) continue;
-    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
     else if (k === "class") el.className = v;
-    else if (k === "html") el.innerHTML = v; // nur für eigene, statische SVGs
+    else if (k === "html") el.innerHTML = v; // nur eigene, statische SVGs
     else if (k === "value") el.value = v;
     else if (k === "checked") el.checked = !!v;
     else el.setAttribute(k, v === true ? "" : v);
   }
-  for (const kid of kids.flat()) {
-    if (kid == null || kid === false) continue;
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false || kid === "") continue;
     el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
   }
   return el;
@@ -221,25 +269,42 @@ const pad = n => String(n).padStart(2, "0");
 const dkey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseKey = k => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const wd = (x.getDay() + 6) % 7; return addDays(x, -wd); };
+const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return addDays(x, -((x.getDay() + 6) % 7)); };
 const isoWeek = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y0) / 864e5 + 1) / 7); };
 const WD = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 const WDL = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const fmtD = d => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`;
+const fmtLong = d => `${WDL[d.getDay()]}, ${d.getDate()}. ${MON[d.getMonth()]}`;
 const euro = n => (Number(n) || 0).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
 const numDE = n => (Math.round(n * 100) / 100).toLocaleString("de-DE");
-const toNum = s => { const n = parseFloat(String(s).replace(",", ".")); return isNaN(n) ? null : n; };
+const toNum = s => { const n = parseFloat(String(s ?? "").replace(",", ".")); return isNaN(n) ? null : n; };
 const lsGet = (k, fb) => { try { const v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); } catch { return fb; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 const norm = s => String(s || "").trim().toLowerCase();
+const slug = s => norm(s).replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "x";
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const ICON = {
+  einkauf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.3 11.2a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.1L20.6 8H6.1"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>',
+  woche: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8.5" cy="14.5" r=".6" fill="currentColor"/><circle cx="12" cy="14.5" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.5" r=".6" fill="currentColor"/></svg>',
+  vorrat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"/><path d="M5.5 10h13M9 6v1.5M9 13v2.5"/></svg>',
+  ich: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6 18.4c1.4-2 3.5-3 6-3s4.6 1 6 3"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1.5 1.5 5 5-5 5"/></svg>',
+};
+const fill = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter(k => k != null && k !== false && k !== ""));
+const chev = () => h("span", { html: ICON.chev, "aria-hidden": "true", style: "display:flex" });
 
 let toastTimer;
-function toast(msg) {
+function toast(msg, actionLabel, action) {
   document.querySelectorAll(".toast").forEach(t => t.remove());
-  const t = h("div", { class: "toast", role: "status" }, msg);
+  const t = h("div", { class: "toast", role: "status" }, h("span", null, msg),
+    actionLabel ? h("button", { onclick: () => { action(); t.remove(); } }, actionLabel) : null);
   document.body.append(t);
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.remove(), 3200);
+  toastTimer = setTimeout(() => t.remove(), actionLabel ? 5000 : 2800);
 }
 
 // ---------- Fachdaten ----------
@@ -413,10 +478,12 @@ const PHASES = {
 const PLACES = ["Kühlschrank", "Tiefkühler", "Vorratsschrank"];
 const UNITS = ["Stk", "g", "kg", "ml", "l", "EL", "TL", "Pck", "Dose", "Zehe", "Bund"];
 
+
+
 // ---------- Speicher ----------
-const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings", "prices", "measures", "supps"];
+const COLS = ["items", "pantry", "recipes", "plan", "expenses", "fasts", "elec", "settings", "prices", "measures", "supps", "freq", "queue"];
 const Store = {
-  db: null, live: false, listeners: {},
+  db: null, sample: null, live: false, listeners: {},
   async init() {
     try {
       if (window.claude && typeof window.claude.use === "function") {
@@ -427,17 +494,10 @@ const Store = {
     } catch (e) { /* lokal weiter */ }
   },
   watch(col, cb) {
-    if (this.db) {
-      return this.db.collection(col).onSnapshot(
-        snap => cb(snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }))),
-        err => { setSync("error", err && err.message); }
-      );
-    }
-    (this.listeners[col] ||= []).push(cb);
-    cb(this._local(col));
-    return () => {};
+    if (this.db) return this.db.collection(col).onSnapshot(snap => cb(snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }))), err => setSync("err", err && err.message));
+    (this.listeners[col] ||= []).push(cb); cb(this._local(col)); return () => {};
   },
-  _local(col) { const m = lsGet("kk_" + col, {}); return Object.entries(m).map(([id, v]) => ({ id, ...v })); },
+  _local(col) { return Object.entries(lsGet("kk_" + col, {})).map(([id, v]) => ({ id, ...v })); },
   _emit(col) { (this.listeners[col] || []).forEach(cb => cb(this._local(col))); },
   async set(col, id, data) {
     if (this.db) return this.db.collection(col).doc(id).set(data).catch(failWrite);
@@ -453,20 +513,73 @@ const Store = {
   },
 };
 function failWrite(e) {
-  const code = e && e.code;
-  toast(code === "not_granted" ? "Keine Schreibrechte. Bitte mit Bearbeiten-Recht teilen lassen." : "Speichern fehlgeschlagen. Bitte erneut versuchen.");
+  toast(e && e.code === "not_granted" ? "Keine Schreibrechte. Bitte mit Bearbeiten-Recht teilen lassen." : "Speichern hat nicht geklappt. Bitte nochmal versuchen.");
+}
+const strip = doc => { const { id, ...rest } = doc; return rest; };
+function deleteWithUndo(col, doc, label) {
+  Store.del(col, doc.id);
+  toast(`„${label || doc.name || "Eintrag"}“ gelöscht`, "Rückgängig", () => Store.set(col, doc.id, strip(doc)));
 }
 
 // ---------- Zustand ----------
-const S = { items: [], pantry: [], recipes: [], plan: [], expenses: [], fasts: [], elec: [], settings: [], prices: [], measures: [], supps: [], loaded: new Set() };
-const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, exclude: "Innereien (Leber, Herz, Niere usw.)", ...(S.settings.find(s => s.id === "main") || {}) });
+const S = { loaded: new Set() };
+COLS.forEach(c => S[c] = []);
+const settings = () => ({ p1: "Person 1", p2: "Person 2", phase: "keto", carbLimit: 20, budget: 400, exclude: "Innereien (Leber, Herz, Niere usw.)", shops: [], ...(S.settings.find(s => s.id === "main") || {}) });
+const saveSettings = patch => { const { id, ...cur } = settings(); return Store.set("settings", "main", { ...cur, ...patch }); };
 const persons = () => { const s = settings(); return [s.p1 || "Person 1", s.p2 || "Person 2"]; };
-const me = () => lsGet("kk_me", 0);
+const meIdx = () => { const v = lsGet("kk_me", null); return v === 1 ? 1 : 0; };
+const phase = () => PHASES[settings().phase] || PHASES.keto;
+const isOmad = () => ["omad", "carniomad"].includes(settings().phase);
 const allRecipes = () => [...BUILTIN, ...S.recipes.map(r => ({ ...r, own: true }))];
 const recipeById = id => allRecipes().find(r => r.id === id);
+const planOf = k => (((S.plan.find(p => p.id === k) || {}).meals) || []);
 const excludeWords = () => String(settings().exclude || "").toLowerCase().split(/[,;\n]/).map(w => w.replace(/\(.*?\)/g, "").trim()).filter(w => w.length > 2);
-const isExcluded = r => { const ws = excludeWords(); return ws.length && r.ing.some(([, , n]) => ws.some(w => norm(n).includes(w))); };
+const isExcluded = r => { const ws = excludeWords(); return ws.length > 0 && r.ing.some(([, , n]) => ws.some(w => norm(n).includes(w))); };
 function catOrder() { const o = settings().catOrder; const base = Array.isArray(o) ? o.filter(c => CATS.includes(c)) : []; return [...base, ...CATS.filter(c => !base.includes(c))]; }
+const catFor = name => { const f = S.freq.find(x => x.id === slug(name)); return (f && f.cat && CATS.includes(f.cat)) ? f.cat : guessCat(name); };
+
+// ---------- Mengen ----------
+const UNIT_MAP = { stk: "Stk", "stück": "Stk", x: "Stk", el: "EL", tl: "TL", pck: "Pck", packung: "Pck", pk: "Pck", dose: "Dose", dosen: "Dose", zehe: "Zehe", zehen: "Zehe", bund: "Bund", kg: "kg", g: "g", gr: "g", ml: "ml", l: "l" };
+function parseEntry(t) {
+  t = String(t || "").trim();
+  const U = "(kg|gr|g|ml|l|stk|stück|x|el|tl|pck|packung|pk|dosen|dose|zehen|zehe|bund)";
+  let m = t.match(new RegExp("^([\\d.,]+)\\s*" + U + "?\\.?\\s+(.+)$", "i"));
+  if (m) return { name: m[3].trim(), q: toNum(m[1]), u: UNIT_MAP[(m[2] || "stk").toLowerCase()] };
+  m = t.match(new RegExp("^(.+?)\\s+([\\d.,]+)\\s*" + U + "?\\.?$", "i"));
+  if (m) return { name: m[1].trim(), q: toNum(m[2]), u: UNIT_MAP[(m[3] || "stk").toLowerCase()] };
+  return { name: t, q: null, u: "" };
+}
+function normUnit(q, u) { if (u === "kg") return [q * 1000, "g"]; if (u === "l") return [q * 1000, "ml"]; return [q, u]; }
+function showQty(q, u) {
+  if (q == null || q === "") return "";
+  q = Number(q);
+  if (u === "g" && q >= 1000) return numDE(q / 1000) + " kg";
+  if (u === "ml" && q >= 1000) return numDE(q / 1000) + " l";
+  return numDE(q) + (u ? " " + u : "");
+}
+const onListNames = () => new Set(S.items.map(i => norm(i.name)));
+
+async function addItem(name, q, u, src, note, cat, shop) {
+  name = String(name || "").trim(); if (!name) return;
+  let nq = q == null ? null : Number(q), nu = u || "";
+  if (nq != null) [nq, nu] = normUnit(nq, nu);
+  const ex = S.items.find(i => !i.done && norm(i.name) === norm(name) && (i.u || "") === nu && (i.q != null) === (nq != null));
+  if (ex && nq != null) return Store.update("items", ex.id, { q: (Number(ex.q) || 0) + nq });
+  if (ex) return;
+  return Store.set("items", uid(), { name, q: nq, u: nu, note: note || "", cat: cat || catFor(name), shop: shop || "", done: false, by: meIdx(), src: src || "", t: Date.now() });
+}
+function freqEntry(name) { return S.freq.find(f => f.id === slug(name)); }
+function catalog() {
+  const map = new Map();
+  const add = (name, q, u, n) => { const k = norm(name); if (!k) return; const cur = map.get(k); if (!cur || (n || 0) > (cur.n || 0)) map.set(k, { name, q, u, n: n || 0 }); };
+  QUICK.forEach(([n, q, u]) => add(n, q, u, 0));
+  PRICE_DEF.forEach(([n]) => add(n, null, "", 0));
+  allRecipes().forEach(r => r.ing.forEach(([, , n]) => add(n, null, "", 0)));
+  S.freq.forEach(f => add(f.name, f.q, f.u, f.n));
+  return [...map.values()];
+}
+
+// ---------- Preise ----------
 function priceFor(name, unit) {
   const n = norm(name);
   const pick = list => list.find(p => norm(p.name) === n && p.u === unit) || list.find(p => norm(p.name) === n) || list.find(p => norm(p.name).length > 3 && n.includes(norm(p.name)));
@@ -475,358 +588,479 @@ function priceFor(name, unit) {
   const d = pick(PRICE_DEF.map(([name, eur, per, u]) => ({ name, eur, per, u })));
   return d ? { ...d, own: false } : null;
 }
-function costOf(q, u, name) {
-  const p = priceFor(name, u); if (!p) return null;
-  const [aq, au] = normUnit(q, u), [pq, pu] = normUnit(p.per, p.u);
-  return au === pu && pq ? aq / pq * p.eur : null;
-}
+function costOf(q, u, name) { const p = priceFor(name, u); if (!p) return null; const [aq, au] = normUnit(q, u), [pq, pu] = normUnit(p.per, p.u); return au === pu && pq ? aq / pq * p.eur : null; }
 function recipeCost(r) {
   let sum = 0, known = 0;
   for (const [q, u, n] of r.ing) { const c = costOf(Number(q), u, n); if (c != null) { sum += c; known++; } }
-  return { perPortion: sum / 2, known, total: r.ing.length, ok: r.ing.length && known / r.ing.length >= 0.6 };
+  return { perPortion: sum / 2, ok: r.ing.length > 0 && known / r.ing.length >= 0.6 };
+}
+const inPantry = name => S.pantry.some(p => norm(p.name) === norm(name) || norm(p.name).includes(norm(name)) || norm(name).includes(norm(p.name)) && norm(p.name).length > 3);
+
+// ---------- Bausteine ----------
+function check(on, onToggle, label) {
+  return h("button", { class: "check", role: "checkbox", "aria-checked": on ? "true" : "false", "aria-label": label, onclick: e => { e.stopPropagation(); onToggle(); } });
+}
+function sec(title, content, opts = {}) {
+  return h("section", { class: "sec" },
+    title || opts.action ? h("div", { class: "sec-h" }, h("span", null, title || ""), opts.action || null) : null,
+    h("div", { class: opts.plain ? "" : "group" }, content),
+    opts.foot ? h("div", { class: "sec-f" }, opts.foot) : null);
+}
+function row(o) {
+  const tag = o.onclick ? "button" : "div";
+  return h(tag, { class: "cell" + (o.cls ? " " + o.cls : ""), onclick: o.onclick || null, type: o.onclick ? "button" : null },
+    o.lead || null,
+    h("div", { class: "cell-main" }, h("div", { class: "cell-title" }, o.title, o.badges || null), o.sub ? h("div", { class: "cell-sub" }, o.sub) : null),
+    o.detail != null ? h("span", { class: "cell-detail" }, o.detail) : null,
+    o.onclick && !o.noChev ? chev() : null, o.trail || null);
+}
+function swipeable(cell, onDelete) {
+  const wrap = h("div", { class: "swipe" }, h("span", { class: "del", "aria-hidden": "true" }, "Löschen"), cell);
+  let x0 = null, y0 = 0, dx = 0, active = false;
+  cell.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0) return; x0 = e.clientX; y0 = e.clientY; dx = 0; active = false; });
+  cell.addEventListener("pointermove", e => {
+    if (x0 == null) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    if (!active && Math.abs(mx) > 12 && Math.abs(mx) > Math.abs(my) * 1.5 && mx < 0) { active = true; cell.style.transition = "none"; try { cell.setPointerCapture(e.pointerId); } catch {} }
+    if (active) { dx = Math.max(-160, Math.min(0, mx)); cell.style.transform = `translateX(${dx}px)`; e.preventDefault(); }
+  });
+  const end = () => {
+    if (x0 == null) return; x0 = null; cell.style.transition = "";
+    if (active && dx < -90) { cell.style.transform = "translateX(-110%)"; setTimeout(onDelete, REDUCED ? 0 : 180); }
+    else cell.style.transform = "";
+    if (active) { cell.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); }, { capture: true, once: true }); }
+    active = false;
+  };
+  cell.addEventListener("pointerup", end); cell.addEventListener("pointercancel", end);
+  return wrap;
+}
+function ring(pct, size, stroke, color, mid, extraCls) {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, p = Math.max(0, Math.min(1, pct));
+  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle class="track" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}"/><circle class="prog" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - p)}"/></svg>`;
+  return h("div", { class: "ring" + (extraCls ? " " + extraCls : ""), style: `width:${size}px;height:${size}px` }, h("span", { html: svg, style: "display:block" }), mid ? h("div", { class: "mid" }, mid) : null);
 }
 function sparkline(vals) {
   if (vals.length < 2) return null;
   const min = Math.min(...vals), max = Math.max(...vals), rng = max - min || 1;
-  const pts = vals.map((v, i) => [i / (vals.length - 1) * 200, 38 - (v - min) / rng * 32]);
-  const line = pts.map(p => p.map(x => x.toFixed(1)).join(",")).join(" ");
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 200 42"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "spark"); svg.setAttribute("aria-hidden", "true");
-  const area = document.createElementNS(svg.namespaceURI, "polygon"); area.setAttribute("class", "ar"); area.setAttribute("points", `0,42 ${line} 200,42`);
-  const pl = document.createElementNS(svg.namespaceURI, "polyline"); pl.setAttribute("class", "ln"); pl.setAttribute("points", line);
-  svg.append(area, pl); return svg;
+  const line = vals.map((v, i) => `${(i / (vals.length - 1) * 200).toFixed(1)},${(40 - (v - min) / rng * 34).toFixed(1)}`).join(" ");
+  return h("span", { style: "display:block", html: `<svg class="spark" viewBox="0 0 200 44" preserveAspectRatio="none" aria-hidden="true"><polygon class="ar" points="0,44 ${line} 200,44"/><polyline class="ln" points="${line}"/></svg>` });
+}
+function stepper(value, min, max, onChange, label) {
+  const v = h("span", { "aria-live": "polite" }, value);
+  let cur = value;
+  const set = n => { cur = Math.max(min, Math.min(max, n)); v.textContent = cur; onChange(cur); };
+  return h("div", { class: "stepper", role: "group", "aria-label": label },
+    h("button", { type: "button", "aria-label": "weniger", onclick: () => set(cur - 1) }, "−"), v,
+    h("button", { type: "button", "aria-label": "mehr", onclick: () => set(cur + 1) }, "+"));
+}
+const frow = (label, input) => h("label", { class: "cell frow" }, h("span", null, label), input);
+const carbCls = (c, lim) => c <= lim ? "ok" : c <= lim * 1.5 ? "warn" : "bad";
+const carbColor = (c, lim) => c <= lim ? "var(--tint-fill)" : c <= lim * 1.5 ? "var(--orange)" : "var(--red)";
+
+// ---------- Sheets ----------
+let sheetDepth = 0;
+function openSheet(title, body, opts = {}) {
+  const back = h("div", { class: "backdrop" });
+  let closed = false;
+  const onKey = e => { if (e.key === "Escape") close(); };
+  const close = () => {
+    if (closed) return; closed = true;
+    sheet.classList.add("out"); back.classList.add("out");
+    document.removeEventListener("keydown", onKey);
+    setTimeout(() => { back.remove(); sheet.remove(); sheetDepth--; if (!sheetDepth) document.body.classList.remove("locked"); if (opts.onClose) opts.onClose(); }, REDUCED ? 0 : 200);
+  };
+  back.addEventListener("click", close);
+  const right = opts.action ? h("button", { class: "r", type: "button", onclick: () => opts.action.run(close) }, opts.action.label) : h("span");
+  const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title },
+    h("div", { class: "grabber", "aria-hidden": "true" }),
+    h("div", { class: "sheet-bar" }, h("button", { type: "button", onclick: close }, opts.cancel || "Schließen"), h("strong", null, opts.barTitle ?? title), right),
+    h("div", { class: "sheet-body" }, typeof body === "function" ? body(close) : body));
+  sheetDepth++;
+  back.style.zIndex = 30 + sheetDepth * 2; sheet.style.zIndex = 31 + sheetDepth * 2;
+  document.body.classList.add("locked");
+  document.body.append(back, sheet);
+  document.addEventListener("keydown", onKey);
+  if (opts.focus) setTimeout(() => { const f = sheet.querySelector(opts.focus); if (f) f.focus(); }, 300);
+  return close;
 }
 
-let tab = lsGet("kk_tab", "liste");
-let weekStart = mondayOf(new Date());
-let monthRef = new Date();
+// ---------- Navigation ----------
+const TABS = [["einkauf", "Einkauf"], ["woche", "Woche"], ["vorrat", "Vorrat"], ["ich", "Ich"]];
 const views = {};
+let tab = lsGet("kk_tab2", "einkauf");
+if (!TABS.some(t => t[0] === tab)) tab = "einkauf";
 let current = null;
-
-// ---------- Einkaufsliste: Hinzufügen mit Zusammenführen ----------
-function parseQty(text) {
-  const m = String(text || "").trim().match(/^([\d.,]+)\s*([a-zA-ZäöüÄÖÜ]+)?$/);
-  if (!m) return { q: null, u: "", raw: String(text || "").trim() };
-  return { q: toNum(m[1]), u: m[2] || "", raw: "" };
-}
-function normUnit(q, u) {
-  if (u === "kg") return [q * 1000, "g"];
-  if (u === "l") return [q * 1000, "ml"];
-  return [q, u];
-}
-function showQty(q, u) {
-  if (q == null) return "";
-  if (u === "g" && q >= 1000) return numDE(q / 1000) + " kg";
-  if (u === "ml" && q >= 1000) return numDE(q / 1000) + " l";
-  return numDE(q) + (u ? " " + u : "");
-}
-async function addItem(name, q, u, src, note, cat) {
-  name = String(name || "").trim();
-  if (!name) return;
-  let nq = q, nu = u || "";
-  if (q != null) [nq, nu] = normUnit(q, nu);
-  const ex = S.items.find(i => !i.done && norm(i.name) === norm(name) && (i.u || "") === nu && (i.q != null) === (nq != null));
-  if (ex && nq != null) return Store.update("items", ex.id, { q: (ex.q || 0) + nq });
-  if (ex && nq == null) return;
-  return Store.set("items", uid(), { name, q: nq, u: nu, note: note || "", cat: cat || guessCat(name), done: false, by: me(), src: src || "", t: Date.now() });
-}
-
-// ---------- Tabs ----------
-const ICONS = {
-  liste: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>',
-  plan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>',
-  rezepte: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h13"/><path d="M9 7h6M9 11h4"/></svg>',
-  vorrat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14M9 6v1M9 14v2"/></svg>',
-  fasten: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
-  budget: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M6 15h4"/></svg>',
-};
-const TABS = [["liste", "Liste"], ["plan", "Plan"], ["rezepte", "Rezepte"], ["vorrat", "Vorrat"], ["fasten", "Fasten"], ["budget", "Budget"]];
 function renderTabs() {
-  const box = document.getElementById("tabs");
-  box.replaceChildren(...TABS.map(([k, label]) => {
-    const open = k === "liste" ? S.items.filter(i => !i.done).length : 0;
-    return h("button", { "aria-current": tab === k ? "page" : null, onclick: () => go(k) },
-      h("span", { html: ICONS[k] }), label, open ? h("span", { class: "badge num" }, open) : null);
-  }));
+  const open = S.items.filter(i => !i.done).length;
+  fill(document.getElementById("tabs"), ...TABS.map(([k, label]) =>
+    h("button", { "aria-current": tab === k ? "page" : null, onclick: () => { if (tab === k) { window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }); return; } go(k); } },
+      h("span", { html: ICON[k], style: "display:block;height:26px" }), label,
+      k === "einkauf" && open ? h("span", { class: "cnt" }, open) : null)));
 }
 function go(k) {
-  tab = k; lsSet("kk_tab", k);
+  if (tab === "einkauf" && k !== "einkauf") lsSet("kk_seen", Date.now());
+  tab = k; lsSet("kk_tab2", k);
   renderTabs();
   const main = document.getElementById("main");
-  main.replaceChildren();
+  fill(main, );
   current = views[k];
+  document.getElementById("barTitle").textContent = TABS.find(t => t[0] === k)[1];
   current.mount(main);
   current.update();
   window.scrollTo(0, 0);
 }
-function refresh() {
-  renderTabs();
-  const s = settings();
-  document.getElementById("phaseLabel").textContent = "Phase: " + (PHASES[s.phase] || PHASES.keto).label;
-  if (current) current.update();
-}
+function largeTitle(text, right) { return h("div", { class: "lt-row" }, h("h1", { class: "lt" }, text), right || null); }
+function refresh() { renderTabs(); if (current) current.update(); }
+window.addEventListener("scroll", () => document.getElementById("topbar").classList.toggle("scrolled", window.scrollY > 36), { passive: true });
 
 // ============================================================
-// LISTE
+// EINKAUF
 // ============================================================
-views.liste = {
+views.einkauf = {
+  shop: "",
   mount(root) {
-    this.root = root; this.finForm = null; this.finishing = false;
-    const name = h("input", { type: "text", id: "liName", placeholder: "Was fehlt? z. B. Rinderhack", autocomplete: "off", "aria-label": "Artikel" });
-    const qty = h("input", { type: "text", id: "liQty", placeholder: "Menge", "aria-label": "Menge", style: "max-width:110px" });
-    const submit = e => {
-      e.preventDefault();
-      if (!name.value.trim()) { name.focus(); return; }
-      const p = parseQty(qty.value);
-      addItem(name.value, p.q, p.u, "", p.raw);
-      if (carbWarn(name.value)) toast("Hinweis: „" + name.value.trim() + "“ ist eher nicht ketogen.");
-      name.value = ""; qty.value = ""; name.focus();
-    };
-    this.list = h("div", { class: "stack" });
-    this.footer = h("div");
-    root.append(
-      h("div", { class: "between" }, h("h2", null, "Einkaufsliste"), h("span", { class: "muted small", id: "liCount" })),
-      h("form", { class: "card", onsubmit: submit },
-        h("div", { class: "row" }, h("div", { class: "grow" }, name), qty, h("button", { class: "btn primary", type: "submit" }, "Hinzufügen")),
-        h("div", { class: "eyebrow" }, "Keto-Basics"),
-        h("div", { class: "chips" }, QUICK.map(([n, q, u]) => h("button", { type: "button", class: "chip", onclick: () => { addItem(n, q, u); toast(n + " hinzugefügt"); } }, "+ " + n)))
-      ),
-      this.list, this.footer
-    );
+    this.sub = h("div", { class: "lt-sub" });
+    this.input = h("input", { type: "text", id: "addInput", placeholder: "Artikel hinzufügen", autocomplete: "off", enterkeyhint: "done", "aria-label": "Artikel hinzufügen, z. B. 500 g Rinderhack",
+      oninput: () => this.renderSugg(), onfocus: () => this.renderSugg(), onblur: () => setTimeout(() => this.renderSugg(), 150) });
+    const form = h("form", { onsubmit: e => { e.preventDefault(); this.addFromInput(); } },
+      h("div", { class: "search" }, h("span", { html: ICON.search, style: "display:flex" }), this.input,
+        h("button", { type: "submit", "aria-label": "Hinzufügen", html: ICON.plus })));
+    this.sugg = h("div");
+    this.shopSeg = h("div");
+    this.chips = h("div");
+    this.list = h("div");
+    this.cart = h("div");
+    root.append(largeTitle("Einkauf"), this.sub, form, this.sugg, this.shopSeg, this.chips, this.list, this.cart);
+  },
+  addFromInput(raw) {
+    const p = parseEntry(raw ?? this.input.value);
+    if (!p.name) { this.input.focus(); return; }
+    let { q, u } = p;
+    if (q == null) { const f = freqEntry(p.name); if (f && f.q != null) { q = f.q; u = f.u; } }
+    addItem(p.name, q, u, "", "", null, this.shop);
+    if (carbWarn(p.name)) toast(`„${p.name}“ ist eher nicht ketogen`);
+    this.input.value = ""; this.renderSugg(); this.input.focus();
+  },
+  renderSugg() {
+    const q = norm(this.input.value);
+    if (!q || document.activeElement !== this.input) { fill(this.sugg, ); return; }
+    const on = onListNames();
+    const hits = catalog().filter(c => !on.has(norm(c.name)) && norm(c.name).includes(q))
+      .sort((a, b) => (norm(b.name).startsWith(q) - norm(a.name).startsWith(q)) || (b.n - a.n) || a.name.localeCompare(b.name, "de")).slice(0, 6);
+    if (!hits.length) { fill(this.sugg, ); return; }
+    fill(this.sugg, h("div", { class: "group", style: "margin-top:8px" }, hits.map(c => row({
+      title: c.name, sub: c.n ? `${c.n}× gekauft` : null, detail: showQty(c.q, c.u), noChev: true,
+      lead: h("span", { html: ICON.plus, style: "display:flex;width:18px;color:var(--tint)" }),
+      onclick: () => { addItem(c.name, c.q, c.u, "", "", null, this.shop); this.input.value = ""; this.renderSugg(); this.input.focus(); },
+    }))));
   },
   update() {
-    const items = S.items;
+    const s = settings(); const items = S.items;
     const open = items.filter(i => !i.done), done = items.filter(i => i.done);
-    document.getElementById("liCount").textContent = open.length ? `${open.length} offen · ${done.length} im Wagen` : "";
-    if (!S.loaded.has("items")) { this.list.replaceChildren(h("div", { class: "card empty" }, "Liste wird geladen …")); this.footer.replaceChildren(); return; }
-    if (!items.length) {
-      this.list.replaceChildren(h("div", { class: "card empty" }, h("strong", null, "Die Liste ist leer."),
-        h("span", null, "Trag oben etwas ein, tipp ein Keto-Basic an oder übernimm im Tab „Plan“ die Zutaten der Woche.")));
-      this.footer.replaceChildren(); return;
+    // Untertitel mit Budget
+    const now = new Date(); const ym = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+    const spent = S.expenses.filter(e => (e.date || "").startsWith(ym)).reduce((a, e) => a + (Number(e.amount) || 0), 0);
+    const left = (Number(s.budget) || 0) - spent;
+    fill(this.sub, h("button", { onclick: () => budgetSheet() },
+      open.length ? [h("b", null, open.length), " offen · "] : "Alles erledigt · ",
+      s.budget ? [h("span", { class: left < 0 ? "bad" : "" }, `noch ${euro(left)}`), ` im ${MON[now.getMonth()]}`] : "Budget festlegen", " ›"));
+    // Läden
+    const shops = (s.shops || []).filter(Boolean);
+    if (shops.length && !shops.includes(this.shop)) this.shop = "";
+    fill(this.shopSeg, shops.length ? h("div", { class: "seg", style: "margin-top:12px" },
+      [["", "Alle"], ...shops.map(x => [x, x])].map(([k, l]) => h("button", { type: "button", "aria-pressed": this.shop === k ? "true" : "false", onclick: () => { this.shop = k; this.update(); } }, l))) : "");
+    // Häufig gekauft
+    const on = onListNames();
+    let sug = S.freq.filter(f => !on.has(norm(f.name))).sort((a, b) => (b.n || 0) - (a.n || 0)).map(f => ({ name: f.name, q: f.q, u: f.u }));
+    if (sug.length < 8) sug = sug.concat(QUICK.filter(([n]) => !on.has(norm(n)) && !sug.some(x => norm(x.name) === norm(n))).map(([name, q, u]) => ({ name, q, u })));
+    sug = sug.slice(0, 16);
+    fill(this.chips, sug.length ? h("section", { class: "sec" }, h("div", { class: "sec-h" }, S.freq.length ? "Häufig gekauft" : "Keto-Basics"),
+      h("div", { class: "chiprow" }, sug.map(x => h("button", { class: "chip", type: "button", onclick: () => { addItem(x.name, x.q, x.u, "", "", null, this.shop); } }, h("span", { class: "plus" }, "+"), x.name)))) : "");
+    // Liste
+    if (!S.loaded.has("items")) { fill(this.list, sec("", h("div", { class: "empty" }, "Liste wird geladen …"))); fill(this.cart, ); return; }
+    const vis = open.filter(i => !this.shop || !i.shop || i.shop === this.shop);
+    if (!vis.length) {
+      fill(this.list, sec("", h("div", { class: "empty" }, h("strong", null, open.length ? "Für diesen Laden ist nichts offen." : "Die Liste ist leer."),
+        h("span", null, "Oben eintippen, z. B. „500 g Rinderhack“, oder einen Vorschlag antippen. Im Tab Woche übernehmt ihr die Zutaten für alle geplanten Gerichte."))));
+    } else {
+      const seen = lsGet("kk_seen", 0), me = meIdx(), P = persons();
+      fill(this.list, ...catOrder().map(cat => {
+        const l = vis.filter(i => (CATS.includes(i.cat) ? i.cat : "Sonstiges") === cat).sort((a, b) => a.name.localeCompare(b.name, "de"));
+        if (!l.length) return "";
+        return sec(cat, l.map(i => this.itemRow(i, i.by !== me && i.t > seen, P)));
+      }));
     }
-    const P = persons();
-    const groups = catOrder().map(c => [c, items.filter(i => (i.cat || "Sonstiges") === c)]).filter(([, l]) => l.length);
-    this.list.replaceChildren(h("div", { class: "card" }, groups.map(([cat, list]) => h("div", { class: "group" },
-      h("h4", null, cat),
-      list.sort((a, b) => (a.done - b.done) || a.name.localeCompare(b.name, "de")).map(i => h("div", { class: "item" + (i.done ? " done" : "") },
-        h("input", { type: "checkbox", class: "check", checked: i.done, "aria-label": i.name + " abhaken", onchange: e => Store.update("items", i.id, { done: e.target.checked }) }),
-        h("div", { class: "name" }, h("span", null, i.name), " ", carbWarn(i.name) ? h("span", { class: "tag warn" }, "nicht keto?") : null,
-          h("small", null, [i.note, i.src === "plan" ? "aus dem Wochenplan" : i.src === "vorrat" ? "Vorrat nachkaufen" : "", "von " + (P[i.by] || P[0])].filter(Boolean).join(" · "))),
-        h("span", { class: "qty" }, showQty(i.q, i.u)),
-        h("button", { class: "x", "aria-label": i.name + " löschen", onclick: () => Store.del("items", i.id) }, "×")
-      ))
-    ))));
-    this.renderFooter(done);
+    // Im Wagen
+    fill(this.cart, done.length ? h("div", null,
+      sec(`Im Wagen · ${done.length}`, done.sort((a, b) => a.name.localeCompare(b.name, "de")).map(i => this.itemRow(i, false, persons())),
+        { action: h("button", { type: "button", onclick: () => { done.forEach(i => Store.del("items", i.id)); toast(`${done.length} Artikel entfernt`, "Rückgängig", () => done.forEach(i => Store.set("items", i.id, strip(i)))); } }, "Entfernen") }),
+      h("div", { class: "btn-row" }, h("button", { class: "btn", type: "button", onclick: () => finishSheet() }, "Einkauf abschließen"))) : "");
   },
-  renderFooter(done) {
-    if (!done.length) { this.footer.replaceChildren(); this.finishing = false; this.finForm = null; return; }
-    if (this.finishing) {
-      if (this.finForm) { this.finTitle.textContent = `Einkauf abschließen (${done.length} Artikel)`; if (!this.footer.contains(this.finForm)) this.footer.replaceChildren(this.finForm); return; }
-      const shop = h("input", { type: "text", id: "fiShop", placeholder: "z. B. Aldi, Metzger", value: lsGet("kk_lastShop", "") });
-      const amt = h("input", { type: "text", id: "fiAmt", inputmode: "decimal", placeholder: "0,00" });
-      const toPantry = h("input", { type: "checkbox", id: "fiPantry", class: "check", checked: true });
-      this.finTitle = h("h3", null, `Einkauf abschließen (${done.length} Artikel)`);
-      const close = () => { this.finishing = false; this.finForm = null; this.update(); };
-      this.finForm = h("form", { class: "card sheet", onsubmit: async e => {
-        e.preventDefault();
-        const done = S.items.filter(i => i.done);
-        const a = toNum(amt.value);
-        if (a != null && a > 0) {
-          lsSet("kk_lastShop", shop.value.trim());
-          await Store.set("expenses", uid(), { date: dkey(new Date()), shop: shop.value.trim() || "Einkauf", amount: a, by: me(), t: Date.now() });
-        }
-        for (const i of done) {
-          if (toPantry.checked && i.q != null) {
-            const place = /Fleisch|Fisch|Eier/.test(i.cat) ? "Kühlschrank" : "Vorratsschrank";
-            await Store.set("pantry", uid(), { name: i.name, q: i.q, u: i.u, place, mhd: "", t: Date.now() });
-          }
-          await Store.del("items", i.id);
-        }
-        close();
-        toast("Einkauf abgeschlossen" + (a ? " · " + euro(a) + " im Budget" : ""));
-      } },
-        this.finTitle,
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Laden", shop), h("label", { class: "f", style: "width:130px" }, "Betrag in €", amt)),
-        h("label", { class: "row small", for: "fiPantry" }, toPantry, "Artikel mit Menge in den Vorrat übernehmen"),
-        h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, "Abschließen"),
-          h("button", { class: "btn ghost", type: "button", onclick: close }, "Abbrechen"))
-      );
-      this.footer.replaceChildren(this.finForm);
-      return;
-    }
-    this.footer.replaceChildren(h("div", { class: "row" },
-      h("button", { class: "btn primary", onclick: () => { this.finishing = true; this.update(); } }, `Einkauf abschließen (${done.length})`),
-      h("button", { class: "btn danger ghost", onclick: () => { done.forEach(i => Store.del("items", i.id)); toast("Abgehakte entfernt"); } }, "Abgehakte nur löschen")
-    ));
+  itemRow(i, isNew, P) {
+    const sub = [i.note, i.shop, i.src === "plan" ? "aus dem Wochenplan" : i.src === "vorrat" ? "Vorrat nachkaufen" : i.src === "supp" ? "Supplement" : "", isNew ? "von " + P[i.by] : ""].filter(Boolean).join(" · ");
+    const cell = row({
+      cls: "ind" + (i.done ? " done" : ""), title: i.name, sub, detail: showQty(i.q, i.u), noChev: true,
+      badges: [isNew ? h("span", { class: "badge new" }, "Neu") : null, !i.done && carbWarn(i.name) ? h("span", { class: "badge red" }, "nicht keto?") : null],
+      lead: check(i.done, () => Store.update("items", i.id, { done: !i.done }), i.name + (i.done ? " zurück auf die Liste" : " abhaken")),
+      onclick: () => itemSheet(i),
+    });
+    return swipeable(cell, () => deleteWithUndo("items", i));
   },
 };
 
-// ============================================================
-// PLAN
-// ============================================================
-function dayMacros(meals) {
-  return meals.reduce((a, m) => { const r = recipeById(m.rid); if (r && r.m) r.m.forEach((v, i) => a[i] += Number(v) || 0); return a; }, [0, 0, 0, 0]);
-}
-function carbClass(c, limit) { return c <= limit ? "carb-ok" : c <= limit * 1.5 ? "carb-mid" : "carb-bad"; }
-function recipeSelect(onPick, label) {
+function itemSheet(i) {
   const s = settings();
-  const rs = allRecipes();
-  const pref = s.phase === "carniomad" ? "karnivor" : (s.phase === "omad" ? "omad" : null);
-  const sorted = pref ? [...rs.filter(r => (r.tags || []).includes(pref)), ...rs.filter(r => !(r.tags || []).includes(pref))] : rs;
-  return h("select", { "aria-label": label || "Gericht wählen", onchange: e => { if (e.target.value) { onPick(e.target.value); e.target.value = ""; } } },
-    h("option", { value: "" }, "+ Gericht hinzufügen …"),
-    sorted.map(r => h("option", { value: r.id }, r.name + ((r.tags || []).length ? "  (" + r.tags.join(", ") + ")" : ""))));
+  const name = h("input", { type: "text", id: "isName", value: i.name });
+  const qty = h("input", { type: "text", id: "isQty", value: showQty(i.q, i.u), placeholder: "z. B. 500 g" });
+  const cat = h("select", { id: "isCat" }, CATS.map(c => h("option", { value: c, selected: c === i.cat ? "selected" : null }, c)));
+  const shops = (s.shops || []).filter(Boolean);
+  const shop = h("select", { id: "isShop" }, h("option", { value: "" }, "Egal"), shops.map(x => h("option", { value: x, selected: x === i.shop ? "selected" : null }, x)));
+  const note = h("input", { type: "text", id: "isNote", value: i.note || "", placeholder: "z. B. Bio, vom Metzger" });
+  openSheet("Artikel", close => [
+    h("div", { class: "group", style: "margin-top:8px" }, frow("Name", name), frow("Menge", qty), frow("Kategorie", cat), shops.length ? frow("Laden", shop) : null, frow("Notiz", note)),
+    h("div", { class: "sec-f" }, "Die Kategorie merkt sich die App für das nächste Mal."),
+    h("div", { class: "group", style: "margin-top:22px" }, h("button", { class: "cell danger", type: "button", onclick: () => { close(); deleteWithUndo("items", i); } }, "Artikel löschen")),
+  ], { action: { label: "Fertig", run: close => {
+    const m = String(qty.value).trim().match(/^([\d.,]+)\s*([a-zA-ZäöüÄÖÜ]+)?$/);
+    let q = null, u = "";
+    if (m) { q = toNum(m[1]); u = UNIT_MAP[(m[2] || "stk").toLowerCase()] || m[2] || "Stk"; [q, u] = normUnit(q, u); }
+    const nm = name.value.trim() || i.name;
+    Store.update("items", i.id, { name: nm, q, u, cat: cat.value, shop: shop.value || "", note: note.value.trim() });
+    if (cat.value !== i.cat) { const f = freqEntry(nm); Store.set("freq", slug(nm), { name: nm, n: (f && f.n) || 0, q: f ? f.q ?? null : q, u: f ? f.u || "" : u, last: (f && f.last) || 0, cat: cat.value }); }
+    close();
+  } } });
 }
-function addToPlan(dateKey, rid) {
-  const doc = S.plan.find(p => p.id === dateKey);
-  const meals = [...((doc && doc.meals) || []), { rid, k: uid() }];
-  return Store.set("plan", dateKey, { meals });
+
+function finishSheet() {
+  const s = settings(); const done = () => S.items.filter(i => i.done);
+  const shops = (s.shops || []).filter(Boolean);
+  const shop = h("input", { type: "text", id: "fsShop", value: views.einkauf.shop || lsGet("kk_lastShop", ""), placeholder: "z. B. Aldi", list: "shopList" });
+  const amt = h("input", { type: "text", id: "fsAmt", inputmode: "decimal", placeholder: "0,00 €" });
+  const toPantry = h("input", { type: "checkbox", class: "switch", id: "fsPantry", checked: true });
+  openSheet("Einkauf abschließen", [
+    h("p", { class: "cell-sub", style: "margin:6px 4px 12px;font-size:15px" }, `${done().length} Artikel im Wagen. Häufig gekaufte Artikel erscheinen später als Vorschlag.`),
+    h("div", { class: "group" }, frow("Laden", shop), frow("Betrag", amt), h("label", { class: "cell frow" }, h("span", { style: "flex:1" }, "In den Vorrat übernehmen"), toPantry)),
+    h("datalist", { id: "shopList" }, shops.map(x => h("option", { value: x }))),
+    h("div", { class: "sec-f" }, "Der Betrag landet im Monatsbudget. Ohne Betrag wird nur abgeschlossen."),
+  ], { focus: "#fsAmt", action: { label: "Fertig", run: async close => {
+    const list = done(); const a = toNum(amt.value);
+    if (a != null && a > 0) { lsSet("kk_lastShop", shop.value.trim()); await Store.set("expenses", uid(), { date: dkey(new Date()), shop: shop.value.trim() || "Einkauf", amount: a, by: meIdx(), t: Date.now() }); }
+    for (const i of list) {
+      const f = freqEntry(i.name);
+      await Store.set("freq", slug(i.name), { name: f ? f.name : i.name, n: ((f && f.n) || 0) + 1, cat: (f && f.cat) || i.cat || catFor(i.name), q: i.q ?? null, u: i.u || "", last: Date.now() });
+      if (toPantry.checked && i.q != null && i.cat !== "Drogerie & Haushalt") {
+        const place = /Fleisch|Fisch|Eier/.test(i.cat) ? "Kühlschrank" : "Vorratsschrank";
+        await Store.set("pantry", uid(), { name: i.name, q: i.q, u: i.u, place, mhd: "", t: Date.now() });
+      }
+      await Store.del("items", i.id);
+    }
+    close(); toast("Einkauf abgeschlossen" + (a ? ` · ${euro(a)}` : ""));
+  } } });
 }
-views.plan = {
+
+function budgetSheet() {
+  let ref = new Date();
+  const body = h("div");
+  const draw = () => {
+    const s = settings(); const P = persons();
+    const ym = `${ref.getFullYear()}-${pad(ref.getMonth() + 1)}`;
+    const list = S.expenses.filter(e => (e.date || "").startsWith(ym)).sort((a, b) => b.date.localeCompare(a.date) || b.t - a.t);
+    const sum = list.reduce((a, e) => a + (Number(e.amount) || 0), 0), budget = Number(s.budget) || 0;
+    const now = new Date(), isCur = ym === `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+    const dim = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).getDate(), dayN = isCur ? now.getDate() : dim;
+    const byShop = {}; list.forEach(e => byShop[e.shop] = (byShop[e.shop] || 0) + Number(e.amount));
+    fill(body, 
+      h("div", { class: "weekhead", style: "margin-top:4px" }, h("strong", { style: "font-size:20px" }, `${MON[ref.getMonth()]} ${ref.getFullYear()}`),
+        h("div", { class: "navs" }, h("button", { type: "button", "aria-label": "Voriger Monat", onclick: () => { ref = new Date(ref.getFullYear(), ref.getMonth() - 1, 1); draw(); } }, "‹"),
+          h("button", { type: "button", "aria-label": "Nächster Monat", onclick: () => { ref = new Date(ref.getFullYear(), ref.getMonth() + 1, 1); draw(); } }, "›"))),
+      h("div", { class: "card", style: "display:grid;gap:10px;margin-top:6px" },
+        h("div", { class: "stat-row", style: "grid-template-columns:repeat(3,1fr)" },
+          h("div", null, h("b", null, euro(sum)), h("span", null, "ausgegeben")), h("div", null, h("b", null, euro(budget)), h("span", null, "Budget")),
+          h("div", null, h("b", { class: budget - sum < 0 ? "bad" : "ok" }, euro(budget - sum)), h("span", null, "übrig"))),
+        h("div", { class: "bar" + (sum > budget ? " over" : "") }, h("i", { style: `width:${budget ? Math.min(100, sum / budget * 100) : 0}%` })),
+        isCur && sum ? h("div", { class: "cell-sub" }, `Hochrechnung Monatsende ${euro(sum / dayN * dim)} · pro Woche ${euro(sum / dayN * 7)}`) : null),
+      Object.keys(byShop).length ? h("div", { class: "chiprow", style: "margin-top:10px" }, Object.entries(byShop).sort((a, b) => b[1] - a[1]).map(([k, v]) => h("span", { class: "chip" }, `${k} ${euro(v)}`))) : null,
+      sec("Einkäufe", list.length ? list.map(e => swipeable(row({ title: e.shop, sub: `${fmtD(parseKey(e.date))} · ${P[e.by] || P[0]}`, detail: euro(e.amount) }), () => { deleteWithUndo("expenses", e, e.shop); setTimeout(draw, 50); }))
+        : h("div", { class: "empty" }, "Noch keine Ausgaben in diesem Monat."), { action: h("button", { type: "button", onclick: () => expenseSheet(draw) }, "Hinzufügen") }),
+      sec("", [row({ title: "Preise für Rezeptkosten", sub: S.prices.length ? `${S.prices.length} eigene Preise` : "Bisher Richtwerte (Schätzung)", onclick: () => pricesSheet() }),
+        row({ title: "Monatsbudget", detail: euro(budget), onclick: () => settingSheet("budget", draw) })]));
+  };
+  draw();
+  openSheet("Budget", body);
+}
+function expenseSheet(after) {
+  const shop = h("input", { type: "text", id: "exShop", placeholder: "Laden" });
+  const amt = h("input", { type: "text", id: "exAmt", inputmode: "decimal", placeholder: "0,00 €" });
+  const date = h("input", { type: "date", id: "exDate", value: dkey(new Date()) });
+  openSheet("Ausgabe", h("div", { class: "group", style: "margin-top:8px" }, frow("Laden", shop), frow("Betrag", amt), frow("Datum", date)), { focus: "#exShop", cancel: "Abbrechen", action: { label: "Sichern", run: close => {
+    const a = toNum(amt.value); if (!a) { amt.focus(); return; }
+    Store.set("expenses", uid(), { date: date.value || dkey(new Date()), shop: shop.value.trim() || "Einkauf", amount: a, by: meIdx(), t: Date.now() }).then(() => after && after());
+    close();
+  } } });
+}
+function pricesSheet() {
+  const body = h("div");
+  const n = h("input", { type: "text", id: "prName", placeholder: "z. B. Rinderhack" });
+  const e = h("input", { type: "text", id: "prEur", inputmode: "decimal", placeholder: "€" });
+  const q = h("input", { type: "text", id: "prPer", inputmode: "decimal", value: "1" });
+  const u = h("select", { id: "prUnit" }, UNITS.map(x => h("option", { selected: x === "kg" ? "selected" : null }, x)));
+  const draw = () => fill(body, 
+    sec("Neuer Preis", [frow("Artikel", n), frow("Preis in €", e), frow("pro Menge", q), frow("Einheit", u),
+      h("button", { class: "cell link center", type: "button", onclick: () => {
+        const eur = toNum(e.value); if (!n.value.trim() || eur == null) { n.focus(); return; }
+        const ex = S.prices.find(p => norm(p.name) === norm(n.value) && p.u === u.value);
+        Store.set("prices", ex ? ex.id : uid(), { name: n.value.trim(), eur, per: toNum(q.value) || 1, u: u.value, t: Date.now() }).then(draw);
+        n.value = ""; e.value = ""; toast("Preis gesichert");
+      } }, "Preis sichern")], { foot: "Eigene Preise ersetzen die Richtwerte bei der Berechnung der Kosten pro Portion." }),
+    S.prices.length ? sec("Eure Preise", S.prices.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(p => swipeable(row({ title: p.name, detail: `${euro(p.eur)} / ${numDE(p.per)} ${p.u}` }), () => { deleteWithUndo("prices", p); setTimeout(draw, 50); }))) : null,
+    sec("Richtwerte (Schätzung)", PRICE_DEF.map(([nm, eur, per, un]) => row({ title: nm, detail: `${euro(eur)} / ${per === 1 ? "" : numDE(per) + " "}${un}` }))));
+  draw();
+  openSheet("Preise", body);
+}
+
+// ============================================================
+// WOCHE
+// ============================================================
+let weekStart = mondayOf(new Date());
+views.woche = {
+  mode: lsGet("kk_wmode", "plan"), day: dkey(new Date()), filter: "alle", q: "",
   mount(root) {
-    this.head = h("div", { class: "between" });
-    this.days = h("div", { class: "stack" });
-    this.actions = h("div", { class: "card" });
-    root.append(this.head, this.actions, this.days);
+    const seg = h("div", { class: "seg", style: "margin:4px 0 4px" }, [["plan", "Plan"], ["rezepte", "Rezepte"]].map(([k, l]) =>
+      h("button", { type: "button", "aria-pressed": this.mode === k ? "true" : "false", onclick: () => { this.mode = k; lsSet("kk_wmode", k); go("woche"); } }, l)));
+    this.body = h("div");
+    root.append(largeTitle("Woche", this.mode === "rezepte" ? h("button", { class: "round", "aria-label": "Eigenes Rezept anlegen", html: ICON.plus, onclick: () => recipeForm() }) : null), seg, this.body);
+    if (this.mode === "rezepte") this.mountRecipes();
   },
-  update() {
-    const s = settings(); const ph = PHASES[s.phase] || PHASES.keto;
-    const end = addDays(weekStart, 6);
-    this.head.replaceChildren(
-      h("div", null, h("h2", null, `KW ${isoWeek(weekStart)}`), h("div", { class: "muted small num" }, `${fmtD(weekStart)} – ${fmtD(end)}${end.getFullYear()}`)),
-      h("div", { class: "row" },
-        h("button", { class: "btn sm", "aria-label": "Vorige Woche", onclick: () => { weekStart = addDays(weekStart, -7); this.update(); } }, "‹"),
-        h("button", { class: "btn sm", onclick: () => { weekStart = mondayOf(new Date()); this.update(); } }, "Heute"),
-        h("button", { class: "btn sm", "aria-label": "Nächste Woche", onclick: () => { weekStart = addDays(weekStart, 7); this.update(); } }, "›"))
-    );
+  update() { if (this.mode === "plan") this.renderPlan(); else this.renderRecipes(); },
+
+  // ---- Plan ----
+  renderPlan() {
+    const s = settings(); const today = dkey(new Date());
     const keys = [...Array(7)].map((_, i) => dkey(addDays(weekStart, i)));
-    const planned = keys.reduce((n, k) => n + (((S.plan.find(p => p.id === k) || {}).meals) || []).length, 0);
-    const weekCost = keys.reduce((sum, k) => sum + ((((S.plan.find(p => p.id === k) || {}).meals) || []).reduce((a, m) => { const r = recipeById(m.rid); const c = r && recipeCost(r); return a + (c && c.ok ? c.perPortion * 2 : 0); }, 0)), 0);
-    this.actions.replaceChildren(
-      h("div", { class: "between" }, h("div", null, h("strong", null, ph.label), h("div", { class: "muted small" }, `Ziel: ${ph.meals} pro Tag · max. ${s.carbLimit} g Netto-Carbs`)),
-        h("div", { class: "row" },
-          h("button", { class: "btn", onclick: () => this.autoFill(keys) }, "Woche automatisch füllen"),
-          h("button", { class: "btn primary", disabled: planned ? null : true, onclick: () => this.toList(keys) }, "Zutaten auf die Liste"))),
-      h("div", { class: "muted small" }, planned ? `${planned} Gerichte geplant${weekCost ? `, ca. ${euro(weekCost)} für euch beide (Schätzung)` : ""}. Rezepte sind für 2 Portionen, der Vorrat wird abgezogen.` : "Noch nichts geplant. Wähl pro Tag ein Gericht aus oder lass die Woche automatisch füllen.")
-    );
-    const today = dkey(new Date());
-    this.days.replaceChildren(...keys.map(k => {
-      const d = parseKey(k);
-      const meals = ((S.plan.find(p => p.id === k) || {}).meals) || [];
-      const [kcal, p, f, c] = dayMacros(meals);
-      const tooMany = (s.phase === "omad" || s.phase === "carniomad") && meals.length > 1;
-      return h("div", { class: "card day" + (k === today ? " today" : "") },
-        h("div", { class: "between" }, h("h3", null, `${WDL[d.getDay()]}, ${fmtD(d)}`),
-          meals.length ? h("div", { class: "macros", title: "pro Person" }, h("span", null, h("b", null, Math.round(kcal)), " kcal"), h("span", null, "P ", h("b", null, Math.round(p))), h("span", null, "F ", h("b", null, Math.round(f))),
-            h("span", null, "KH ", h("b", { class: carbClass(c, s.carbLimit) }, Math.round(c), " g"))) : null),
-        meals.map((m, idx) => { const r = recipeById(m.rid); return h("div", { class: "meal" },
-          h("span", { class: "name" }, r ? r.name : "Gelöschtes Rezept"),
-          h("button", { class: "x", "aria-label": "Gericht entfernen", onclick: () => Store.set("plan", k, { meals: meals.filter((_, j) => j !== idx) }) }, "×")); }),
-        tooMany ? h("div", { class: "note small" }, "OMAD-Phase: mehr als eine Mahlzeit geplant. In der Übergangszeit okay.") : null,
-        recipeSelect(rid => addToPlan(k, rid), `Gericht für ${WDL[d.getDay()]}`)
-      );
-    }));
+    if (!keys.includes(this.day)) this.day = keys.includes(today) ? today : keys[0];
+    const strip7 = h("div", { class: "card", style: "padding:10px 8px 8px;margin-top:12px" },
+      h("div", { class: "weekhead", style: "padding:0 6px" }, h("strong", null, `KW ${isoWeek(weekStart)} · ${MON[weekStart.getMonth()]}`),
+        h("div", { class: "navs" },
+          h("button", { type: "button", "aria-label": "Vorige Woche", onclick: () => { weekStart = addDays(weekStart, -7); this.day = dkey(weekStart); this.update(); } }, "‹"),
+          h("button", { type: "button", onclick: () => { weekStart = mondayOf(new Date()); this.day = today; this.update(); } }, "Heute"),
+          h("button", { type: "button", "aria-label": "Nächste Woche", onclick: () => { weekStart = addDays(weekStart, 7); this.day = dkey(weekStart); this.update(); } }, "›"))),
+      h("div", { class: "week" }, keys.map(k => { const d = parseKey(k); const n = planOf(k).length;
+        return h("button", { type: "button", class: k === today ? "today" : "", "aria-pressed": k === this.day ? "true" : "false", "aria-label": fmtLong(d) + (n ? `, ${n} Gerichte` : ""), onclick: () => { this.day = k; this.update(); } },
+          h("span", { class: "wd" }, WD[d.getDay()]), h("span", { class: "dn" }, d.getDate()), h("span", { class: "dots" }, [...Array(Math.min(n, 3))].map(() => h("i"))));
+      })));
+    const meals = planOf(this.day); const d = parseKey(this.day);
+    const tot = meals.reduce((a, m) => { const r = recipeById(m.rid); if (r && r.m) r.m.forEach((v, i) => a[i] += Number(v) || 0); return a; }, [0, 0, 0, 0]);
+    const dayHead = meals.length ? h("div", { class: "card today-row", style: "margin-top:12px" },
+      ring(tot[3] / (s.carbLimit || 20), 64, 8, carbColor(tot[3], s.carbLimit), h("b", { style: "font-size:15px" }, Math.round(tot[3]))),
+      h("div", { class: "txt" }, h("strong", null, `${Math.round(tot[3])} von ${s.carbLimit} g Netto-KH`), h("span", { class: "cell-sub" }, `${Math.round(tot[0])} kcal · ${Math.round(tot[1])} g Protein · ${Math.round(tot[2])} g Fett pro Person`))) : null;
+    const mealRows = meals.map((m, idx) => { const r = recipeById(m.rid);
+      const c = r && recipeCost(r);
+      return swipeable(row({ title: r ? r.name : "Gelöschtes Rezept", sub: r ? `${r.m[0]} kcal · ${r.m[3]} g KH${c && c.ok ? ` · ≈ ${euro(c.perPortion)}` : ""}` : null, onclick: r ? () => recipeSheet(r) : null }),
+        () => { const rest = meals.filter((_, j) => j !== idx); Store.set("plan", this.day, { meals: rest }); toast("Gericht entfernt", "Rückgängig", () => Store.set("plan", this.day, { meals })); });
+    });
+    const omadHint = isOmad() && meals.length > 1 ? h("div", { class: "sec-f" }, "OMAD-Phase: Mehr als eine Mahlzeit geplant. In der Übergangszeit ist das in Ordnung.") : null;
+    const planned = keys.reduce((n, k) => n + planOf(k).length, 0);
+    const weekCost = keys.reduce((sum, k) => sum + planOf(k).reduce((a, m) => { const r = recipeById(m.rid); const c = r && recipeCost(r); return a + (c && c.ok ? c.perPortion * 2 : 0); }, 0), 0);
+    const queue = S.queue.slice().sort((a, b) => a.t - b.t).map(q => ({ q, r: recipeById(q.rid) })).filter(x => x.r);
+    fill(this.body, strip7, dayHead,
+      h("section", { class: "sec" }, h("div", { class: "sec-h" }, fmtLong(d)),
+        h("div", { class: "group" }, mealRows, h("button", { class: "cell link", type: "button", onclick: () => pickerSheet(this.day) }, h("span", { html: ICON.plus, style: "display:flex;width:18px" }), "Gericht hinzufügen")), omadHint),
+      sec("Diese Woche", [
+        row({ title: "Woche automatisch füllen", sub: "Nur freie Tage ab heute, passend zur Phase", onclick: () => this.autoFill(keys) }),
+        row({ title: "Zutaten auf die Einkaufsliste", sub: planned ? `${planned} Gerichte${weekCost ? ` · ca. ${euro(weekCost)} für euch beide` : ""} · Vorrat wird abgezogen` : "Noch nichts geplant", onclick: planned ? () => this.toList(keys) : null }),
+      ]),
+      sec("Merkliste", queue.length ? queue.map(({ q, r }) => swipeable(row({ title: r.name, sub: `${r.m[0]} kcal · ${r.m[3]} g KH`, onclick: () => recipeSheet(r) }), () => deleteWithUndo("queue", q, r.name)))
+        : h("div", { class: "empty", style: "padding:18px" }, "Rezepte, die ihr bald kochen wollt. Im Rezept auf „Merken“ tippen."), { foot: queue.length ? "Beim Einplanen verschwindet ein Rezept von der Merkliste." : null }));
   },
   async autoFill(keys) {
-    const s = settings(); const per = (s.phase === "omad" || s.phase === "carniomad") ? 1 : 2;
+    const s = settings(); const per = isOmad() ? 1 : 2;
     const all = allRecipes().filter(r => r.m && !(r.tags || []).includes("dessert") && (r.min || 0) <= 180 && !isExcluded(r));
-    let pool = s.phase === "carniomad" ? all.filter(r => r.tags.includes("karnivor"))
-      : s.phase === "omad" ? all.filter(r => r.tags.includes("omad") || Number(r.m[0]) >= 800)
-      : all.filter(r => (r.tags || []).includes("keto"));
+    let pool = s.phase === "carniomad" ? all.filter(r => r.tags.includes("karnivor")) : s.phase === "omad" ? all.filter(r => r.tags.includes("omad") || Number(r.m[0]) >= 800) : all.filter(r => (r.tags || []).includes("keto"));
     if (!pool.length) pool = all;
-    const pantry = S.pantry.map(p => norm(p.name));
-    const used = new Map();
-    keys.forEach(k => ((((S.plan.find(p => p.id === k) || {}).meals) || [])).forEach(m => used.set(m.rid, (used.get(m.rid) || 0) + 1)));
-    const today = dkey(new Date());
+    const pantry = S.pantry.map(p => norm(p.name)), used = new Map(), today = dkey(new Date());
+    keys.forEach(k => planOf(k).forEach(m => used.set(m.rid, (used.get(m.rid) || 0) + 1)));
+    const queued = new Set(S.queue.map(q => q.rid));
     let filled = 0;
     for (const k of keys) {
-      if (k < today) continue;
-      const doc = S.plan.find(p => p.id === k);
-      if (doc && (doc.meals || []).length) continue;
+      if (k < today || planOf(k).length) continue;
       const meals = []; let carbs = 0;
       for (let i = 0; i < per; i++) {
         const scored = pool.filter(r => !meals.some(m => m.rid === r.id) && carbs + Number(r.m[3]) <= s.carbLimit).map(r => {
-          let sc = Math.random() * 2 - (used.get(r.id) || 0) * 4;
+          let sc = Math.random() * 2 - (used.get(r.id) || 0) * 4 + (queued.has(r.id) ? 3 : 0);
           sc += r.ing.filter(([, , n]) => pantry.some(p => p.includes(norm(n)) || norm(n).includes(p))).length * 1.5;
           const c = recipeCost(r); if (c.ok) sc -= c.perPortion / 3;
           return [r, sc];
         }).sort((a, b) => b[1] - a[1]);
-        const pick = scored.length ? scored[0][0] : null;
-        if (!pick) break;
+        if (!scored.length) break;
+        const pick = scored[0][0];
         meals.push({ rid: pick.id, k: uid() }); carbs += Number(pick.m[3]); used.set(pick.id, (used.get(pick.id) || 0) + 1);
       }
       if (meals.length) { await Store.set("plan", k, { meals }); filled++; }
     }
-    toast(filled ? `${filled} Tage gefüllt. Einzelne Gerichte kannst du austauschen.` : "Keine freien Tage mehr in dieser Woche.");
+    toast(filled ? `${filled} ${filled === 1 ? "Tag" : "Tage"} gefüllt` : "Keine freien Tage mehr in dieser Woche");
   },
   async toList(keys) {
     const need = {};
-    for (const k of keys) for (const m of (((S.plan.find(p => p.id === k) || {}).meals) || [])) {
+    for (const k of keys) for (const m of planOf(k)) {
       const r = recipeById(m.rid); if (!r) continue;
       for (const [q, u, n] of r.ing) { const [nq, nu] = normUnit(Number(q), u); const key = norm(n) + "|" + nu; (need[key] ||= { n, u: nu, q: 0 }).q += nq; }
     }
     let added = 0, covered = 0;
     for (const x of Object.values(need)) {
       let q = x.q;
-      for (const p of S.pantry.filter(p => norm(p.name) === norm(x.n) || norm(p.name).includes(norm(x.n)))) {
-        const [pq, pu] = normUnit(Number(p.q) || 0, p.u || "");
-        if (pu === x.u) q -= pq;
-      }
+      for (const p of S.pantry.filter(p => norm(p.name) === norm(x.n) || norm(p.name).includes(norm(x.n)))) { const [pq, pu] = normUnit(Number(p.q) || 0, p.u || ""); if (pu === x.u) q -= pq; }
       if (q <= 0) { covered++; continue; }
       await addItem(x.n, Math.ceil(q * 10) / 10, x.u, "plan"); added++;
     }
-    toast(`${added} Positionen ergänzt` + (covered ? `, ${covered} aus dem Vorrat gedeckt` : ""));
+    toast(`${added} Zutaten auf der Liste` + (covered ? `, ${covered} aus dem Vorrat` : ""));
   },
-};
 
-// ============================================================
-// REZEPTE
-// ============================================================
-views.rezepte = {
-  filter: "alle", q: "",
-  mount(root) {
-    const search = h("input", { type: "text", id: "reSearch", placeholder: "Rezept oder Zutat suchen", value: this.q, oninput: e => { this.q = e.target.value; this.update(); } });
-    this.chips = h("div", { class: "chips" });
-    this.list = h("div", { class: "stack" });
-    this.ai = h("div", { class: "card", hidden: Store.sample ? null : true });
-    root.append(h("h2", null, "Rezepte"), this.ai, h("div", { class: "stack" }, search, this.chips), this.list, this.form());
+  // ---- Rezepte ----
+  mountRecipes() {
+    this.search = h("input", { type: "text", id: "reSearch", placeholder: "Rezept oder Zutat suchen", value: this.q, oninput: e => { this.q = e.target.value; this.renderRecipes(); } });
+    this.ai = h("div"); this.filters = h("div"); this.rlist = h("div");
+    this.body.append(this.ai, h("div", { class: "search", style: "margin-top:12px" }, h("span", { html: ICON.search, style: "display:flex" }), this.search), this.filters, this.rlist);
     this.renderAi();
   },
+  renderRecipes() {
+    if (!this.rlist) return;
+    const F = [["alle", "Alle"], ["keto", "Keto"], ["karnivor", "Karnivor"], ["omad", "OMAD"], ["prep", "Meal-Prep"], ["guenstig", "Günstig"], ["eigene", "Eigene"]];
+    fill(this.filters, h("div", { class: "chiprow", style: "margin-top:10px" }, F.map(([k, l]) => h("button", { class: "chip", type: "button", "aria-pressed": this.filter === k ? "true" : "false", onclick: () => { this.filter = k; this.renderRecipes(); } }, l))));
+    const q = norm(this.q), s = settings();
+    const rs = allRecipes().filter(r => r.own || !isExcluded(r))
+      .filter(r => this.filter === "alle" || (this.filter === "eigene" ? r.own : this.filter === "guenstig" ? (c => c.ok && c.perPortion <= 3.5)(recipeCost(r)) : (r.tags || []).includes(this.filter)))
+      .filter(r => !q || norm(r.name).includes(q) || r.ing.some(i => norm(i[2]).includes(q)))
+      .sort((a, b) => a.name.localeCompare(b.name, "de"));
+    fill(this.rlist, sec(`${rs.length} Rezepte`, rs.length ? rs.map(r => { const c = recipeCost(r);
+      return row({ title: r.name, sub: [(r.tags || []).map(t => TAGLABEL[t] || t).join(", "), `${r.m[0]} kcal`, h("span", { class: carbCls(r.m[3], s.carbLimit) }, `${r.m[3]} g KH`), c.ok ? `≈ ${euro(c.perPortion)}` : null].filter(Boolean).flatMap((x, i) => i ? [" · ", x] : [x]), onclick: () => recipeSheet(r) }); })
+      : h("div", { class: "empty" }, this.filter === "eigene" ? "Noch keine eigenen Rezepte. Oben rechts auf + tippen." : "Kein Rezept gefunden.")));
+  },
   renderAi(result, busy, err) {
-    if (!Store.sample) { this.ai.hidden = true; return; }
-    this.ai.hidden = false;
-    if (!this.wish) this.wish = h("input", { type: "text", id: "aiWish", placeholder: "Wunsch, z. B. schnell, mit Hähnchen, für die Spätschicht" });
-    const kids = [h("h3", null, "Was koche ich aus dem Vorrat?"),
-      h("div", { class: "muted small" }, `Claude schlägt ein Gericht passend zu eurer Phase vor und nutzt bevorzugt, was im Vorrat ist (${S.pantry.length} Artikel).`),
-      h("div", { class: "row" }, h("div", { class: "grow" }, this.wish), h("button", { class: "btn primary", disabled: busy ? true : null, onclick: () => this.suggest() }, busy ? "Denkt nach …" : "Vorschlag holen"))];
-    if (err) kids.push(h("div", { class: "note small" }, err));
+    if (!this.ai) return;
+    if (!Store.sample) { fill(this.ai, ); return; }
+    this.wish ||= h("input", { type: "text", id: "aiWish", placeholder: "Wunsch, z. B. schnell, mit Hähnchen" });
+    const kids = [h("div", { class: "card", style: "display:grid;gap:10px;margin-top:12px" },
+      h("div", null, h("strong", null, "Was koche ich aus dem Vorrat?"), h("div", { class: "cell-sub" }, `Claude schlägt ein Gericht passend zu eurer Phase vor und nutzt bevorzugt, was da ist (${S.pantry.length} Artikel).`)),
+      h("div", { class: "search" }, this.wish),
+      h("button", { class: "btn", type: "button", disabled: busy ? true : null, onclick: () => this.suggest() }, busy ? "Claude denkt nach …" : "Vorschlag holen"),
+      err ? h("div", { class: "banner" }, err) : null)];
     if (result) {
-      const r = result;
-      const missing = r.ing.filter(([, , n]) => !(r.ausVorrat || []).some(v => norm(v) === norm(n)));
-      kids.push(h("div", { class: "stack", style: "border-top:1px solid var(--line);padding-top:10px" },
-        h("div", { class: "between" }, h("strong", null, r.name), h("span", { class: "row" }, (r.tags || []).map(t => h("span", { class: "tag " + t }, TAGLABEL[t] || t)))),
-        h("div", { class: "macros" }, h("span", null, h("b", null, r.m[0]), " kcal"), h("span", null, "P ", h("b", null, r.m[1])), h("span", null, "F ", h("b", null, r.m[2])), h("span", null, "KH ", h("b", { class: carbClass(r.m[3], settings().carbLimit) }, r.m[3], " g")), h("span", null, "pro Portion, geschätzt")),
-        h("ul", { class: "ing" }, r.ing.map(([q, u, n]) => h("li", null, `${numDE(q)} ${u} ${n}`, (r.ausVorrat || []).some(v => norm(v) === norm(n)) ? h("span", { class: "tag keto", style: "margin-left:6px" }, "im Vorrat") : null))),
-        h("p", { class: "small", style: "margin:0" }, r.steps || ""),
-        h("div", { class: "row" },
-          h("button", { class: "btn sm primary", onclick: () => { Store.set("recipes", uid(), { name: r.name, tags: r.tags, m: r.m, ing: r.ing, steps: r.steps || "", min: r.min || 0, src: "", ai: true, by: me(), t: Date.now() }); toast("Als eigenes Rezept gespeichert"); this.renderAi(); } }, "Als Rezept speichern"),
-          missing.length ? h("button", { class: "btn sm", onclick: () => { missing.forEach(([q, u, n]) => addItem(n, q, u)); toast(`${missing.length} fehlende Zutaten auf der Liste`); } }, `Fehlende Zutaten auf die Liste (${missing.length})`) : null)));
+      kids.push(sec("Vorschlag", [row({ title: result.name, sub: `${result.m[0]} kcal · ${result.m[3]} g KH · ${(result.ausVorrat || []).length} Zutaten aus dem Vorrat`, onclick: () => recipeSheet({ ...result, id: "ai-tmp", ai: true, preview: true }) })]));
     }
-    this.ai.replaceChildren(...kids);
+    fill(this.ai, ...kids);
   },
   async suggest() {
-    const s = settings(); const ph = PHASES[s.phase] || PHASES.keto;
-    const today = dkey(new Date());
+    const s = settings(); const ph = phase(); const today = dkey(new Date());
     const pantry = S.pantry.map(p => `${p.name} (${showQty(Number(p.q), p.u)}${p.mhd ? ", MHD " + p.mhd : ""})`).join("; ") || "leer";
     const prompt = `Du planst Gerichte für ein Paar, das sich ketogen bzw. karnivor ernährt. Schlage genau EIN Gericht für 2 Portionen vor.
-Phase: ${ph.label}. Höchstens ${s.carbLimit} g Netto-Kohlenhydrate pro Person und Tag.${s.phase === "omad" || s.phase === "carniomad" ? " Es ist die einzige Mahlzeit des Tages: proteinreich und sättigend, mindestens 900 kcal pro Portion." : ""}${s.phase === "carniomad" ? " Nur tierische Lebensmittel, Salz erlaubt." : ""}
+Phase: ${ph.label}. Höchstens ${s.carbLimit} g Netto-Kohlenhydrate pro Person und Tag.${isOmad() ? " Es ist die einzige Mahlzeit des Tages: proteinreich und sättigend, mindestens 900 kcal pro Portion." : ""}${s.phase === "carniomad" ? " Nur tierische Lebensmittel, Salz erlaubt." : ""}
 Vorrat (heute ist ${today}): ${pantry}
-Nutze vorrangig den Vorrat, besonders Artikel mit nahem MHD. Fehlende Zutaten dürfen dazukommen, sollen aber in einem deutschen Supermarkt erhältlich sein.
-Das essen wir nicht: ${settings().exclude || "nichts ausgeschlossen"}
+Nutze vorrangig den Vorrat, besonders Artikel mit nahem MHD. Fehlende Zutaten müssen in einem deutschen Supermarkt erhältlich sein.
+Das essen wir nicht: ${s.exclude || "nichts ausgeschlossen"}
 Wunsch: ${(this.wish && this.wish.value.trim()) || "keiner"}
 Nicht vorschlagen (schon vorhanden): ${allRecipes().map(r => r.name).join(", ")}
 Antworte nur mit JSON in genau dieser Form:
-{"name": "Name auf Deutsch", "tags": ["keto"], "m": [kcal, protein_g, fett_g, netto_kh_g], "min": Minuten, "ing": [[Menge, "Einheit", "Zutat"]], "steps": "Zubereitung in höchstens 3 Sätzen", "ausVorrat": ["Zutatennamen, die aus dem Vorrat kommen"]}
+{"name": "Name auf Deutsch", "tags": ["keto"], "m": [kcal, protein_g, fett_g, netto_kh_g], "min": Minuten, "ing": [[Menge, "Einheit", "Zutat"]], "steps": "Zubereitung in höchstens 4 kurzen Sätzen", "ausVorrat": ["Zutatennamen, die aus dem Vorrat kommen"]}
 tags nur aus: keto, karnivor, omad, prep. Einheiten nur aus: ${UNITS.join(", ")}. m-Werte pro Portion als Zahlen.`;
     this.renderAi(null, true);
     try {
@@ -835,399 +1069,386 @@ tags nur aus: keto, karnivor, omad, prep. Einheiten nur aus: ${UNITS.join(", ")}
       r.ing = r.ing.filter(x => Array.isArray(x) && x.length >= 3).map(([q, u, n]) => [Number(q) || 1, UNITS.includes(u) ? u : "Stk", String(n)]);
       r.m = [0, 1, 2, 3].map(i => Math.round(Number(r.m[i]) || 0));
       r.tags = (Array.isArray(r.tags) ? r.tags : []).filter(t => TAGLABEL[t] && t !== "dessert");
+      r.steps = String(r.steps || ""); r.min = Number(r.min) || 0;
       this.renderAi(r);
     } catch (e) {
       const c = e && e.code;
-      if (c === "not_granted") { this.ai.hidden = true; toast("Vorschläge sind für diese Seite nicht freigegeben."); return; }
+      if (c === "not_granted") { fill(this.ai, ); toast("Vorschläge sind für diese Seite nicht freigegeben"); return; }
       this.renderAi(null, false, c === "rate_limited" ? "Gerade zu viele Anfragen. Bitte in ein paar Minuten nochmal versuchen." : "Der Vorschlag hat nicht geklappt. Bitte nochmal versuchen.");
     }
   },
-  form() {
-    const f = { name: h("input", { type: "text", id: "nrName", required: true }), ing: h("textarea", { id: "nrIng", placeholder: "500 g Rinderhack\n4 Stk Eier\n200 ml Sahne" }),
-      steps: h("textarea", { id: "nrSteps", placeholder: "Kurz die Zubereitung" }),
-      src: h("input", { type: "text", id: "nrSrc", inputmode: "url", placeholder: "https://…" }),
-      kcal: h("input", { type: "number", id: "nrKcal", min: 0 }), p: h("input", { type: "number", id: "nrP", min: 0 }), fat: h("input", { type: "number", id: "nrF", min: 0 }), c: h("input", { type: "number", id: "nrC", min: 0, step: "0.5" }) };
-    const tags = ["keto", "karnivor", "omad", "prep"].map(t => h("input", { type: "checkbox", class: "check", id: "nrT" + t, value: t, checked: t === "keto" }));
-    const det = h("details", { class: "card" }, h("summary", { style: "cursor:pointer;font-weight:700" }, "Eigenes Rezept anlegen"),
-      h("form", { class: "stack", onsubmit: e => {
-        e.preventDefault();
-        const ing = f.ing.value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
-          const m = l.match(/^([\d.,]+)\s*([a-zA-ZäöüÄÖÜ]+)?\s+(.+)$/);
-          if (m && (UNITS.includes(m[2]) || !m[2])) return [toNum(m[1]), m[2] || "Stk", m[3]];
-          if (m) return [toNum(m[1]), "Stk", (m[2] + " " + m[3])];
-          return [1, "Stk", l];
-        });
-        Store.set("recipes", uid(), { name: f.name.value.trim(), tags: tags.filter(t => t.checked).map(t => t.value), ing, steps: f.steps.value.trim(), src: /^https?:\/\//.test(f.src.value.trim()) ? f.src.value.trim() : "",
-          m: [toNum(f.kcal.value) || 0, toNum(f.p.value) || 0, toNum(f.fat.value) || 0, toNum(f.c.value) || 0], min: 0, by: me(), t: Date.now() });
-        e.target.reset(); det.open = false; toast("Rezept gespeichert");
-      } },
-        h("label", { class: "f" }, "Name", f.name),
-        h("div", { class: "row" }, tags.map(t => h("label", { class: "row small", for: t.id }, t, TAGLABEL[t.value]))),
-        h("label", { class: "f" }, "Zutaten für 2 Portionen, eine pro Zeile (Menge Einheit Zutat)", f.ing),
-        h("div", { class: "eyebrow" }, "Pro Portion (optional)"),
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "kcal", f.kcal), h("label", { class: "f grow" }, "Protein g", f.p), h("label", { class: "f grow" }, "Fett g", f.fat), h("label", { class: "f grow" }, "Netto-KH g", f.c)),
-        h("label", { class: "f" }, "Zubereitung", f.steps),
-        h("label", { class: "f" }, "Quelle (Link zum Original, optional)", f.src),
-        h("div", { class: "muted small" }, "Rezepte aus dem Internet: nur Zutaten und eine kurze eigene Notiz eintragen und das Original verlinken."),
-        h("button", { class: "btn primary", type: "submit" }, "Rezept speichern")));
-    return det;
-  },
-  update() {
-    const F = [["alle", "Alle"], ["keto", "Keto"], ["karnivor", "Karnivor"], ["omad", "OMAD-tauglich"], ["prep", "Meal-Prep"], ["guenstig", "Günstig"], ["eigene", "Eigene"]];
-    this.chips.replaceChildren(...F.map(([k, l]) => h("button", { class: "chip", "aria-pressed": this.filter === k ? "true" : "false", onclick: () => { this.filter = k; this.update(); } }, l)));
-    const q = norm(this.q);
-    const rs = allRecipes().filter(r => this.filter === "alle" || (this.filter === "eigene" ? r.own : this.filter === "guenstig" ? (c => c.ok && c.perPortion <= 3.5)(recipeCost(r)) : (r.tags || []).includes(this.filter)))
-      .filter(r => !q || norm(r.name).includes(q) || r.ing.some(i => norm(i[2]).includes(q)));
-    const s = settings();
-    if (!rs.length) { this.list.replaceChildren(h("div", { class: "card empty" }, this.filter === "eigene" ? "Noch keine eigenen Rezepte. Unten kannst du eins anlegen." : "Kein Rezept gefunden.")); return; }
-    this.openIds ||= new Set();
-    this.list.replaceChildren(...rs.map(r => h("details", { class: "card recipe", open: this.openIds.has(r.id), ontoggle: e => e.target.open ? this.openIds.add(r.id) : this.openIds.delete(r.id) },
-      h("summary", null,
-        h("div", { class: "between" }, h("strong", null, r.name), h("span", { class: "row" }, (r.tags || []).map(t => h("span", { class: "tag " + t }, TAGLABEL[t] || t)))),
-        r.m ? h("div", { class: "macros" }, h("span", null, h("b", null, r.m[0]), " kcal"), h("span", null, "P ", h("b", null, r.m[1])), h("span", null, "F ", h("b", null, r.m[2])),
-          h("span", null, "KH ", h("b", { class: carbClass(r.m[3], s.carbLimit) }, r.m[3], " g")), r.min ? h("span", null, r.min >= 120 ? Math.round(r.min / 60) + " h" : r.min + " min") : null, (c => c.ok ? h("span", null, "≈ ", h("b", null, euro(c.perPortion))) : null)(recipeCost(r)), h("span", null, "pro Portion")) : null),
-      h("ul", { class: "ing" }, r.ing.map(([q, u, n]) => h("li", null, `${numDE(q)} ${u} ${n}`))),
-      r.steps ? h("p", { class: "small", style: "margin:0" }, r.steps) : null,
-      r.src ? h("a", { href: r.src, target: "_blank", rel: "noopener noreferrer", class: "small" }, "Original-Rezept öffnen") : null,
-      this.prepRow(r),
-      h("div", { class: "row" },
-        h("button", { class: "btn sm primary", onclick: () => { r.ing.forEach(([q, u, n]) => addItem(n, Number(q), u)); toast("Zutaten auf der Liste"); } }, "Zutaten auf die Liste"),
-        h("button", { class: "btn sm", onclick: () => { addToPlan(dkey(new Date()), r.id); toast("Für heute eingeplant"); } }, "Heute einplanen"),
-        r.own ? h("button", { class: "btn sm danger ghost", onclick: () => this.askDelete(r) }, "Löschen") : null)
-    )));
-  },
-  prepRow(r) {
-    this.prepN ||= {};
-    const n = h("input", { type: "number", class: "mini", id: "mp-" + r.id, min: 2, max: 30, step: 1, value: this.prepN[r.id] || 6, "aria-label": "Portionen für Meal-Prep", oninput: e => { this.prepN[r.id] = e.target.value; } });
-    const portions = () => Math.max(1, Math.round(toNum(n.value) || 6));
-    return h("div", { class: "row small", style: "border-top:1px solid var(--line);padding-top:8px" },
-      h("span", { class: "muted" }, "Meal-Prep"), n, h("span", { class: "muted" }, "Portionen"),
-      h("button", { class: "btn sm", onclick: () => { const f = portions() / 2; r.ing.forEach(([q, u, nm]) => addItem(nm, Math.round(Number(q) * f * 10) / 10, u)); toast(`Zutaten für ${portions()} Portionen auf der Liste`); } }, "Zutaten auf die Liste"),
-      h("button", { class: "btn sm", onclick: () => { Store.set("pantry", uid(), { name: r.name + " (Portion)", q: portions(), u: "Stk", place: "Tiefkühler", mhd: dkey(addDays(new Date(), 90)), t: Date.now() }); toast(`${portions()} Portionen im Tiefkühler`); } }, "Eingefroren"));
-  },
-  askDelete(r) {
-    if (this.confirmId === r.id) { Store.del("recipes", r.id); this.confirmId = null; toast("Rezept gelöscht"); return; }
-    this.confirmId = r.id; toast("Zum Löschen nochmal auf „Löschen“ tippen"); setTimeout(() => { this.confirmId = null; }, 4000);
-  },
 };
+
+function addToPlan(dateKey, rid) {
+  const meals = [...planOf(dateKey), { rid, k: uid() }];
+  Store.set("plan", dateKey, { meals });
+  const q = S.queue.find(x => x.rid === rid); if (q) Store.del("queue", q.id);
+}
+function pickerSheet(dateKey) {
+  const s = settings(); const d = parseKey(dateKey);
+  const search = h("input", { type: "text", id: "pkSearch", placeholder: "Suchen" });
+  const list = h("div");
+  const pref = s.phase === "carniomad" ? "karnivor" : s.phase === "omad" ? "omad" : "keto";
+  openSheet(`${WDL[d.getDay()]}, ${fmtD(d)}`, close => {
+    const draw = () => {
+      const q = norm(search.value);
+      const all = allRecipes().filter(r => (r.own || !isExcluded(r)) && (!q || norm(r.name).includes(q) || r.ing.some(i => norm(i[2]).includes(q)))).sort((a, b) => a.name.localeCompare(b.name, "de"));
+      const ids = new Set(all.map(r => r.id)), qIds = new Set(S.queue.map(x => x.rid));
+      const queued = all.filter(r => qIds.has(r.id));
+      const fit = all.filter(r => (r.tags || []).includes(pref) && !qIds.has(r.id));
+      const fitIds = new Set(fit.map(r => r.id));
+      const rest = all.filter(r => !fitIds.has(r.id) && !qIds.has(r.id)); void ids;
+      const mk = r => row({ title: r.name, sub: `${r.m[0]} kcal · ${r.m[3]} g KH`, noChev: true, trail: h("span", { html: ICON.plus, style: "display:flex;width:20px;color:var(--tint)" }), onclick: () => { addToPlan(dateKey, r.id); close(); toast(`${r.name} eingeplant`); } });
+      fill(list, queued.length ? sec("Merkliste", queued.map(mk)) : null, fit.length ? sec(`Passend: ${TAGLABEL[pref]}`, fit.map(mk)) : null, rest.length ? sec("Weitere", rest.map(mk)) : null,
+        !all.length ? h("div", { class: "empty" }, "Kein Rezept gefunden.") : null);
+    };
+    search.addEventListener("input", draw); draw();
+    return [h("div", { class: "search", style: "margin-top:4px" }, h("span", { html: ICON.search, style: "display:flex" }), search), list];
+  }, { barTitle: "Gericht wählen" });
+}
+
+function recipeSheet(r) {
+  const s = settings(); let portions = 2;
+  const ingBox = h("div"), costBox = h("span");
+  const drawIng = () => {
+    const f = portions / 2;
+    fill(ingBox, h("div", { class: "group" }, r.ing.map(([q, u, n]) => row({ title: n, detail: showQty(Math.round(Number(q) * f * 10) / 10, u), badges: inPantry(n) ? h("span", { class: "badge green" }, "im Vorrat") : null }))));
+    const c = recipeCost(r); costBox.textContent = c.ok ? `ca. ${euro(c.perPortion * portions)} für ${portions} Portionen (Schätzung)` : "";
+  };
+  drawIng();
+  const queued = S.queue.find(x => x.rid === r.id);
+  const dateIn = h("input", { type: "date", id: "rsDate", value: dkey(new Date()) });
+  openSheet(r.name, close => [
+    h("h2", null, r.name),
+    h("div", { class: "chiprow", style: "margin-bottom:10px" }, (r.tags || []).map(t => h("span", { class: "badge" + (t === "keto" ? " green" : t === "karnivor" ? " red" : t === "omad" ? " orange" : "") }, TAGLABEL[t] || t)),
+      r.min ? h("span", { class: "badge" }, r.min >= 120 ? `${Math.round(r.min / 60)} h` : `${r.min} min`) : null, r.ai ? h("span", { class: "badge" }, "Vorschlag von Claude") : null),
+    h("div", { class: "macros4" }, h("div", null, h("b", null, r.m[0]), h("span", null, "kcal")), h("div", null, h("b", null, r.m[1]), h("span", null, "Protein g")),
+      h("div", null, h("b", null, r.m[2]), h("span", null, "Fett g")), h("div", null, h("b", { class: carbCls(r.m[3], s.carbLimit) }, r.m[3]), h("span", null, "Netto-KH g"))),
+    h("div", { class: "sec-f" }, "pro Portion, Richtwerte"),
+    h("section", { class: "sec" }, h("div", { class: "sec-h" }, h("span", null, "Zutaten"), stepper(portions, 1, 30, v => { portions = v; drawIng(); }, "Portionen")), ingBox, h("div", { class: "sec-f" }, h("span", null, "Portionen mit + und − anpassen. "), costBox)),
+    r.steps ? h("section", { class: "sec" }, h("div", { class: "sec-h" }, "Zubereitung"), h("div", { class: "card", style: "line-height:1.45" }, r.steps)) : null,
+    r.preview ? h("div", { class: "btn-row" },
+      h("button", { class: "btn", type: "button", onclick: async () => { const id = uid(); const { preview, id: _x, ...data } = r; await Store.set("recipes", id, { ...data, ai: true, by: meIdx(), t: Date.now() }); close(); toast("Als eigenes Rezept gesichert"); } }, "Als Rezept sichern"),
+      h("button", { class: "btn gray", type: "button", onclick: () => { const miss = r.ing.filter(([, , n]) => !inPantry(n)); miss.forEach(([q, u, n]) => addItem(n, q, u)); toast(`${miss.length} fehlende Zutaten auf der Liste`); } }, "Fehlende Zutaten auf die Liste"))
+    : [
+      h("div", { class: "btn-row" }, h("button", { class: "btn", type: "button", onclick: () => cookMode(r, portions) }, "Kochen")),
+      sec("", [
+        h("div", { class: "cell frow" }, h("span", null, "Einplanen am"), dateIn),
+        h("button", { class: "cell link", type: "button", onclick: () => { addToPlan(dateIn.value || dkey(new Date()), r.id); close(); toast(`Für ${fmtLong(parseKey(dateIn.value || dkey(new Date())))} eingeplant`); } }, "Einplanen"),
+      ]),
+      sec("", [
+        h("button", { class: "cell link", type: "button", onclick: () => { if (queued) Store.del("queue", queued.id); else Store.set("queue", uid(), { rid: r.id, t: Date.now(), by: meIdx() }); close(); toast(queued ? "Von der Merkliste entfernt" : "Auf der Merkliste"); } }, queued ? "Von der Merkliste entfernen" : "Merken"),
+        h("button", { class: "cell link", type: "button", onclick: () => { const f = portions / 2; r.ing.forEach(([q, u, n]) => addItem(n, Math.round(Number(q) * f * 10) / 10, u)); toast(`Zutaten für ${portions} Portionen auf der Liste`); } }, "Zutaten auf die Einkaufsliste"),
+        h("button", { class: "cell link", type: "button", onclick: () => { Store.set("pantry", uid(), { name: r.name + " (Portion)", q: portions, u: "Stk", place: "Tiefkühler", mhd: dkey(addDays(new Date(), 90)), t: Date.now() }); toast(`${portions} Portionen im Tiefkühler`); } }, `Vorgekocht: ${portions} Portionen einfrieren`),
+      ], { foot: "Meal-Prep: Portionen oben einstellen, Zutaten einkaufen, nach dem Kochen einfrieren. Haltbarkeit 90 Tage." }),
+      r.src ? sec("", h("a", { class: "cell link", href: r.src, target: "_blank", rel: "noopener noreferrer" }, "Original-Rezept öffnen")) : null,
+      r.own ? sec("", h("button", { class: "cell danger", type: "button", onclick: e => {
+        if (e.currentTarget.dataset.sure) { Store.del("recipes", r.id); close(); toast("Rezept gelöscht"); return; }
+        e.currentTarget.dataset.sure = "1"; e.currentTarget.textContent = "Wirklich löschen? Nochmal tippen";
+      } }, "Rezept löschen")) : null,
+    ],
+  ], { barTitle: "" });
+}
+
+function cookMode(r, portions) {
+  const f = portions / 2; let lock = null;
+  try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(l => lock = l).catch(() => {}); } catch {}
+  const steps = String(r.steps || "").split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean);
+  const el = h("div", { class: "cook", role: "dialog", "aria-modal": "true", "aria-label": "Kochmodus " + r.name },
+    h("div", { class: "in" },
+      h("div", { class: "between", style: "display:flex;justify-content:space-between;align-items:center" }, h("span", { class: "cell-sub" }, `Kochmodus · ${portions} Portionen · Bildschirm bleibt an`),
+        h("button", { class: "btn gray", type: "button", style: "width:auto;min-height:36px;font-size:15px", onclick: () => { try { lock && lock.release(); } catch {} el.remove(); document.body.classList.remove("locked"); } }, "Fertig")),
+      h("h2", null, r.name),
+      h("div", { class: "ing" }, r.ing.map(([q, u, n]) => { const b = h("button", { type: "button", onclick: () => b.classList.toggle("got") }, h("b", { style: "min-width:90px;font-variant-numeric:tabular-nums" }, showQty(Math.round(Number(q) * f * 10) / 10, u)), n); return b; })),
+      steps.length ? h("ol", null, steps.map(x => h("li", null, x))) : null));
+  document.body.classList.add("locked");
+  document.body.append(el);
+}
+
+function recipeForm() {
+  const f = { name: h("input", { type: "text", id: "nrName", placeholder: "Name" }), ing: h("textarea", { class: "ta", id: "nrIng", placeholder: "500 g Rinderhack\n4 Eier\n200 ml Sahne" }),
+    steps: h("textarea", { class: "ta", id: "nrSteps", placeholder: "Kurz die Zubereitung" }), src: h("input", { type: "text", id: "nrSrc", inputmode: "url", placeholder: "https://…" }),
+    kcal: h("input", { type: "text", id: "nrKcal", inputmode: "numeric", placeholder: "0" }), p: h("input", { type: "text", id: "nrP", inputmode: "numeric", placeholder: "0" }),
+    fat: h("input", { type: "text", id: "nrF", inputmode: "numeric", placeholder: "0" }), c: h("input", { type: "text", id: "nrC", inputmode: "decimal", placeholder: "0" }) };
+  const tags = ["keto", "karnivor", "omad", "prep"].map(t => ({ t, el: h("input", { type: "checkbox", class: "switch", id: "nrT" + t, checked: t === "keto" }) }));
+  openSheet("Neues Rezept", [
+    h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell fstack" }, f.name)),
+    sec("Zutaten für 2 Portionen", h("div", { class: "cell" }, f.ing), { foot: "Eine Zutat pro Zeile, z. B. „500 g Rinderhack“." }),
+    sec("Pro Portion (optional)", [frow("kcal", f.kcal), frow("Protein g", f.p), frow("Fett g", f.fat), frow("Netto-KH g", f.c)]),
+    sec("Passt zu", tags.map(({ t, el }) => h("label", { class: "cell frow" }, h("span", { style: "flex:1" }, TAGLABEL[t]), el))),
+    sec("Zubereitung", h("div", { class: "cell" }, f.steps)),
+    sec("Quelle", frow("Link", f.src), { foot: "Aus dem Internet: nur Zutaten und eine kurze eigene Notiz eintragen und das Original verlinken." }),
+  ], { cancel: "Abbrechen", focus: "#nrName", action: { label: "Sichern", run: close => {
+    if (!f.name.value.trim()) { f.name.focus(); return; }
+    const ing = f.ing.value.split("\n").map(l => l.trim()).filter(Boolean).map(l => { const p = parseEntry(l); return [p.q ?? 1, p.u || "Stk", p.name]; });
+    Store.set("recipes", uid(), { name: f.name.value.trim(), tags: tags.filter(x => x.el.checked).map(x => x.t), ing, steps: f.steps.value.trim(),
+      src: /^https?:\/\//.test(f.src.value.trim()) ? f.src.value.trim() : "", m: [toNum(f.kcal.value) || 0, toNum(f.p.value) || 0, toNum(f.fat.value) || 0, toNum(f.c.value) || 0], min: 0, by: meIdx(), t: Date.now() });
+    close(); toast("Rezept gesichert");
+  } } });
+}
 
 // ============================================================
 // VORRAT
 // ============================================================
 views.vorrat = {
   mount(root) {
-    const name = h("input", { type: "text", id: "vrName", placeholder: "z. B. Rinderhack", "aria-label": "Artikel" });
-    const q = h("input", { type: "text", id: "vrQ", inputmode: "decimal", placeholder: "Menge", "aria-label": "Menge", style: "max-width:90px" });
-    const u = h("select", { id: "vrU", "aria-label": "Einheit", style: "max-width:90px" }, UNITS.map(x => h("option", null, x)));
-    const place = h("select", { id: "vrPlace", "aria-label": "Lagerort" }, PLACES.map(x => h("option", null, x)));
-    const mhd = h("input", { type: "date", id: "vrMhd", "aria-label": "Mindesthaltbarkeit" });
-    this.sum = h("div");
-    this.list = h("div", { class: "stack" });
-    root.append(h("h2", null, "Vorrat"), this.sum,
-      h("form", { class: "card", onsubmit: e => {
-        e.preventDefault(); if (!name.value.trim()) return;
-        Store.set("pantry", uid(), { name: name.value.trim(), q: toNum(q.value) ?? 1, u: u.value, place: place.value, mhd: mhd.value || "", t: Date.now() });
-        name.value = ""; q.value = ""; mhd.value = ""; name.focus();
-      } },
-        h("div", { class: "row" }, h("div", { class: "grow" }, name), q, u),
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Lagerort", place), h("label", { class: "f grow" }, "MHD", mhd), h("button", { class: "btn primary", type: "submit", style: "align-self:end" }, "Einlagern"))),
-      this.list);
+    this.out = h("div");
+    root.append(largeTitle("Vorrat", h("button", { class: "round", "aria-label": "Artikel einlagern", html: ICON.plus, onclick: () => pantrySheet() })), this.out);
   },
   update() {
     const today = dkey(new Date()), soon = dkey(addDays(new Date(), 3));
     const st = p => !p.mhd ? "" : p.mhd < today ? "abgelaufen" : p.mhd <= soon ? "bald" : "";
     const warn = S.pantry.filter(p => st(p));
-    this.sum.replaceChildren(warn.length ? h("div", { class: "note" }, h("strong", null, `${warn.length} ${warn.length === 1 ? "Artikel läuft" : "Artikel laufen"} in den nächsten 3 Tagen ab oder sind abgelaufen: `), warn.map(p => p.name).join(", ")) : "");
-    if (!S.pantry.length) { this.list.replaceChildren(h("div", { class: "card empty" }, h("strong", null, "Noch nichts eingelagert."), "Beim Abschließen eines Einkaufs landen Artikel automatisch hier, oder du trägst sie oben ein.")); return; }
-    this.list.replaceChildren(...PLACES.map(pl => {
-      const l = S.pantry.filter(p => (p.place || "Vorratsschrank") === pl).sort((a, b) => (a.mhd || "9999").localeCompare(b.mhd || "9999") || a.name.localeCompare(b.name, "de"));
-      if (!l.length) return "";
-      return h("div", { class: "card" }, h("h3", null, pl), h("div", null, l.map(p => {
-        const s = st(p);
-        return h("div", { class: "item" },
-          h("div", { class: "name" }, h("span", null, p.name), " ", s ? h("span", { class: "tag " + (s === "abgelaufen" ? "warn" : "soon") }, s) : null,
-            p.mhd ? h("small", null, "MHD " + fmtD(parseKey(p.mhd)) + parseKey(p.mhd).getFullYear()) : null),
-          h("span", { class: "qty" }, showQty(Number(p.q), p.u)),
-          h("button", { class: "btn sm", "aria-label": "Eine Einheit verbraucht", title: "Verbraucht", onclick: () => {
-            const step = p.u === "g" || p.u === "ml" ? 100 : 1; const nq = (Number(p.q) || 0) - step;
-            nq > 0 ? Store.update("pantry", p.id, { q: nq }) : Store.del("pantry", p.id);
-          } }, p.u === "g" || p.u === "ml" ? "−100" : "−1"),
-          h("button", { class: "btn sm", onclick: () => { addItem(p.name, null, "", "vorrat"); toast(p.name + " auf die Liste gesetzt"); } }, "Nachkaufen"),
-          h("button", { class: "x", "aria-label": p.name + " entfernen", onclick: () => Store.del("pantry", p.id) }, "×"));
-      })));
-    }));
+    if (!S.pantry.length) { fill(this.out, sec("", h("div", { class: "empty" }, h("strong", null, "Noch nichts eingelagert."), h("span", null, "Beim Abschließen eines Einkaufs kommen Artikel automatisch hierher. Oder oben rechts auf + tippen.")))); return; }
+    fill(this.out, 
+      warn.length ? h("div", { class: "banner", style: "margin-top:6px" }, h("strong", null, `${warn.length} ${warn.length === 1 ? "Artikel läuft" : "Artikel laufen"} bald ab: `), warn.map(p => p.name).join(", ")) : null,
+      ...PLACES.map(pl => {
+        const l = S.pantry.filter(p => (PLACES.includes(p.place) ? p.place : "Vorratsschrank") === pl).sort((a, b) => (a.mhd || "9999").localeCompare(b.mhd || "9999") || a.name.localeCompare(b.name, "de"));
+        if (!l.length) return "";
+        return sec(pl, l.map(p => { const s = st(p);
+          return swipeable(row({ title: p.name, detail: showQty(Number(p.q), p.u),
+            sub: p.mhd ? h("span", { class: s === "abgelaufen" ? "bad" : s === "bald" ? "warn" : "" }, (s === "abgelaufen" ? "abgelaufen · " : "") + "MHD " + fmtD(parseKey(p.mhd)) + parseKey(p.mhd).getFullYear()) : null,
+            onclick: () => pantrySheet(p) }), () => deleteWithUndo("pantry", p));
+        }));
+      }));
   },
 };
+function pantrySheet(p) {
+  const isNew = !p;
+  p = p || { name: "", q: 1, u: "Stk", place: "Kühlschrank", mhd: "" };
+  const name = h("input", { type: "text", id: "pvName", value: p.name, placeholder: "z. B. Rinderhack" });
+  const q = h("input", { type: "text", id: "pvQ", inputmode: "decimal", value: p.q != null ? numDE(Number(p.q)) : "" });
+  const u = h("select", { id: "pvU" }, UNITS.map(x => h("option", { selected: x === p.u ? "selected" : null }, x)));
+  const mhd = h("input", { type: "date", id: "pvMhd", value: p.mhd || "" });
+  let place = PLACES.includes(p.place) ? p.place : "Kühlschrank";
+  const seg = h("div", { class: "seg" });
+  const drawSeg = () => fill(seg, ...PLACES.map(x => h("button", { type: "button", "aria-pressed": place === x ? "true" : "false", onclick: () => { place = x; drawSeg(); } }, x === "Vorratsschrank" ? "Schrank" : x)));
+  drawSeg();
+  openSheet(isNew ? "Einlagern" : "Vorrat", close => [
+    h("div", { style: "margin:8px 0 14px" }, seg),
+    h("div", { class: "group" }, frow("Name", name), frow("Menge", q), frow("Einheit", u), frow("MHD", mhd)),
+    isNew ? null : sec("", [
+      h("button", { class: "cell link", type: "button", onclick: () => { addItem(p.name, null, "", "vorrat"); close(); toast(`${p.name} auf der Liste`); } }, "Nachkaufen"),
+      h("button", { class: "cell danger", type: "button", onclick: () => { close(); deleteWithUndo("pantry", p); } }, "Aufgebraucht / Löschen"),
+    ]),
+  ], { cancel: "Abbrechen", focus: isNew ? "#pvName" : null, action: { label: isNew ? "Sichern" : "Fertig", run: close => {
+    if (!name.value.trim()) { name.focus(); return; }
+    const data = { name: name.value.trim(), q: toNum(q.value) ?? 1, u: u.value, place, mhd: mhd.value || "", t: p.t || Date.now() };
+    if (isNew) Store.set("pantry", uid(), data); else Store.update("pantry", p.id, data);
+    close();
+  } } });
+}
 
 // ============================================================
-// FASTEN
+// ICH
 // ============================================================
 function fmtDur(ms) { const m = Math.max(0, Math.floor(ms / 60000)); return `${Math.floor(m / 60)}:${pad(m % 60)}`; }
 function streak(person, goal) {
-  const done = S.fasts.filter(f => f.person === person && f.end && (f.end - f.start) / 36e5 >= (f.goal || goal));
-  const days = new Set(done.map(f => dkey(new Date(f.end))));
-  let n = 0, d = new Date();
-  if (!days.has(dkey(d))) d = addDays(d, -1);
+  const days = new Set(S.fasts.filter(f => f.person === person && f.end && (f.end - f.start) / 36e5 >= (f.goal || goal)).map(f => dkey(new Date(f.end))));
+  let n = 0, d = new Date(); if (!days.has(dkey(d))) d = addDays(d, -1);
   while (days.has(dkey(d))) { n++; d = addDays(d, -1); }
   return n;
 }
-views.fasten = {
+const ELEC = [["salz", "Salz"], ["kalium", "Kalium"], ["magnesium", "Magnesium"]];
+const WHEN = ["morgens", "mittags", "abends", "zur Mahlzeit"];
+views.ich = {
+  p: null,
   mount(root) {
-    this.info = h("div");
-    this.cards = h("div", { class: "grid2" });
-    this.hist = h("div", { class: "card" });
-    this.mOut = h("div", { class: "grid2" });
-    this.sOut = h("div");
-    const P = persons();
-    const mWho = h("select", { id: "msWho", "aria-label": "Person" }, [0, 1].map(i => h("option", { value: i, selected: me() === i ? "selected" : null }, P[i])));
-    const mKg = h("input", { type: "text", id: "msKg", inputmode: "decimal", placeholder: "kg" });
-    const mKet = h("input", { type: "text", id: "msKet", inputmode: "decimal", placeholder: "mmol/l" });
-    const measureForm = h("form", { class: "card", onsubmit: e => {
-      e.preventDefault(); const kg = toNum(mKg.value), ket = toNum(mKet.value);
-      if (kg == null && ket == null) { mKg.focus(); return; }
-      Store.set("measures", uid(), { person: Number(mWho.value), date: dkey(new Date()), kg, ket, t: Date.now() });
-      mKg.value = ""; mKet.value = ""; toast("Messwert gespeichert");
-    } }, h("h3", null, "Messwerte"),
-      h("div", { class: "row" }, h("label", { class: "f grow" }, "Wer", mWho), h("label", { class: "f grow" }, "Gewicht (kg)", mKg), h("label", { class: "f grow" }, "Ketone Blut (mmol/l)", mKet)),
-      h("button", { class: "btn primary", type: "submit" }, "Eintragen"), this.mOut);
-    const f = { name: h("input", { type: "text", id: "spName", placeholder: "z. B. Vitamin D3/K2", required: true }), brand: h("input", { type: "text", id: "spBrand", placeholder: "Hersteller" }),
-      dose: h("input", { type: "text", id: "spDose", placeholder: "z. B. 1 Kapsel" }),
-      when: h("select", { id: "spWhen" }, ["morgens", "mittags", "abends", "zur Mahlzeit"].map(x => h("option", null, x))),
-      who: h("select", { id: "spWho" }, h("option", { value: "both" }, "beide"), [0, 1].map(i => h("option", { value: i }, P[i]))),
-      stock: h("input", { type: "number", id: "spStock", min: 0, placeholder: "z. B. 120" }), perDay: h("input", { type: "number", id: "spPer", min: 0, step: "0.5", value: 1 }) };
-    const suppForm = h("details", null, h("summary", { style: "cursor:pointer;font-weight:600" }, "Supplement hinzufügen"),
-      h("form", { class: "stack", style: "padding-top:8px", onsubmit: e => {
-        e.preventDefault(); if (!f.name.value.trim()) return;
-        Store.set("supps", uid(), { name: f.name.value.trim(), brand: f.brand.value.trim(), dose: f.dose.value.trim(), when: f.when.value,
-          who: f.who.value === "both" ? "both" : Number(f.who.value), stock: toNum(f.stock.value), perDay: toNum(f.perDay.value) || 1, t: Date.now() });
-        e.target.reset(); f.perDay.value = 1; toast("Supplement gespeichert");
-      } },
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Name", f.name), h("label", { class: "f grow" }, "Hersteller", f.brand)),
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Dosis", f.dose), h("label", { class: "f grow" }, "Wann", f.when), h("label", { class: "f grow" }, "Für", f.who)),
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Bestand (Kapseln/Portionen)", f.stock), h("label", { class: "f grow" }, "Pro Tag und Person", f.perDay)),
-        h("button", { class: "btn primary", type: "submit" }, "Speichern")));
-    root.append(h("h2", null, "Fasten, Supplemente und Werte"), this.info, this.cards,
-      h("div", { class: "card" }, h("h3", null, "Supplemente"), this.sOut, suppForm), measureForm, this.hist);
-  },
-  renderSupps() {
-    const P = persons();
-    if (!S.supps.length) { this.sOut.replaceChildren(h("div", { class: "muted small" }, "Noch keine Supplemente eingetragen. Mit Bestand und Tagesdosis rechnet die App aus, wann nachbestellt werden muss. Das tägliche Abhaken zieht den Bestand automatisch ab.")); return; }
-    this.sOut.replaceChildren(h("div", null, S.supps.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(x => {
-      const ppl = x.who === "both" ? 2 : 1;
-      const days = x.stock != null && x.perDay ? Math.floor(Number(x.stock) / (Number(x.perDay) * ppl)) : null;
-      const stock = h("input", { type: "number", class: "mini", id: "sps-" + x.id, min: 0, value: x.stock ?? "", "aria-label": "Bestand " + x.name, onchange: e => Store.update("supps", x.id, { stock: toNum(e.target.value) }) });
-      return h("div", { class: "item" },
-        h("div", { class: "name" }, h("span", null, x.name), " ", days != null && days <= 7 ? h("span", { class: "tag soon" }, "bald nachbestellen") : null,
-          h("small", null, [x.brand, x.dose, x.when, x.who === "both" ? "beide" : P[x.who], days != null ? `reicht noch ca. ${days} Tage` : ""].filter(Boolean).join(" · "))),
-        stock,
-        h("button", { class: "btn sm", onclick: () => { addItem(x.name, null, "", "supp", [x.brand, "Supplement"].filter(Boolean).join(" · "), "Drogerie & Haushalt"); toast(x.name + " auf der Liste"); } }, "Nachkaufen"),
-        h("button", { class: "x", "aria-label": x.name + " löschen", onclick: () => Store.del("supps", x.id) }, "×"));
-    })));
-  },
-  renderMeasures() {
-    const P = persons();
-    this.mOut.replaceChildren(...[0, 1].map(pi => {
-      const ms = S.measures.filter(m => m.person === pi).sort((a, b) => a.t - b.t);
-      const kgs = ms.filter(m => m.kg != null); const kets = ms.filter(m => m.ket != null);
-      const last = kgs[kgs.length - 1], first = kgs[0], ket = kets[kets.length - 1];
-      const ketTxt = ket ? (ket.ket < 0.5 ? "keine Ketose" : ket.ket <= 3 ? "Ketose" : "hoch, beobachten") : "";
-      return h("div", { class: "stack", style: "min-width:0" },
-        h("div", { class: "between" }, h("strong", null, P[pi]), last ? h("span", { class: "num" }, h("b", null, numDE(last.kg) + " kg"), first && first !== last ? h("span", { class: "muted small" }, ` (${last.kg - first.kg > 0 ? "+" : ""}${numDE(last.kg - first.kg)} seit ${fmtD(parseKey(first.date))})`) : null) : h("span", { class: "muted small" }, "noch kein Gewicht")),
-        sparkline(kgs.slice(-30).map(m => Number(m.kg))),
-        ket ? h("div", { class: "small num" }, "Ketone zuletzt: ", h("b", { class: ket.ket < 0.5 ? "carb-mid" : ket.ket <= 3 ? "carb-ok" : "carb-bad" }, numDE(ket.ket) + " mmol/l"), ` · ${ketTxt} · ${fmtD(parseKey(ket.date))}`) : null,
-        ms.length ? h("div", { class: "small muted" }, ms.slice(-3).reverse().map(m => h("div", { class: "between" }, h("span", { class: "num" }, `${fmtD(parseKey(m.date))} ${m.kg != null ? numDE(m.kg) + " kg" : ""} ${m.ket != null ? numDE(m.ket) + " mmol/l" : ""}`),
-          h("button", { class: "x", "aria-label": "Messwert löschen", onclick: () => Store.del("measures", m.id) }, "×")))) : null);
-    }));
+    if (this.p == null) this.p = meIdx();
+    this.seg = h("div", { class: "seg", style: "margin:4px 0 0" });
+    this.out = h("div");
+    root.append(largeTitle("Ich"), this.seg, this.out);
   },
   update() {
-    const s = settings(); const ph = PHASES[s.phase] || PHASES.keto; const P = persons();
-    const tk = dkey(new Date());
-    this.info.replaceChildren(h("div", { class: "note info" },
-      h("strong", null, `Fastenziel: ${ph.goal} Stunden`), ` (${ph.label}). `,
-      s.phase === "keto" ? "In der Einstiegsphase reicht ein Essensfenster von etwa 12 Stunden. OMAD kommt später." : "Pro Tag ist eine Mahlzeit vorgesehen.",
-      " Elektrolyte nicht vergessen: Salz, Kalium, Magnesium."));
-    this.cards.replaceChildren(...[0, 1].map(pi => {
-      const act = S.fasts.find(f => f.person === pi && !f.end);
-      const el = act ? Date.now() - act.start : 0;
-      const goal = (act && act.goal) || ph.goal;
-      const pct = Math.min(100, el / (goal * 36e5) * 100);
-      const elecDoc = S.elec.find(e => e.id === tk) || {};
-      const mine = elecDoc["p" + pi] || {};
-      const startAt = h("input", { type: "datetime-local", id: "fsStart" + pi, "aria-label": "Beginn" });
-      return h("div", { class: "card" },
-        h("div", { class: "between" }, h("h3", null, P[pi]), h("span", { class: "tag omad" }, `Serie: ${streak(pi, ph.goal)} Tage`)),
-        act ? [
-          h("div", null, h("div", { class: "fast-time" }, fmtDur(el)), h("div", { class: "muted small" }, `seit ${new Date(act.start).toLocaleString("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" })} · Ziel ${goal} h`)),
-          h("div", { class: "bar" + (pct >= 100 ? " butter" : "") }, h("i", { style: `width:${pct}%` })),
-          h("div", { class: "small " + (pct >= 100 ? "carb-ok" : "muted") }, pct >= 100 ? "Ziel erreicht." : `Noch ${fmtDur(goal * 36e5 - el)} bis zum Ziel.`),
-          h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => Store.update("fasts", act.id, { end: Date.now() }) }, "Fasten beenden (Essen)"),
-            h("button", { class: "btn sm ghost danger", onclick: () => Store.del("fasts", act.id) }, "Verwerfen"))
-        ] : [
-          h("div", { class: "muted" }, "Gerade im Essensfenster."),
-          h("label", { class: "f" }, "Beginn (leer = jetzt)", startAt),
-          h("button", { class: "btn primary", onclick: () => {
-            const t = startAt.value ? new Date(startAt.value).getTime() : Date.now();
-            Store.set("fasts", uid(), { person: pi, start: Math.min(t, Date.now()), end: null, goal: ph.goal });
-          } }, "Fasten starten")
-        ],
-        h("div", { class: "eyebrow" }, "Heute eingenommen"),
-        h("div", { class: "chips" }, [["salz", "Salz", null], ["kalium", "Kalium", null], ["magnesium", "Magnesium", null],
-          ...S.supps.filter(x => (x.who === "both" || x.who === pi) && !/^(salz|kalium|magnesium)$/i.test(x.name)).map(x => [x.id, x.name, x])].map(([k, l, sp]) =>
-          h("button", { class: "chip", "aria-pressed": mine[k] ? "true" : "false", title: sp ? [sp.brand, sp.dose, sp.when].filter(Boolean).join(" · ") : null, onclick: () => {
-            const { id, ...rest } = elecDoc; const on = !mine[k];
-            Store.set("elec", tk, { ...rest, ["p" + pi]: { ...mine, [k]: on } });
-            if (sp && sp.stock != null && sp.perDay) Store.update("supps", sp.id, { stock: Math.max(0, Number(sp.stock) + (on ? -1 : 1) * Number(sp.perDay)) });
-          } }, (mine[k] ? "✓ " : "") + l)))
-      );
-    }));
-    if (!(document.activeElement && this.sOut.contains(document.activeElement))) this.renderSupps();
-    this.renderMeasures();
-    const done = S.fasts.filter(f => f.end).sort((a, b) => b.end - a.end).slice(0, 14);
-    this.hist.replaceChildren(h("h3", null, "Verlauf"), done.length ? h("div", { style: "overflow-x:auto" }, h("table", { class: "t" },
-      h("thead", null, h("tr", null, h("th", null, "Wer"), h("th", null, "Ende"), h("th", { class: "r" }, "Dauer"), h("th", { class: "r" }, "Ziel"), h("th", null, ""))),
-      h("tbody", null, done.map(f => { const hrs = (f.end - f.start) / 36e5; return h("tr", null,
-        h("td", null, P[f.person] || "?"), h("td", null, new Date(f.end).toLocaleString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })),
-        h("td", { class: "r" }, fmtDur(f.end - f.start)), h("td", { class: "r " + (hrs >= (f.goal || 0) ? "carb-ok" : "carb-mid") }, (hrs >= (f.goal || 0) ? "✓ " : "") + (f.goal || "–") + " h"),
-        h("td", { class: "r" }, h("button", { class: "x", "aria-label": "Eintrag löschen", onclick: () => Store.del("fasts", f.id) }, "×"))); }))
-    )) : h("div", { class: "muted small" }, "Noch keine abgeschlossenen Fastenphasen. Startet oben euren ersten Timer."));
+    const P = persons(), s = settings(), ph = phase(), pi = this.p, tk = dkey(new Date());
+    fill(this.seg, ...[0, 1].map(i => h("button", { type: "button", "aria-pressed": pi === i ? "true" : "false", onclick: () => { this.p = i; this.update(); } }, P[i] + (i === meIdx() ? " (ich)" : ""))));
+    // Fasten
+    const act = S.fasts.find(f => f.person === pi && !f.end);
+    const goal = (act && act.goal) || ph.goal;
+    const el = act ? Date.now() - act.start : 0, pct = act ? el / (goal * 36e5) : 0;
+    const fastCard = h("div", { class: "card ringbox", style: "margin-top:14px" },
+      ring(pct, 210, 16, pct >= 1 ? "var(--orange)" : "var(--tint-fill)",
+        act ? [h("span", { class: "small" }, "Fasten seit"), h("span", { class: "big" }, fmtDur(el)), h("span", { class: "small" }, pct >= 1 ? "Ziel erreicht" : `Ziel ${goal} h`)]
+          : [h("span", { class: "small" }, "Essensfenster"), h("span", { class: "big", style: "font-size:30px" }, `${goal} h`), h("span", { class: "small" }, "Fastenziel")], pct >= 1 ? "done" : ""),
+      act ? h("div", { class: "cell-sub", style: "text-align:center" }, `Begonnen ${new Date(act.start).toLocaleString("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" })} · ${pct >= 1 ? "Essen wenn du so weit bist" : `noch ${fmtDur(goal * 36e5 - el)}`}`) : h("div", { class: "cell-sub", style: "text-align:center" }, `${ph.label} · Serie ${streak(pi, ph.goal)} ${streak(pi, ph.goal) === 1 ? "Tag" : "Tage"}`),
+      h("div", { style: "display:grid;gap:8px;width:100%" },
+        act ? h("button", { class: "btn" + (pct >= 1 ? "" : " gray"), type: "button", onclick: () => {
+          const hrs = (Date.now() - act.start) / 36e5; Store.update("fasts", act.id, { end: Date.now() });
+          toast(hrs >= goal ? `Geschafft: ${fmtDur(Date.now() - act.start)} h gefastet` : `Fasten beendet nach ${fmtDur(Date.now() - act.start)} h`);
+        } }, "Fasten beenden") : h("button", { class: "btn", type: "button", onclick: () => Store.set("fasts", uid(), { person: pi, start: Date.now(), end: null, goal: ph.goal }) }, "Fasten starten"),
+        h("button", { class: "btn gray", type: "button", style: "min-height:40px;font-size:15px", onclick: () => fastTimeSheet(pi, act) }, act ? "Beginn anpassen" : "Schon früher begonnen?")));
+    // Heute (Carbs aus Plan)
+    const meals = planOf(tk); const tot = meals.reduce((a, m) => { const r = recipeById(m.rid); if (r && r.m) r.m.forEach((v, i) => a[i] += Number(v) || 0); return a; }, [0, 0, 0, 0]);
+    const todayCard = h("div", { class: "card today-row" },
+      ring(meals.length ? tot[3] / (s.carbLimit || 20) : 0, 64, 8, carbColor(tot[3], s.carbLimit), h("b", { style: "font-size:15px" }, Math.round(tot[3]))),
+      h("div", { class: "txt" }, h("strong", null, meals.length ? `${Math.round(tot[3])} von ${s.carbLimit} g Netto-KH` : "Heute nichts geplant"),
+        h("span", { class: "cell-sub" }, meals.length ? `${Math.round(tot[0])} kcal · ${Math.round(tot[1])} g Protein · ${meals.length} ${meals.length === 1 ? "Mahlzeit" : "Mahlzeiten"}` : "Im Tab Woche ein Gericht für heute einplanen.")));
+    // Supplemente heute
+    const elecDoc = S.elec.find(e => e.id === tk) || {}; const mine = elecDoc["p" + pi] || {};
+    const toggle = (k, sp) => { const on = !mine[k]; Store.set("elec", tk, { ...strip(elecDoc), ["p" + pi]: { ...mine, [k]: on } });
+      if (sp && sp.stock != null && sp.perDay) Store.update("supps", sp.id, { stock: Math.max(0, Number(sp.stock) + (on ? -1 : 1) * Number(sp.perDay)) }); };
+    const supps = S.supps.filter(x => x.who === "both" || x.who === pi);
+    const suppRow = (k, label, sub, sp) => row({ cls: "ind" + (mine[k] ? " done" : ""), title: label, sub, lead: check(!!mine[k], () => toggle(k, sp), label + " abhaken"), noChev: true, onclick: () => toggle(k, sp) });
+    const groups = WHEN.map(w => [w, supps.filter(x => (x.when || "morgens") === w)]).filter(([, l]) => l.length);
+    const taken = ELEC.filter(([k]) => mine[k]).length + supps.filter(x => mine[x.id]).length, total = ELEC.length + supps.length;
+    // Werte
+    const ms = S.measures.filter(m => m.person === pi).sort((a, b) => a.t - b.t);
+    const kgs = ms.filter(m => m.kg != null), kets = ms.filter(m => m.ket != null);
+    const last = kgs[kgs.length - 1], first = kgs[0], ket = kets[kets.length - 1];
+    const valuesCard = h("div", { class: "card", style: "display:grid;gap:4px" },
+      h("div", { style: "display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap" },
+        h("div", null, h("span", { class: "cell-sub" }, "Gewicht"), h("div", { style: "font-size:28px;font-weight:700;font-variant-numeric:tabular-nums" }, last ? numDE(last.kg) + " kg" : "–")),
+        last && first && first !== last ? h("span", { class: last.kg <= first.kg ? "ok" : "warn", style: "font-weight:600" }, `${last.kg - first.kg > 0 ? "+" : ""}${numDE(last.kg - first.kg)} kg seit ${fmtD(parseKey(first.date))}`) : null),
+      sparkline(kgs.slice(-30).map(m => Number(m.kg))),
+      ket ? h("div", { class: "cell-sub" }, "Ketone zuletzt ", h("b", { class: ket.ket < 0.5 ? "warn" : ket.ket <= 3 ? "ok" : "bad" }, numDE(ket.ket) + " mmol/l"), ` · ${ket.ket < 0.5 ? "keine Ketose" : ket.ket <= 3 ? "in Ketose" : "hoch, beobachten"} · ${fmtD(parseKey(ket.date))}`) : null);
+    const done = S.fasts.filter(f => f.person === pi && f.end).sort((a, b) => b.end - a.end).slice(0, 7);
+    fill(this.out, fastCard,
+      h("section", { class: "sec" }, h("div", { class: "sec-h" }, "Heute"), todayCard),
+      sec(`Supplemente heute · ${taken}/${total}`, [
+        ...groups.flatMap(([w, l]) => l.map(x => suppRow(x.id, x.name, [x.dose, w, x.stock != null && x.perDay ? `noch ${Math.floor(Number(x.stock) / (Number(x.perDay) * (x.who === "both" ? 2 : 1)))} Tage` : ""].filter(Boolean).join(" · "), x))),
+        ...ELEC.map(([k, l]) => suppRow(k, l, "Elektrolyte, über den Tag")),
+      ], { action: h("button", { type: "button", onclick: () => suppsSheet() }, "Bearbeiten") }),
+      h("section", { class: "sec" }, h("div", { class: "sec-h" }, h("span", null, "Werte"), h("button", { type: "button", onclick: () => measureSheet(pi) }, "Eintragen")), valuesCard),
+      done.length ? sec("Letzte Fastenphasen", done.map(f => { const hrs = (f.end - f.start) / 36e5;
+        return swipeable(row({ title: new Date(f.end).toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit" }), detail: fmtDur(f.end - f.start) + " h", badges: hrs >= (f.goal || 0) ? h("span", { class: "badge green" }, "Ziel") : null }), () => deleteWithUndo("fasts", f, "Fastenphase")); })) : null,
+      sec("Einstellungen", [
+        row({ title: "Namen und wer ich bin", detail: P[meIdx()], onclick: () => settingSheet("names") }),
+        row({ title: "Ernährungsphase", detail: ph.label.replace("Keto + ", ""), onclick: () => settingSheet("phase") }),
+        row({ title: "Netto-Carbs pro Tag", detail: `${s.carbLimit} g`, onclick: () => settingSheet("carbs") }),
+        row({ title: "Monatsbudget", detail: euro(s.budget), onclick: () => settingSheet("budget") }),
+        row({ title: "Das essen wir nicht", sub: s.exclude || "nichts", onclick: () => settingSheet("exclude") }),
+        row({ title: "Läden", detail: (s.shops || []).length ? String((s.shops || []).length) : "keine", onclick: () => settingSheet("shops") }),
+        row({ title: "Reihenfolge im Laden", onclick: () => settingSheet("order") }),
+      ], { foot: Store.live ? "Alles wird live mit allen geteilt, die diese Seite mit Bearbeiten-Recht geöffnet haben. „Wer ich bin“ gilt nur für dieses Gerät." : "Diese Version speichert nur auf diesem Gerät." }));
   },
 };
+function fastTimeSheet(pi, act) {
+  const d = act ? new Date(act.start) : new Date(Date.now() - 2 * 36e5);
+  const inp = h("input", { type: "datetime-local", id: "ftStart", value: `${dkey(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}` });
+  openSheet(act ? "Beginn anpassen" : "Fasten starten", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, frow("Begonnen um", inp)), h("div", { class: "sec-f" }, "Zum Beispiel die Uhrzeit der letzten Mahlzeit.")),
+    { cancel: "Abbrechen", action: { label: "Sichern", run: close => {
+      const t = Math.min(new Date(inp.value).getTime() || Date.now(), Date.now());
+      if (act) Store.update("fasts", act.id, { start: t }); else Store.set("fasts", uid(), { person: pi, start: t, end: null, goal: phase().goal });
+      close();
+    } } });
+}
+function measureSheet(pi) {
+  const kg = h("input", { type: "text", id: "msKg", inputmode: "decimal", placeholder: "kg" });
+  const ket = h("input", { type: "text", id: "msKet", inputmode: "decimal", placeholder: "mmol/l" });
+  const date = h("input", { type: "date", id: "msDate", value: dkey(new Date()) });
+  openSheet(`Werte für ${persons()[pi]}`, h("div", null, h("div", { class: "group", style: "margin-top:8px" }, frow("Gewicht", kg), frow("Ketone (Blut)", ket), frow("Datum", date)),
+    h("div", { class: "sec-f" }, "Ketose ab etwa 0,5 mmol/l. Ein Feld reicht.")), { cancel: "Abbrechen", focus: "#msKg", action: { label: "Sichern", run: close => {
+      const k = toNum(kg.value), kt = toNum(ket.value); if (k == null && kt == null) { kg.focus(); return; }
+      const dt = date.value || dkey(new Date());
+      Store.set("measures", uid(), { person: pi, date: dt, kg: k, ket: kt, t: dt === dkey(new Date()) ? Date.now() : parseKey(dt).getTime() + 12 * 36e5 });
+      close(); toast("Gesichert");
+    } } });
+}
+function suppsSheet() {
+  const body = h("div"); const P = persons();
+  const draw = () => fill(body, 
+    sec("", S.supps.length ? S.supps.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(x => {
+      const days = x.stock != null && x.perDay ? Math.floor(Number(x.stock) / (Number(x.perDay) * (x.who === "both" ? 2 : 1))) : null;
+      return swipeable(row({ title: x.name, sub: [x.brand, x.dose, x.when, x.who === "both" ? "beide" : P[x.who], days != null ? `reicht ca. ${days} Tage` : ""].filter(Boolean).join(" · "),
+        badges: days != null && days <= 7 ? h("span", { class: "badge orange" }, "nachbestellen") : null, onclick: () => suppForm(x, draw) }), () => { deleteWithUndo("supps", x); setTimeout(draw, 50); });
+    }) : h("div", { class: "empty" }, "Noch keine Supplemente. Mit Bestand und Tagesdosis rechnet die App aus, wann nachbestellt werden muss."),
+    { foot: "Abhaken im Tab Ich zieht den Bestand automatisch ab." }),
+    h("div", { class: "btn-row" }, h("button", { class: "btn", type: "button", onclick: () => suppForm(null, draw) }, "Supplement hinzufügen")));
+  draw();
+  openSheet("Supplemente", body);
+}
+function suppForm(x, after) {
+  const P = persons(); x = x || { name: "", brand: "", dose: "", when: "morgens", who: "both", stock: null, perDay: 1 };
+  const f = { name: h("input", { type: "text", id: "spName", value: x.name, placeholder: "z. B. Vitamin D3/K2" }), brand: h("input", { type: "text", id: "spBrand", value: x.brand, placeholder: "Hersteller" }),
+    dose: h("input", { type: "text", id: "spDose", value: x.dose, placeholder: "1 Kapsel" }), when: h("select", { id: "spWhen" }, WHEN.map(w => h("option", { selected: w === x.when ? "selected" : null }, w))),
+    who: h("select", { id: "spWho" }, h("option", { value: "both" }, "beide"), [0, 1].map(i => h("option", { value: i, selected: x.who === i ? "selected" : null }, P[i]))),
+    stock: h("input", { type: "text", id: "spStock", inputmode: "numeric", value: x.stock ?? "", placeholder: "z. B. 120" }), per: h("input", { type: "text", id: "spPer", inputmode: "decimal", value: x.perDay ?? 1 }) };
+  openSheet(x.id ? "Supplement" : "Neues Supplement", h("div", null,
+    h("div", { class: "group", style: "margin-top:8px" }, frow("Name", f.name), frow("Hersteller", f.brand), frow("Dosis", f.dose), frow("Wann", f.when), frow("Für", f.who)),
+    sec("Bestand", [frow("Vorrat (Stück)", f.stock), frow("Pro Tag & Person", f.per)]),
+    x.id ? sec("", [h("button", { class: "cell link", type: "button", onclick: () => { addItem(x.name, null, "", "supp", x.brand, "Drogerie & Haushalt"); toast(`${x.name} auf der Liste`); } }, "Nachkaufen")]) : null),
+    { cancel: "Abbrechen", focus: x.id ? null : "#spName", action: { label: "Sichern", run: close => {
+      if (!f.name.value.trim()) { f.name.focus(); return; }
+      const data = { name: f.name.value.trim(), brand: f.brand.value.trim(), dose: f.dose.value.trim(), when: f.when.value, who: f.who.value === "both" ? "both" : Number(f.who.value), stock: toNum(f.stock.value), perDay: toNum(f.per.value) || 1, t: x.t || Date.now() };
+      (x.id ? Store.set("supps", x.id, data) : Store.set("supps", uid(), data)).then(() => after && after());
+      close();
+    } } });
+}
+function settingSheet(kind, after) {
+  const s = settings(); const P = persons(); const done = () => { if (after) setTimeout(after, 80); };
+  if (kind === "names") {
+    const a = h("input", { type: "text", id: "stP1", value: s.p1 }), b = h("input", { type: "text", id: "stP2", value: s.p2 });
+    let me = meIdx(); const seg = h("div", { class: "seg" });
+    const drawSeg = () => fill(seg, ...[0, 1].map(i => h("button", { type: "button", "aria-pressed": me === i ? "true" : "false", onclick: () => { me = i; drawSeg(); } }, i === 0 ? (a.value || P[0]) : (b.value || P[1]))));
+    a.addEventListener("input", drawSeg); b.addEventListener("input", drawSeg); drawSeg();
+    return openSheet("Namen", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, frow("Name 1", a), frow("Name 2", b)), sec("Wer nutzt dieses Gerät?", h("div", { class: "cell" }, h("div", { style: "flex:1" }, seg)), { plain: false })),
+      { cancel: "Abbrechen", action: { label: "Sichern", run: close => { lsSet("kk_me", me); views.ich.p = me; saveSettings({ p1: a.value.trim() || "Person 1", p2: b.value.trim() || "Person 2" }); close(); } } });
+  }
+  if (kind === "phase") {
+    return openSheet("Ernährungsphase", close => h("div", null, sec("", Object.entries(PHASES).map(([k, v]) => row({ title: v.label, sub: `${v.meals} · Fastenziel ${v.goal} h`, noChev: true,
+      trail: k === s.phase ? h("span", { style: "color:var(--tint);font-weight:700" }, "✓") : null, onclick: () => { saveSettings({ phase: k }); close(); } }))),
+      h("div", { class: "sec-f" }, "Der Weg: Keto → 16:8 → OMAD → Karnivor + OMAD. Wochenplan, Fastenziel und Vorschläge richten sich danach.")));
+  }
+  const simple = { carbs: ["Netto-Carbs pro Tag", "carbLimit", "g", "Für die meisten reichen 20–30 g, um in Ketose zu bleiben."], budget: ["Monatsbudget", "budget", "€", "Nur Lebensmittel und Supplemente."] }[kind];
+  if (simple) {
+    const inp = h("input", { type: "text", id: "stVal", inputmode: "decimal", value: s[simple[1]] });
+    return openSheet(simple[0], h("div", null, h("div", { class: "group", style: "margin-top:8px" }, frow(simple[0] + " (" + simple[2] + ")", inp)), h("div", { class: "sec-f" }, simple[3])),
+      { cancel: "Abbrechen", focus: "#stVal", action: { label: "Sichern", run: close => { const v = toNum(inp.value); if (v == null) { inp.focus(); return; } saveSettings({ [simple[1]]: v }); close(); done(); } } });
+  }
+  if (kind === "exclude") {
+    const ta = h("textarea", { class: "ta", id: "stExcl", placeholder: "z. B. Innereien, Fisch, Pilze" }); ta.value = s.exclude || "";
+    return openSheet("Das essen wir nicht", h("div", null, h("div", { class: "group", style: "margin-top:8px" }, h("div", { class: "cell" }, ta)),
+      h("div", { class: "sec-f" }, "Mit Komma trennen. Rezepte mit diesen Zutaten werden ausgeblendet und nicht automatisch eingeplant. Der Vorschlag von Claude hält sich ebenfalls daran.")),
+      { cancel: "Abbrechen", action: { label: "Sichern", run: close => { saveSettings({ exclude: ta.value.trim() }); close(); } } });
+  }
+  if (kind === "shops") {
+    const shops = [...(s.shops || [])]; const body = h("div"); const inp = h("input", { type: "text", id: "stShop", placeholder: "z. B. Aldi, Metzger, dm" });
+    const draw = () => fill(body, 
+      sec("", [...shops.map((x, i) => swipeable(row({ title: x }), () => { shops.splice(i, 1); draw(); })), h("form", { class: "cell", onsubmit: e => { e.preventDefault(); const v = inp.value.trim(); if (v && !shops.includes(v)) shops.push(v); inp.value = ""; draw(); inp.focus(); } }, h("span", { html: ICON.plus, style: "display:flex;width:18px;color:var(--tint)" }), h("div", { style: "flex:1" }, inp))],
+        { foot: "Artikel lassen sich einem Laden zuordnen. Auf der Einkaufsliste könnt ihr dann nach Laden filtern. Zum Entfernen nach links wischen." }));
+    draw();
+    return openSheet("Läden", body, { cancel: "Abbrechen", action: { label: "Sichern", run: close => { const v = inp.value.trim(); if (v && !shops.includes(v)) shops.push(v); saveSettings({ shops }); close(); } } });
+  }
+  if (kind === "order") {
+    const order = catOrder(); const body = h("div");
+    const draw = () => fill(body, sec("", order.map((c, i) => row({ title: c, noChev: true, trail: h("span", { style: "display:flex;gap:4px" },
+      h("button", { type: "button", class: "chip", "aria-label": c + " nach oben", disabled: i === 0 ? true : null, onclick: e => { e.stopPropagation(); [order[i - 1], order[i]] = [order[i], order[i - 1]]; draw(); } }, "↑"),
+      h("button", { type: "button", class: "chip", "aria-label": c + " nach unten", disabled: i === order.length - 1 ? true : null, onclick: e => { e.stopPropagation(); [order[i + 1], order[i]] = [order[i], order[i + 1]]; draw(); } }, "↓")) })),
+      { foot: "So, wie ihr durch euren Laden lauft. Die Einkaufsliste wird in dieser Reihenfolge angezeigt." }));
+    draw();
+    return openSheet("Reihenfolge im Laden", body, { cancel: "Abbrechen", action: { label: "Sichern", run: close => { saveSettings({ catOrder: order }); close(); } } });
+  }
+}
 
-// ============================================================
-// BUDGET
-// ============================================================
-views.budget = {
-  mount(root) {
-    this.head = h("div", { class: "between" });
-    this.stats = h("div", { class: "card" });
-    const date = h("input", { type: "date", id: "bdDate", value: dkey(new Date()) });
-    const shop = h("input", { type: "text", id: "bdShop", placeholder: "Laden" });
-    const amt = h("input", { type: "text", id: "bdAmt", inputmode: "decimal", placeholder: "Betrag €" });
-    this.list = h("div", { class: "card" });
-    this.prices = h("div");
-    const pn = h("input", { type: "text", id: "prName", placeholder: "Artikel, z. B. Rinderhack" });
-    const pe = h("input", { type: "text", id: "prEur", inputmode: "decimal", placeholder: "€" });
-    const pq = h("input", { type: "text", id: "prPer", inputmode: "decimal", value: "1", "aria-label": "Menge" });
-    const pu = h("select", { id: "prUnit", "aria-label": "Einheit" }, UNITS.map(x => h("option", { selected: x === "kg" ? "selected" : null }, x)));
-    this.priceCard = h("div", { class: "card" }, h("h3", null, "Eure Preise"),
-      h("div", { class: "muted small" }, "Daraus berechnet die App die Kosten pro Portion. Ohne eigenen Eintrag gelten Richtwerte (Schätzung)."),
-      h("form", { class: "row", onsubmit: e => {
-        e.preventDefault(); const eur = toNum(pe.value); if (!pn.value.trim() || eur == null) return;
-        const ex = S.prices.find(p => norm(p.name) === norm(pn.value) && p.u === pu.value);
-        Store.set("prices", ex ? ex.id : uid(), { name: pn.value.trim(), eur, per: toNum(pq.value) || 1, u: pu.value, t: Date.now() });
-        pn.value = ""; pe.value = ""; toast("Preis gespeichert");
-      } }, h("div", { class: "grow" }, pn), h("div", { style: "width:80px" }, pe), h("span", { class: "muted small" }, "pro"), h("div", { style: "width:60px" }, pq), h("div", { style: "width:80px" }, pu), h("button", { class: "btn primary", type: "submit" }, "Speichern")),
-      this.prices);
-    root.append(this.head, this.stats,
-      h("form", { class: "card", onsubmit: e => {
-        e.preventDefault(); const a = toNum(amt.value); if (!a) { amt.focus(); return; }
-        Store.set("expenses", uid(), { date: date.value || dkey(new Date()), shop: shop.value.trim() || "Einkauf", amount: a, by: me(), t: Date.now() });
-        amt.value = ""; shop.value = ""; toast("Ausgabe gespeichert");
-      } }, h("h3", null, "Ausgabe eintragen"),
-        h("div", { class: "row" }, h("div", { class: "grow" }, shop), h("div", { style: "width:120px" }, amt)),
-        h("div", { class: "row" }, h("div", { class: "grow" }, date), h("button", { class: "btn primary", type: "submit" }, "Speichern"))),
-      this.list, this.priceCard);
-  },
-  update() {
-    const s = settings(); const P = persons();
-    const ym = `${monthRef.getFullYear()}-${pad(monthRef.getMonth() + 1)}`;
-    const list = S.expenses.filter(e => (e.date || "").startsWith(ym)).sort((a, b) => b.date.localeCompare(a.date) || b.t - a.t);
-    const sum = list.reduce((a, e) => a + (Number(e.amount) || 0), 0);
-    const budget = Number(s.budget) || 0;
-    const now = new Date(); const isCur = ym === `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
-    const daysIn = new Date(monthRef.getFullYear(), monthRef.getMonth() + 1, 0).getDate();
-    const dayN = isCur ? now.getDate() : daysIn;
-    const forecast = dayN ? sum / dayN * daysIn : 0;
-    this.head.replaceChildren(h("h2", null, monthRef.toLocaleDateString("de-DE", { month: "long", year: "numeric" })),
-      h("div", { class: "row" }, h("button", { class: "btn sm", "aria-label": "Voriger Monat", onclick: () => { monthRef = new Date(monthRef.getFullYear(), monthRef.getMonth() - 1, 1); this.update(); } }, "‹"),
-        h("button", { class: "btn sm", "aria-label": "Nächster Monat", onclick: () => { monthRef = new Date(monthRef.getFullYear(), monthRef.getMonth() + 1, 1); this.update(); } }, "›")));
-    const pct = budget ? Math.min(100, sum / budget * 100) : 0;
-    const byShop = {}; list.forEach(e => byShop[e.shop] = (byShop[e.shop] || 0) + Number(e.amount));
-    this.stats.replaceChildren(
-      h("div", { class: "stats" },
-        h("div", null, h("span", { class: "eyebrow" }, "Ausgegeben"), h("span", { class: "big" }, euro(sum))),
-        h("div", null, h("span", { class: "eyebrow" }, "Budget"), h("span", { class: "big muted" }, euro(budget))),
-        h("div", null, h("span", { class: "eyebrow" }, "Übrig"), h("span", { class: "big " + (budget - sum < 0 ? "carb-bad" : "carb-ok") }, euro(budget - sum)))),
-      h("div", { class: "bar" + (sum > budget ? " over" : "") }, h("i", { style: `width:${pct}%` })),
-      h("div", { class: "muted small num" }, isCur && sum ? `Hochrechnung Monatsende: ${euro(forecast)} · Schnitt pro Woche: ${euro(sum / dayN * 7)}` : `${list.length} Einkäufe`),
-      Object.keys(byShop).length ? h("div", { class: "chips" }, Object.entries(byShop).sort((a, b) => b[1] - a[1]).map(([k, v]) => h("span", { class: "tag" }, `${k}: ${euro(v)}`))) : null);
-    this.prices.replaceChildren(
-      S.prices.length ? h("div", null, S.prices.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(p => h("div", { class: "item" },
-        h("div", { class: "name" }, h("span", null, p.name)), h("span", { class: "qty" }, `${euro(p.eur)} / ${numDE(p.per)} ${p.u}`),
-        h("button", { class: "x", "aria-label": p.name + " löschen", onclick: () => Store.del("prices", p.id) }, "×")))) : null,
-      h("details", { class: "small" }, h("summary", { style: "cursor:pointer" }, `Richtwerte ansehen (${PRICE_DEF.length})`),
-        h("div", { class: "muted", style: "padding-top:6px" }, PRICE_DEF.map(([n, e, q, u]) => `${n} ${euro(e)}/${q === 1 ? "" : numDE(q) + " "}${u}`).join(" · "))));
-    this.list.replaceChildren(h("h3", null, "Einkäufe"), list.length ? h("div", null, list.map(e => h("div", { class: "item" },
-      h("div", { class: "name" }, h("span", null, e.shop), h("small", null, fmtD(parseKey(e.date)) + " · " + (P[e.by] || P[0]))),
-      h("span", { class: "qty" }, euro(e.amount)),
-      h("button", { class: "x", "aria-label": "Ausgabe löschen", onclick: () => Store.del("expenses", e.id) }, "×")))) :
-      h("div", { class: "muted small" }, "Keine Ausgaben in diesem Monat. Beim Abschließen eines Einkaufs auf der Liste wird der Betrag hier eingetragen."));
-  },
-};
-
-// ============================================================
-// EINSTELLUNGEN
-// ============================================================
-views.settings = {
-  mount(root) {
-    const s = settings();
-    const p1 = h("input", { type: "text", id: "stP1", value: s.p1 }), p2 = h("input", { type: "text", id: "stP2", value: s.p2 });
-    const phase = h("select", { id: "stPhase" }, Object.entries(PHASES).map(([k, v]) => h("option", { value: k, selected: k === s.phase ? "selected" : null }, v.label)));
-    const carb = h("input", { type: "number", id: "stCarb", min: 5, max: 100, value: s.carbLimit });
-    const budget = h("input", { type: "number", id: "stBudget", min: 0, step: 10, value: s.budget });
-    const excl = h("input", { type: "text", id: "stExcl", value: s.exclude || "", placeholder: "z. B. Innereien, Fisch, Pilze" });
-    const meSel = h("select", { id: "stMe" }, [0, 1].map(i => h("option", { value: i, selected: me() === i ? "selected" : null }, persons()[i])));
-    const order = catOrder();
-    const orderList = h("ul", { class: "order" });
-    const drawOrder = () => orderList.replaceChildren(...order.map((c, i) => h("li", null, h("span", null, c),
-      h("button", { type: "button", class: "btn sm", "aria-label": c + " nach oben", disabled: i === 0 ? true : null, onclick: () => { [order[i - 1], order[i]] = [order[i], order[i - 1]]; drawOrder(); } }, "↑"),
-      h("button", { type: "button", class: "btn sm", "aria-label": c + " nach unten", disabled: i === order.length - 1 ? true : null, onclick: () => { [order[i + 1], order[i]] = [order[i], order[i + 1]]; drawOrder(); } }, "↓"))));
-    drawOrder();
-    root.append(h("h2", null, "Einstellungen"),
-      h("form", { class: "card", onsubmit: e => {
-        e.preventDefault();
-        Store.set("settings", "main", { p1: p1.value.trim() || "Person 1", p2: p2.value.trim() || "Person 2", phase: phase.value, carbLimit: toNum(carb.value) || 20, budget: toNum(budget.value) || 0, catOrder: order, exclude: excl.value.trim() });
-        lsSet("kk_me", Number(meSel.value));
-        toast("Einstellungen gespeichert"); go(lsGet("kk_prevTab", "liste"));
-      } },
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Name 1", p1), h("label", { class: "f grow" }, "Name 2", p2)),
-        h("label", { class: "f" }, "Wer nutzt dieses Gerät?", meSel),
-        h("label", { class: "f" }, "Ernährungsphase", phase),
-        h("div", { class: "row" }, h("label", { class: "f grow" }, "Netto-Carbs pro Tag (g)", carb), h("label", { class: "f grow" }, "Monatsbudget Lebensmittel (€)", budget)),
-        h("label", { class: "f" }, "Das essen wir nicht (für Vorschläge und automatische Planung, mit Komma getrennt)", excl),
-        h("details", null, h("summary", { style: "cursor:pointer;font-weight:600" }, "Reihenfolge der Einkaufsliste (wie die Gänge in eurem Laden)"), orderList),
-        h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, "Speichern"), h("button", { class: "btn ghost", type: "button", onclick: () => go(lsGet("kk_prevTab", "liste")) }, "Zurück"))),
-      h("div", { class: "card small" }, h("h3", null, "Gemeinsam nutzen"),
-        Store.live ? "Alle Änderungen werden live mit allen geteilt, die diese Seite mit Bearbeiten-Recht geöffnet haben. Die Auswahl „Wer nutzt dieses Gerät?“ bleibt nur auf diesem Gerät."
-          : "Diese Version speichert nur auf diesem Gerät. Für die gemeinsame Liste die geteilte claude.ai-Version öffnen."));
-  },
-  update() {},
-};
-document.getElementById("settingsBtn").addEventListener("click", () => {
-  if (tab !== "settings") lsSet("kk_prevTab", tab);
-  tab = "settings"; renderTabs();
-  const main = document.getElementById("main"); main.replaceChildren(); current = views.settings; current.mount(main); window.scrollTo(0, 0);
-});
+// ---------- Willkommen ----------
+function welcome() {
+  if (lsGet("kk_me", null) !== null) return;
+  const P = persons();
+  openSheet("Willkommen", close => h("div", { style: "display:grid;gap:12px;padding:8px 0 12px" },
+    h("h2", null, "Wer bist du?"),
+    h("p", { class: "cell-sub", style: "font-size:15px;margin:0 0 6px" }, "Damit eure Einträge und Timer richtig zugeordnet werden. Das gilt nur für dieses Gerät und lässt sich unter Ich → Einstellungen ändern."),
+    [0, 1].map(i => h("button", { class: "btn" + (i ? " gray" : ""), type: "button", onclick: () => { lsSet("kk_me", i); views.ich.p = i; close(); refresh(); toast(`Hallo ${P[i]}`); } }, P[i]))), { cancel: "Später" });
+}
 
 // ---------- Sync-Anzeige ----------
 function setSync(state, msg) {
-  const pill = document.getElementById("syncPill"), txt = document.getElementById("syncText");
-  pill.classList.toggle("live", state === "live");
-  txt.textContent = state === "live" ? "Live geteilt" : state === "local" ? "Nur dieses Gerät" : state === "error" ? "Sync-Fehler" : "Verbinde …";
-  if (msg) pill.title = msg;
+  const el = document.getElementById("sync");
+  el.className = "sync" + (state === "live" ? " live" : state === "err" ? " err" : "");
+  document.getElementById("syncText").textContent = state === "live" ? "Geteilt" : state === "local" ? "Nur dieses Gerät" : state === "err" ? "Sync-Fehler" : "Verbinde …";
+  if (msg) el.title = msg;
 }
 
 // ---------- Start ----------
 async function start() {
-  renderTabs();
-  go(TABS.some(t => t[0] === tab) ? tab : "liste");
+  renderTabs(); go(tab);
   await Store.init();
   setSync(Store.live ? "live" : "local");
-  for (const col of COLS) {
-    Store.watch(col, docs => { S[col] = docs; S.loaded.add(col); refresh(); });
-  }
-  setTimeout(() => { if (!S.loaded.has("items")) { S.loaded.add("items"); setSync("error", "Daten kamen nicht an"); refresh(); } }, 10000);
-  setInterval(() => { const a = document.activeElement; if (tab === "fasten" && !(a && a.tagName === "INPUT")) views.fasten.update(); }, 30000);
+  for (const col of COLS) Store.watch(col, docs => {
+    S[col] = docs; const first = !S.loaded.has(col); S.loaded.add(col); refresh();
+    if (first && col === "settings") setTimeout(welcome, 400);
+  });
+  setTimeout(() => { if (!S.loaded.has("items")) { S.loaded.add("items"); setSync("err", "Daten kamen nicht an"); refresh(); } }, 10000);
+  setInterval(() => { if (tab === "ich" && !sheetDepth) views.ich.update(); }, 20000);
 }
 start();
 </script>
